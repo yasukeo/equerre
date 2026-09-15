@@ -18,15 +18,19 @@ export function InviteCodeForm({ levels, groups }: Props) {
   const t = useTranslations("tutor.invite");
   const tCommon = useTranslations("common");
   const [state, action, pending] = useActionState(createInviteCode, initialFormState);
+  const submittedLevel = submittedValue(state, "levelCode") ?? "";
+  const submittedGroup = submittedValue(state, "groupId") ?? "";
 
   return (
     <form action={action} className="grid gap-4" noValidate>
       <div className="grid gap-4 sm:grid-cols-2">
+        {/* Keyed so React's post-action form reset keeps the submitted choice (see the invite form). */}
         <SelectField
+          key={`level-${submittedLevel}`}
           id="code-level"
           name="levelCode"
           label={t("level")}
-          defaultValue={submittedValue(state, "levelCode") ?? ""}
+          defaultValue={submittedLevel}
         >
           <option value="">{t("anyLevel")}</option>
           {levels.map((level) => (
@@ -36,10 +40,11 @@ export function InviteCodeForm({ levels, groups }: Props) {
           ))}
         </SelectField>
         <SelectField
+          key={`group-${submittedGroup}`}
           id="code-group"
           name="groupId"
           label={t("group")}
-          defaultValue={submittedValue(state, "groupId") ?? ""}
+          defaultValue={submittedGroup}
         >
           <option value="">{t("noGroup")}</option>
           {groups.map((group) => (

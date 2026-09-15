@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { homePathFor } from "@/lib/auth";
+import { contactFieldsSchema, contactMetadata, contactValues } from "@/lib/contact";
 import { publicEnv } from "@/lib/env";
 import { fieldErrorsFor, textField, type FormState } from "@/lib/form-state";
 import { INVITE_CODE_PATTERN } from "@/lib/invite-code";
@@ -14,7 +15,7 @@ const emailSchema = z.string().trim().toLowerCase().pipe(z.email());
 const newPasswordSchema = z.string().min(8).max(72);
 
 /** Where email links land. `/auth/confirm` exchanges the token, then sends people on. */
-function confirmUrl(next?: string): string {
+function confirmUrl(next = ""): string {
   const url = new URL("/auth/confirm", publicEnv.NEXT_PUBLIC_SITE_URL);
   if (next) {
     url.searchParams.set("suite", next);
@@ -94,7 +95,7 @@ export async function sendMagicLink(_previous: FormState, formData: FormData): P
     options: {
       // Magic links sign existing people in; they never create accounts (DECISIONS.md, D-023).
       shouldCreateUser: false,
-      emailRedirectTo: confirmUrl(safeRedirectPath(parsed.data.suite, "") || undefined),
+      emailRedirectTo: confirmUrl(safeRedirectPath(parsed.data.suite, "")),
     },
   });
 
@@ -108,12 +109,14 @@ export async function sendMagicLink(_previous: FormState, formData: FormData): P
 
 // ─────────────────────────────────────────────────────────────── sign up
 
-const signUpSchema = z.object({
-  inviteCode: z.string().trim().toUpperCase().regex(INVITE_CODE_PATTERN),
-  fullName: z.string().trim().min(2).max(120),
-  email: emailSchema,
-  password: newPasswordSchema,
-});
+const signUpSchema = z
+  .object({
+    inviteCode: z.string().trim().toUpperCase().regex(INVITE_CODE_PATTERN),
+    fullName: z.string().trim().min(2).max(120),
+    email: emailSchema,
+    password: newPasswordSchema,
+  })
+  .extend(contactFieldsSchema.shape);
 
 export async function signUp(_previous: FormState, formData: FormData): Promise<FormState> {
   const t = await getTranslations("auth.signUp");
@@ -122,6 +125,7 @@ export async function signUp(_previous: FormState, formData: FormData): Promise<
     inviteCode: textField(formData, "inviteCode"),
     fullName: textField(formData, "fullName"),
     email: textField(formData, "email"),
+    ...contactValues(formData),
   };
 
   const parsed = signUpSchema.safeParse({ ...values, password: textField(formData, "password") });
@@ -134,6 +138,10 @@ export async function signUp(_previous: FormState, formData: FormData): Promise<
         fullName: t("errors.fullName"),
         email: t("errors.email"),
         password: t("errors.password"),
+        phone: tForms("phone"),
+        guardianPhone: tForms("phone"),
+        school: tForms("tooLong"),
+        guardianName: tForms("tooLong"),
       }),
       values,
     };
@@ -158,7 +166,11 @@ export async function signUp(_previous: FormState, formData: FormData): Promise<
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { invite_code: parsed.data.inviteCode, full_name: parsed.data.fullName },
+      data: {
+        invite_code: parsed.data.inviteCode,
+        full_name: parsed.data.fullName,
+        ...contactMetadata(parsed.data),
+      },
       emailRedirectTo: confirmUrl("/eleve"),
     },
   });

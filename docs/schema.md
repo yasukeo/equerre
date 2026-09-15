@@ -112,7 +112,8 @@ erDiagram
 ## Invariants the database enforces
 
 - Exactly one tutor (`profiles_single_tutor` partial unique index).
-- A new account is always a student, and needs a valid invite code or tutor provisioning (`private.handle_new_user`).
+- A new account is always a student, and needs a valid invite code (`private.handle_new_user`). The tutor's "Créer le compte" issues a one-use code behind the scenes; only the seed, which writes `auth.users` directly, bypasses it.
+- Phone, school and guardian contact given at sign-up are copied onto the profile; malformed phone numbers are dropped rather than failing the sign-up.
 - Students can't change their role, status, level or email (`private.guard_profile_update`).
 - A session belongs to one student or one group, never both.
 - Confirmed sessions never overlap (`sessions_no_overlap` exclusion constraint).

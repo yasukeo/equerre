@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
+import { ContactFields } from "@/components/contact-fields";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Field, SelectField } from "@/components/ui/field";
@@ -16,7 +17,10 @@ type Props = {
 
 export function InviteStudentForm({ levels, groups }: Props) {
   const t = useTranslations("tutor.invite");
+  const tContact = useTranslations("contact");
   const [state, action, pending] = useActionState(inviteStudent, initialFormState);
+  const submittedLevel = submittedValue(state, "levelCode") ?? "";
+  const submittedGroup = submittedValue(state, "groupId") ?? "";
 
   return (
     <form action={action} className="grid gap-4" noValidate>
@@ -41,12 +45,15 @@ export function InviteStudentForm({ levels, groups }: Props) {
         error={fieldError(state, "email")}
       />
       <div className="grid gap-4 sm:grid-cols-2">
+        {/* React resets a form after its action runs; the key remounts each select with the
+            value that was just submitted, so a correction doesn't silently lose the choice. */}
         <SelectField
+          key={`level-${submittedLevel}`}
           id="invite-level"
           name="levelCode"
           label={t("level")}
           required
-          defaultValue={submittedValue(state, "levelCode") ?? ""}
+          defaultValue={submittedLevel}
           error={fieldError(state, "levelCode")}
         >
           <option value="" disabled>
@@ -59,10 +66,11 @@ export function InviteStudentForm({ levels, groups }: Props) {
           ))}
         </SelectField>
         <SelectField
+          key={`group-${submittedGroup}`}
           id="invite-group"
           name="groupId"
           label={t("group")}
-          defaultValue={submittedValue(state, "groupId") ?? ""}
+          defaultValue={submittedGroup}
         >
           <option value="">{t("noGroup")}</option>
           {groups.map((group) => (
@@ -72,6 +80,19 @@ export function InviteStudentForm({ levels, groups }: Props) {
           ))}
         </SelectField>
       </div>
+
+      <ContactFields
+        idPrefix="invite"
+        heading={tContact("tutorHeading")}
+        state={state}
+        labels={{
+          phone: tContact("phone"),
+          phoneHint: tContact("phoneHint"),
+          school: tContact("school"),
+          guardianName: tContact("guardianName"),
+          guardianPhone: tContact("guardianPhone"),
+        }}
+      />
 
       <FormMessage state={state}>
         {state.status === "success" && state.detail ? (
