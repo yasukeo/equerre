@@ -1,0 +1,215 @@
+{
+  "meta": {
+    "description": "Cours particuliers de mathématiques, du collège au bac : leçons, devoirs corrigés et séances au même endroit."
+  },
+  "common": {
+    "skipToContent": "Aller au contenu",
+    "offline": "Pas de connexion. Ce que vous avez saisi est gardé, et l’envoi reprendra dès que le réseau revient.",
+    "signOut": "Se déconnecter",
+    "loading": "Chargement…",
+    "copy": "Copier",
+    "copied": "Copié"
+  },
+  "forms": {
+    "checkFields": "Corrigez les champs signalés ci-dessous."
+  },
+  "home": {
+    "title": "Des maths qui tiennent debout.",
+    "lead": "Cours particuliers de la 1re année collège au 2e bac, avec les leçons, les devoirs et les séances réunis dans un seul espace.",
+    "signIn": "Se connecter",
+    "signUp": "J’ai un code d’invitation"
+  },
+  "auth": {
+    "common": {
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "backToSignIn": "Retour à la connexion"
+    },
+    "signIn": {
+      "title": "Se connecter",
+      "lead": "Élèves et professeure se connectent ici.",
+      "submit": "Se connecter",
+      "submitting": "Connexion…",
+      "forgotPassword": "Mot de passe oublié ?",
+      "magicLinkTitle": "Sans mot de passe",
+      "magicLinkHint": "Recevez un lien de connexion par e-mail.",
+      "magicLinkSubmit": "Recevoir un lien de connexion",
+      "magicLinkSubmitting": "Envoi…",
+      "magicLinkSent": "Si un compte existe pour {email}, un lien de connexion vient d’y être envoyé. Ouvrez-le pour vous connecter.",
+      "noAccount": "Pas encore de compte ?",
+      "signUpLink": "Créer un compte avec un code d’invitation",
+      "errors": {
+        "invalidInput": "Saisissez une adresse e-mail valide et votre mot de passe.",
+        "invalidCredentials": "Adresse e-mail ou mot de passe incorrect. Vérifiez-les, ou recevez un lien de connexion.",
+        "emailNotConfirmed": "Confirmez d’abord votre adresse avec le lien reçu par e-mail.",
+        "rateLimited": "Trop de tentatives. Attendez une minute, puis réessayez.",
+        "linkExpired": "Ce lien n’est plus valable. Connectez-vous ou demandez-en un nouveau.",
+        "unknown": "La connexion n’a pas abouti. Réessayez dans un instant."
+      }
+    },
+    "signUp": {
+      "title": "Créer mon compte",
+      "lead": "Votre professeure vous a donné un code de 8 caractères.",
+      "inviteCode": "Code d’invitation",
+      "inviteCodeHint": "8 lettres et chiffres, par exemple BACPC2K7.",
+      "fullName": "Prénom et nom",
+      "passwordHint": "8 caractères au moins.",
+      "submit": "Créer mon compte",
+      "submitting": "Création…",
+      "checkEmail": "Compte créé. Ouvrez le lien envoyé à {email} pour confirmer votre adresse.",
+      "hasAccount": "Déjà un compte ?",
+      "errors": {
+        "inviteCode": "Ce code ne fonctionne pas. Vérifiez-le, ou demandez-en un nouveau à votre professeure.",
+        "fullName": "Indiquez votre prénom et votre nom.",
+        "email": "Saisissez une adresse e-mail valide.",
+        "password": "Choisissez un mot de passe d’au moins 8 caractères.",
+        "weakPassword": "Ce mot de passe est trop facile à deviner. Choisissez-en un plus long.",
+        "rateLimited": "Trop de tentatives. Attendez une minute, puis réessayez.",
+        "unknown": "Le compte n’a pas pu être créé. Réessayez dans un instant."
+      }
+    },
+    "forgotPassword": {
+      "title": "Mot de passe oublié",
+      "lead": "Indiquez l’adresse de votre compte : vous recevrez un lien pour choisir un nouveau mot de passe.",
+      "submit": "Recevoir le lien",
+      "submitting": "Envoi…",
+      "sent": "Si un compte existe pour {email}, un lien vient d’y être envoyé.",
+      "errors": {
+        "email": "Saisissez une adresse e-mail valide.",
+        "rateLimited": "Trop de demandes. Attendez une minute, puis réessayez."
+      }
+    },
+    "newPassword": {
+      "title": "Choisir un mot de passe",
+      "lead": "Vous l’utiliserez pour vous connecter la prochaine fois.",
+      "password": "Nouveau mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "submit": "Enregistrer le mot de passe",
+      "submitting": "Enregistrement…",
+      "errors": {
+        "password": "Choisissez un mot de passe d’au moins 8 caractères.",
+        "mismatch": "Les deux mots de passe ne sont pas identiques.",
+        "samePassword": "C’est déjà votre mot de passe. Choisissez-en un autre.",
+        "weakPassword": "Ce mot de passe est trop facile à deviner. Choisissez-en un plus long.",
+        "sessionMissing": "Ce lien a expiré. Demandez-en un nouveau depuis « Mot de passe oublié ».",
+        "unknown": "Le mot de passe n’a pas été enregistré. Réessayez dans un instant."
+      }
+    }
+  },
+  "nav": {
+    "tutor": {
+      "label": "Espace professeure",
+      "today": "Aujourd’hui",
+      "invite": "Inviter un élève"
+    },
+    "student": {
+      "label": "Mon espace",
+      "home": "Accueil",
+      "profile": "Profil"
+    }
+  },
+  "session": {
+    "status": {
+      "en_attente": "En attente",
+      "planifiee": "Planifiée",
+      "terminee": "Terminée",
+      "annulee": "Annulée",
+      "absent": "Absent",
+      "refusee": "Refusée"
+    },
+    "mode": {
+      "en_ligne": "En ligne",
+      "domicile": "À domicile",
+      "chez_prof": "Chez le professeur"
+    },
+    "join": "Rejoindre la séance en ligne",
+    "timeRange": "de {start} à {end}"
+  },
+  "tutor": {
+    "today": {
+      "title": "Aujourd’hui",
+      "sessionsHeading": "Séances du jour",
+      "rulerLabel": "Séances du {date}, dans l’ordre",
+      "empty": "Aucune séance aujourd’hui.",
+      "nextSession": "Prochaine séance : {when}, {who}.",
+      "noUpcoming": "Aucune séance planifiée. Les demandes des élèves apparaîtront ici.",
+      "todoHeading": "À traiter",
+      "pendingRequests": "{count, plural, =0 {Aucune demande de séance} one {# demande de séance} other {# demandes de séance}}",
+      "activeStudents": "{count, plural, =0 {Aucun élève actif} one {# élève actif} other {# élèves actifs}}",
+      "weekSessions": "{count, plural, =0 {Aucune séance cette semaine} one {# séance cette semaine} other {# séances cette semaine}}",
+      "inviteAction": "Inviter un élève"
+    },
+    "invite": {
+      "title": "Inviter un élève",
+      "accountHeading": "Créer le compte d’un élève",
+      "accountLead": "L’élève reçoit un lien pour choisir son mot de passe, puis arrive sur son espace.",
+      "fullName": "Prénom et nom",
+      "email": "Adresse e-mail de l’élève",
+      "level": "Niveau",
+      "levelPlaceholder": "Choisir un niveau",
+      "group": "Groupe",
+      "noGroup": "Aucun groupe",
+      "submit": "Créer le compte et envoyer le lien",
+      "submitting": "Création…",
+      "sent": "Compte créé pour {name}. Le lien pour choisir son mot de passe a été envoyé à {email}.",
+      "notSent": "Compte créé pour {name}. L’envoi d’e-mails n’est pas configuré : copiez ce lien et envoyez-le-lui, par WhatsApp par exemple. Il expire vite, envoyez-le maintenant.",
+      "copyLink": "Copier le lien",
+      "codeHeading": "Créer un code d’invitation",
+      "codeLead": "L’élève crée son compte lui-même depuis « Créer mon compte ». Pratique pour un groupe entier.",
+      "anyLevel": "Niveau choisi plus tard",
+      "maxUses": "Nombre d’élèves",
+      "validDays": "Valable (jours)",
+      "codeSubmit": "Créer le code",
+      "codeSubmitting": "Création…",
+      "codeCreated": "Code créé : {code}. Donnez-le aux élèves concernés.",
+      "activeCodes": "Codes en cours",
+      "noCodes": "Aucun code en cours. Créez-en un pour un groupe ou une classe.",
+      "codeUses": "{used} sur {max} utilisés",
+      "codeExpires": "expire le {date}",
+      "codeNeverExpires": "sans date d’expiration",
+      "errors": {
+        "fullName": "Indiquez le prénom et le nom de l’élève.",
+        "email": "Saisissez une adresse e-mail valide.",
+        "level": "Choisissez le niveau de l’élève.",
+        "maxUses": "Entre 1 et 200 élèves.",
+        "validDays": "Entre 1 et 90 jours.",
+        "secretKeyMissing": "La création de comptes n’est pas configurée : ajoutez SUPABASE_SECRET_KEY aux variables d’environnement, puis relancez l’application.",
+        "emailExists": "Un compte existe déjà pour cette adresse. L’élève peut utiliser « Mot de passe oublié ».",
+        "linkFailed": "Le compte est créé, mais le lien n’a pas pu être généré. L’élève peut utiliser « Mot de passe oublié ».",
+        "unknown": "L’opération n’a pas abouti. Réessayez dans un instant."
+      }
+    }
+  },
+  "student": {
+    "home": {
+      "greeting": "Bonjour {name}",
+      "nextSession": "Prochaine séance",
+      "noNextSession": "Aucune séance prévue pour l’instant. Votre professeure vous proposera un créneau.",
+      "upcoming": "Ensuite",
+      "newLessons": "Nouveaux cours",
+      "noLessons": "Aucun cours publié pour votre niveau pour l’instant.",
+      "publishedOn": "publié le {date}"
+    },
+    "profile": {
+      "title": "Mon profil",
+      "email": "Adresse e-mail",
+      "level": "Niveau",
+      "school": "Établissement",
+      "phone": "Téléphone",
+      "guardian": "Contact du parent",
+      "groups": "Groupes",
+      "noGroups": "Aucun groupe",
+      "notProvided": "Non renseigné",
+      "help": "Une information est fausse ? Signalez-la à votre professeure."
+    }
+  },
+  "email": {
+    "invite": {
+      "subject": "Votre compte {brand} est prêt",
+      "greeting": "Bonjour {name},",
+      "body": "Votre professeure a créé votre compte {brand}. Choisissez votre mot de passe avec ce lien :",
+      "button": "Choisir mon mot de passe",
+      "expiry": "Si le lien a expiré, utilisez « Mot de passe oublié » sur la page de connexion."
+    }
+  }
+}
