@@ -63,8 +63,9 @@ enabled = true
 schema_paths = []
 
 [db.seed]
-# If enabled, seeds the database after migrations during a db reset.
-enabled = true
+# Disabled: seed.sql needs SEED_PASSWORD substituted, so it only runs through `pnpm db:seed`
+# (DECISIONS.md, D-028). The file also refuses to run unsubstituted.
+enabled = false
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
 sql_paths = ["./seed.sql"]

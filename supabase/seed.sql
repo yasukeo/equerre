@@ -10,6 +10,16 @@
 
 begin;
 
+-- Refuse to run the raw file (for example from `supabase db reset`): every seed account would
+-- get the placeholder as its password. `pnpm db:seed` substitutes both occurrences below.
+do $$
+begin
+  if '{{SEED_PASSWORD}}' like '{{%' then
+    raise exception 'Run pnpm db:seed: SEED_PASSWORD was not substituted into seed.sql.';
+  end if;
+end;
+$$;
+
 -- ─────────────────────────────────────────────────────────────── helpers (this session only)
 
 create or replace function pg_temp.uid(prefix text, n integer)
@@ -127,7 +137,13 @@ begin
     now(), now(),
     '', '', '', '', '', '', '', ''
   )
-  on conflict (id) do nothing;
+  -- Re-seeding applies the current SEED_PASSWORD and metadata to existing accounts.
+  on conflict (id) do update set
+    email = excluded.email,
+    encrypted_password = excluded.encrypted_password,
+    raw_app_meta_data = excluded.raw_app_meta_data,
+    raw_user_meta_data = excluded.raw_user_meta_data,
+    updated_at = now();
 
   insert into auth.identities (id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
   values (
@@ -258,7 +274,12 @@ on conflict do nothing;
 -- A reusable code for trying self sign-up: joins 2BAC-PC and the Tuesday group.
 insert into public.invite_codes (code, level_code, group_id, max_uses, expires_at)
 values ('BACPC2K7', '2BAC-PC', pg_temp.uid('10000000', 1), 5, now() + interval '30 days')
-on conflict (code) do update set expires_at = excluded.expires_at;
+on conflict (code) do update set
+  level_code = excluded.level_code,
+  group_id = excluded.group_id,
+  max_uses = excluded.max_uses,
+  used_count = 0,
+  expires_at = excluded.expires_at;
 
 -- ─────────────────────────────────────────────────────────────── chapters
 

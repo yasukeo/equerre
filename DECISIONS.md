@@ -87,6 +87,8 @@ An exclusion constraint on `tstzrange(starts_at, ends_at)` covers `planifiee`, `
 **D-028 — Seed accounts use the `.test` domain and a password from `.env.local`.**
 The seed inserts users directly into `auth.users` (the approach Supabase documents for seed files), so it needs no secret key. The password comes from `SEED_PASSWORD` in `.env.local`, never from the repo, because the hosted project is reachable from the internet and a committed password would be a committed tutor login. `.test` addresses can't receive mail, so seed accounts sign in with a password only.
 
+Because the raw file holds a `{{SEED_PASSWORD}}` placeholder, `[db.seed]` is disabled in `supabase/config.toml` and `seed.sql` raises an error if the placeholder was not substituted. `supabase db reset` therefore never creates accounts whose password is the placeholder. Re-seeding is idempotent: it re-applies the current password to seed accounts and resets the trial invite code `BACPC2K7` (usage count, level, group, expiry) that the tests rely on.
+
 **D-029 — What the Supabase advisors reported after phase 0, and what was done.**
 
 - _`public.invite_code_is_valid` is a security-definer function callable by anon._ Intentional: it's how the sign-up form checks a code without exposing `invite_codes`. It returns a boolean only, and 32⁸ codes make guessing impractical. The auth trigger re-checks the code atomically.
