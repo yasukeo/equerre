@@ -7,6 +7,9 @@ try {
 }
 
 const baseURL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
+// Locally you can reuse an installed browser instead of downloading Playwright's build:
+// PLAYWRIGHT_CHANNEL=msedge (or chrome). CI uses the bundled Chromium.
+const channel = process.env.PLAYWRIGHT_CHANNEL || undefined;
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -22,8 +25,8 @@ export default defineConfig({
   },
   projects: [
     // Students: a mid-range Android phone. The tutor: a laptop.
-    { name: "android", use: { ...devices["Pixel 7"] } },
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
+    { name: "android", use: { ...devices["Pixel 7"], channel } },
+    { name: "desktop", use: { ...devices["Desktop Chrome"], channel } },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
