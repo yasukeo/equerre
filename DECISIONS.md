@@ -69,14 +69,16 @@ RLS filters rows, not columns. Anything a row's reader must not see is split out
 - answers and worked solutions → `exercise_solutions` (not columns on `exercises`);
 - the shared session recap stays on `sessions.recap`; her private remarks about a session go to `student_notes.session_id`.
 
-**D-023 — Nobody picks their own role; sign-up needs an invite code or the tutor.**
-The `auth.users` insert trigger always creates a `student` profile, and refuses the insert unless it carries a valid invite code (`user_metadata.invite_code`) or was provisioned by the tutor (`app_metadata.provisioned_by`, which only the secret key can set). Magic-link sign-in passes `shouldCreateUser: false`. A trigger also blocks students from changing their own role, status, level or email.
+**D-023 — Nobody picks their own role; every account needs an invite code.**
+The `auth.users` insert trigger always creates a `student` profile, and refuses the insert unless it carries a valid invite code (`user_metadata.invite_code`). The tutor's own "Créer le compte" also goes through a code (D-025). The only exception is the seed, which writes `auth.users` directly with `app_metadata.provisioned_by = 'seed'`. Magic-link sign-in passes `shouldCreateUser: false`. A trigger also blocks students from changing their own role, status, level or email.
 
 **D-024 — Bootstrapping the real tutor.**
 There's no self-signup for the tutor. On a fresh project: create a one-use invite code in SQL, sign up with it, then `update public.profiles set role = 'tutor', level_code = null where email = '…'`. A partial unique index guarantees there is only ever one tutor. Steps are in the README.
 
-**D-025 — Tutor-provisioned students get a set-password link we send ourselves.**
-The tutor's "add a student" action calls `auth.admin.createUser` (with `app_metadata.provisioned_by = 'tutor'`) and `auth.admin.generateLink({ type: 'recovery' })`, then emails the link through Resend in French. Why: Supabase's built-in SMTP is rate-limited to a few emails an hour and only reaches team members, and its templates aren't ours.
+**D-025 — Tutor-created students: a one-use code, then a set-password link we send ourselves.**
+"Créer le compte" first inserts a one-use invite code as the tutor (through RLS), carrying the chosen level and group. It then calls `auth.admin.createUser` with that code in `user_metadata`, and the trigger consumes it, setting the level and group atomically. It can't use `app_metadata` instead: Supabase Auth's admin API writes `app_metadata` in a separate UPDATE after the INSERT, so the trigger never sees it. That was the original design, and it made every tutor-created account fail; the phase 0 review caught it. The code is deleted if account creation fails.
+
+The action then calls `auth.admin.generateLink({ type: 'recovery' })` and emails the link through Resend in French. Supabase's built-in SMTP is rate-limited to a few emails an hour, only reaches team members, and its templates aren't ours. Inviting an address again re-sends a link, provided that account has never signed in. `tests/rls/provisioning.test.ts` runs this path against the real Auth server when `SUPABASE_SECRET_KEY` is set.
 
 **D-026 — Session statuses.**
 `en_attente` (requested), `planifiee`, `terminee`, `annulee`, `absent`, `refusee` (declined). The brief's lifecycle plus the two states a request needs.
@@ -96,27 +98,43 @@ Because the raw file holds a `{{SEED_PASSWORD}}` placeholder, `[db.seed]` is dis
 - _Leaked password protection is disabled._ An Auth setting, not a migration — turn it on in the dashboard (Authentication › Providers › Email) before real students sign up.
 - _22 unused indexes (info)._ Expected on a new database; they back the queries in the brief (§5) and the foreign keys policies join on.
 
-**D-030 — Email links work on any device.**
-`/auth/confirm` accepts both the PKCE `code` parameter and the `token_hash` parameter. PKCE links only work in the browser that asked for them, which fails when a student requests a link on a laptop and opens it on a phone. The README explains how to switch the Supabase email templates to `token_hash` links. The tutor's set-password links already use `token_hash`.
+**D-030 — Email links work on any device and point only at this site.**
+`/auth/confirm` accepts both the PKCE `code` parameter and the `token_hash` parameter. PKCE links only work in the browser that asked for them, which fails when a student requests a link on a laptop and opens it on a phone. The README therefore switches the Supabase templates to `token_hash` links.
 
-**D-031 — When email isn't configured, the tutor gets the set-password link on screen.**
-Without `RESEND_API_KEY`, "Créer le compte" shows the link with a copy button. That matches how she works today (WhatsApp), and it keeps development free of a mail provider. The link is only ever shown to the tutor.
+Those links are built from `{{ .SiteURL }}`, not `{{ .RedirectTo }}`. Anyone can call the Auth API with a `redirect_to` of their choosing. Templates built on it would let a caller pick the scheme, host or port a victim's token travels to, and would break emails sent from the Supabase dashboard, whose RedirectTo is the bare Site URL. A review of the phase 0 fixes caught this in an earlier draft.
+
+The trade-off: a link opened from such an email lands on the person's own home (or the set-password page for a reset) rather than on the page they were trying to reach. The route also refuses a repeated `code`, `token_hash`, `type` or `suite` parameter, and still passes `suite` through `safeRedirectPath` for the PKCE flow. The tutor's set-password links already use `token_hash`.
+
+**D-031 — When email can't go out, the tutor gets the set-password link on screen.**
+Without `RESEND_API_KEY`, or when Resend rejects a message, "Créer le compte" shows the link with a copy button instead of failing. That matches how she works today (WhatsApp). The link is shown only to the tutor and never logged: outside local development, `sendEmail` logs only the subject of an unsent email, since anyone reading deployed logs could otherwise take over the account.
 
 **D-032 — RLS is tested through the real API.**
 `pnpm test:rls` signs in as seed accounts with the publishable key and asserts what each role can and can't read or write, on the hosted project. A pgTAP suite (`supabase test db`) is the next step once a local Supabase (Docker) is available; the API tests already cover the brief's requirement of testing "through the API, not just the UI".
 
+**D-033 — Redirects are parsed, not prefix-matched.**
+`safeRedirectPath` rejects any value with a control character or a backslash, then parses it against a fixed origin and keeps only path, query and fragment. A prefix check alone let `/\t/evil.test` through: browsers strip the tab and read it as `//evil.test`. The same helper guards `?suite=` on sign-in, magic links and `/auth/confirm`.
+
+**D-034 — Contact details are collected at sign-up.**
+Brief §4.1 asks for phone, school and guardian contact on the new profile. Both sign-up and the tutor's form have optional fields for them, validated by one zod schema (`src/lib/contact.ts`) that matches the database check constraints. The trigger copies them from `user_metadata`. Since a student controls that metadata, the trigger drops a malformed phone number instead of letting a check constraint fail the whole sign-up. Editing them afterwards arrives with the student CRM (phase 2).
+
+**D-035 — French error and not-found pages.**
+`app/not-found.tsx`, `app/error.tsx` and `app/global-error.tsx` replace Next's English defaults. The workspaces have their own `error.tsx`, so the navigation stays on screen when a page fails. `global-error.tsx` replaces the root layout and has no translation provider, so it imports the dictionary file directly.
+
+**D-036 — The trial invite code is development data.**
+The seed's `BACPC2K7` (5 uses, 30 days) exists for trying self sign-up. The sign-up hint no longer quotes it, and the README says to delete it before real students use the project.
+
 ## Content
 
-**D-030 — Tiptap JSON vocabulary.**
+**D-040 — Tiptap JSON vocabulary.**
 Lessons, exercise statements and solutions use Tiptap's JSON with these node types: `doc`, `paragraph`, `heading` (levels 2–3), `bulletList`, `orderedList`, `listItem`, `text` (marks `bold`, `italic`), `inlineMath` and `blockMath` (attr `latex`, from `@tiptap/extension-mathematics`), `callout` (attr `kind`: `definition` · `theoreme` · `propriete` · `exemple` · `attention`), `image` (attrs `src`, `alt`) and `fileAttachment` (attrs `path`, `name`, `size`). The server renderer (phase 1) handles exactly this set.
 
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
 
-| Where                                    | What for                                                           | Why it needs the secret key                                                                            |
-| ---------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| Tutor "add a student" action (phase 0/1) | `auth.admin.createUser`, `auth.admin.generateLink`                 | Creating another person's account and marking it `provisioned_by` is an admin operation by definition. |
-| `/api/cron/*` route handlers (phase 2)   | Read upcoming sessions and stamp `reminder_*_sent_at` for everyone | A cron job has no signed-in user, so no RLS identity.                                                  |
+| Where                                    | What for                                                                     | Why it needs the secret key                                                                                                                 |
+| ---------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tutor "add a student" action (phase 0/1) | `auth.admin.createUser`, `auth.admin.getUserById`, `auth.admin.generateLink` | Creating another person's account, checking whether it was ever used, and issuing its set-password link are admin operations by definition. |
+| `/api/cron/*` route handlers (phase 2)   | Read upcoming sessions and stamp `reminder_*_sent_at` for everyone           | A cron job has no signed-in user, so no RLS identity.                                                                                       |
 
 The seed script does not use it (D-028).

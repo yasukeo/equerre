@@ -80,7 +80,7 @@ This loads 1 tutor, 8 students, 3 groups, 12 lessons, 30 exercises and 40 sessio
 | `imane.chraibi@equerre.test`   | Student, 2BAC SM A               |
 | `yassine.bennani@equerre.test` | Student, 1BAC SM, Saturday group |
 
-The invite code `BACPC2K7` lets you try self sign-up.
+The invite code `BACPC2K7` lets you try self sign-up. It is development data: delete that row before real students sign up on the same project.
 
 ### 7. Run it
 
@@ -94,11 +94,14 @@ Open <http://localhost:3000> and sign in.
 
 In the Supabase dashboard, under **Authentication**:
 
-- **URL Configuration:** set _Site URL_ to your site, and add `http://localhost:3000/auth/confirm` and `https://<your-domain>/auth/confirm` to _Redirect URLs_.
-- **Emails › Templates:** make links work when opened on a different device than the one that asked for them (DECISIONS.md, D-030):
+- **URL Configuration:** set _Site URL_ to your site, on https in production. Add `https://<your-domain>/auth/confirm**` to _Redirect URLs_; the `**` lets a `?suite=` query through. Add `http://localhost:3000/auth/confirm**` only on a development project, never on the one real students use.
+- **Emails › Templates:** make links work when opened on a different device than the one that asked for them (DECISIONS.md, D-030). The links are anchored to the Site URL on purpose, so nobody calling the Auth API can point a student's link at another scheme, host or port:
   - _Magic link:_ `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`
-  - _Confirm sign up:_ `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&suite=/eleve`
+  - _Confirm sign up:_ `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`
   - _Reset password:_ `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`
+
+  After verifying, `/auth/confirm` sends people to their own home, or to the set-password page for a reset link.
+
 - **Emails › SMTP:** send through Resend. Supabase's built-in mail only reaches your own team and a few messages an hour.
 - **Providers › Email:** turn on leaked password protection, and set the email OTP expiry to 24 hours so a set-password link survives until the student opens it.
 
@@ -108,10 +111,10 @@ There is no sign-up for the tutor (DECISIONS.md, D-024). On a fresh project, in 
 
 ```sql
 insert into public.invite_codes (code, max_uses, expires_at)
-values ('PROFSTRT', 1, now() + interval '1 day');
+values ('PRFSTRT2', 1, now() + interval '1 day');
 ```
 
-Sign up at `/inscription` with that code, then:
+Codes are exactly 8 characters from A–Z and 2–9, without I, O, 0 or 1; the database rejects anything else. Sign up at `/inscription` with that code, then:
 
 ```sql
 update public.profiles
@@ -166,4 +169,4 @@ tests/
 2. Set **Node.js version** to 24.x and the **function region** to `dub1` (Dublin), next to the Supabase project.
 3. Add every variable from `.env.local` except `SUPABASE_DB_URL` and `SEED_PASSWORD`, with `NEXT_PUBLIC_SITE_URL` set to the deployment URL.
 4. Add `ENABLE_EXPERIMENTAL_COREPACK=1` so Vercel uses pnpm 12 (DECISIONS.md, D-013).
-5. Add the deployment's `/auth/confirm` URL to Supabase's redirect URLs.
+5. Add `https://<deployment-host>/auth/confirm**` to Supabase's redirect URLs, with the trailing `**` (see "Supabase Auth settings").
