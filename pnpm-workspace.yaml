@@ -1,0 +1,13 @@
+allowBuilds:
+  supabase: true
+  unrs-resolver: true
+  esbuild: true
+  sharp: true
+  # Only used by next-intl's optional message extractor; prebuilt binaries ship as optional deps.
+  "@parcel/watcher": false
+  "@swc/core": false
+minimumReleaseAgeExclude:
+  - icu-minify@4.14.5
+  - next-intl-swc-plugin-extractor@4.14.5
+  - next-intl@4.14.5
+  - use-intl@4.14.5

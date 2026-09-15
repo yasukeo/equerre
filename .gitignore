@@ -1,0 +1,39 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# production
+/build
+
+# testing
+/coverage
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# env — only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# supabase local state
+/supabase/.branches
+/supabase/.temp
+
+# vercel
+.vercel
+
+# os / editors
+.DS_Store
+Thumbs.db
+*.pem
+npm-debug.log*
+pnpm-debug.log*
