@@ -102,10 +102,7 @@ async function StudentHome() {
             </p>
             {next.status === "en_attente" ? (
               <div className="justify-self-start">
-                <SessionStatusChip
-                  status={next.status}
-                  label={tSession(`status.${next.status}`)}
-                />
+                <SessionStatusChip status={next.status} label={tSession(`status.${next.status}`)} />
               </div>
             ) : null}
             {next.mode === "en_ligne" && next.meeting_url ? (
