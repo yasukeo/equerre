@@ -21,7 +21,7 @@ export default async function HomePage() {
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(var(--quadrillage)_1px,transparent_1px),linear-gradient(90deg,var(--quadrillage)_1px,transparent_1px)] mask-[linear-gradient(to_bottom,black_30%,transparent_90%)] bg-size-[20px_20px]"
         />
         <div className="relative mx-auto w-full max-w-3xl py-16">
-          <h1 className="text-[clamp(2.25rem,1.6rem+3vw,3.75rem)] leading-[1.05] font-semibold text-balance [font-variation-settings:'HEXP'_100]">
+          <h1 className="text-[clamp(2.25rem,1.6rem+3vw,3.75rem)] leading-[1.05] font-semibold text-balance [font-variation-settings:'HEXP'_70] sm:[font-variation-settings:'HEXP'_100]">
             {t("title")}
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-encre-douce">{t("lead")}</p>

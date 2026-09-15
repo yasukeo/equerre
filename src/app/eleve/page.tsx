@@ -76,18 +76,25 @@ async function StudentHome() {
                 {formatLocal(next.starts_at, "EEEE d MMMM")}
               </p>
             </div>
-            <p className="flex flex-wrap items-center gap-2 text-sm text-encre-douce">
+            <p className="flex items-start gap-2 text-sm text-encre-douce">
               {next.mode === "en_ligne" ? (
-                <Video aria-hidden="true" className="size-4" />
+                <Video aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
               ) : (
-                <MapPin aria-hidden="true" className="size-4" />
+                <MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
               )}
-              {[next.session_type?.name, tSession(`mode.${next.mode}`), next.group?.name]
-                .filter(Boolean)
-                .join(" · ")}
+              <span>
+                {[next.session_type?.name, tSession(`mode.${next.mode}`), next.group?.name]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
             </p>
             {next.status === "en_attente" ? (
-              <SessionStatusChip status={next.status} label={tSession(`status.${next.status}`)} />
+              <div className="justify-self-start">
+                <SessionStatusChip
+                  status={next.status}
+                  label={tSession(`status.${next.status}`)}
+                />
+              </div>
             ) : null}
             {next.mode === "en_ligne" && next.meeting_url ? (
               <a href={next.meeting_url} className={cn(buttonVariants(), "justify-self-start")}>
@@ -110,7 +117,7 @@ async function StudentHome() {
             {later.map((session) => (
               <li
                 key={session.id}
-                className="flex min-h-16 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3"
+                className="grid min-h-16 grid-cols-[1fr_auto] items-start gap-x-4 py-3"
               >
                 <div>
                   <p className="font-medium first-letter:uppercase">

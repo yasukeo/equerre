@@ -18,7 +18,7 @@ function FieldShell({ id, label, hint, error, className, children }: FieldShellP
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className={cn("grid gap-1.5", className)}>
+    <div className={cn("grid content-start gap-1.5", className)}>
       <Label htmlFor={id}>{label}</Label>
       {hint ? (
         <p id={hintId} className="text-sm text-encre-douce">
