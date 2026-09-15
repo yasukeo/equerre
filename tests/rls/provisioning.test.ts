@@ -1,0 +1,95 @@
+import { afterEach, describe, expect, it } from "vitest";
+import { generateInviteCode } from "@/lib/invite-code";
+import { adminClient, seedId, signedInAs, type Client } from "./clients";
+
+// Exercises the tutor's "Créer le compte d'un élève" path end to end against the real
+// Auth server: the one-use invite code must reach the auth.users INSERT trigger, because
+// Supabase Auth only writes app_metadata after that INSERT (DECISIONS.md, D-025).
+// Needs SUPABASE_SECRET_KEY; skipped without it.
+
+const admin = adminClient();
+const saturdayGroup = seedId("10000000", 2);
+
+describe.skipIf(!admin)("tutor provisioning through the admin API", () => {
+  // Supabase query builders are thenables rather than Promises.
+  const cleanups: Array<() => PromiseLike<unknown>> = [];
+
+  afterEach(async () => {
+    while (cleanups.length > 0) {
+      await cleanups.pop()?.();
+    }
+  });
+
+  async function oneUseCode(tutor: Client): Promise<string> {
+    const code = generateInviteCode();
+    const { error } = await tutor.from("invite_codes").insert({
+      code,
+      level_code: "1BAC-SM",
+      group_id: saturdayGroup,
+      max_uses: 1,
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    });
+    expect(error).toBeNull();
+    cleanups.push(() => tutor.from("invite_codes").delete().eq("code", code));
+    return code;
+  }
+
+  it("creates a student with the code's level and group, and consumes the code", async () => {
+    if (!admin) return;
+    const tutor = await signedInAs("prof@equerre.test");
+    const code = await oneUseCode(tutor);
+    const email = `provisioning-${Date.now()}@equerre.test`;
+
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      user_metadata: { invite_code: code, full_name: "Élève Provisionné" },
+    });
+    expect(error).toBeNull();
+    const userId = data.user?.id;
+    expect(userId).toBeDefined();
+    if (!userId) return;
+    cleanups.push(() => admin.auth.admin.deleteUser(userId));
+
+    const profile = await tutor
+      .from("profiles")
+      .select("role, level_code, full_name, email")
+      .eq("id", userId)
+      .single();
+    expect(profile.data).toEqual({
+      role: "student",
+      level_code: "1BAC-SM",
+      full_name: "Élève Provisionné",
+      email,
+    });
+
+    const membership = await tutor
+      .from("group_members")
+      .select("group_id")
+      .eq("student_id", userId);
+    expect(membership.data).toEqual([{ group_id: saturdayGroup }]);
+
+    const stillValid = await tutor.rpc("invite_code_is_valid", { p_code: code });
+    expect(stillValid.data).toBe(false);
+
+    const link = await admin.auth.admin.generateLink({ type: "recovery", email });
+    expect(link.error).toBeNull();
+    expect(link.data.properties?.hashed_token).toBeTruthy();
+  });
+
+  it("refuses an admin-created account that carries no invite code", async () => {
+    if (!admin) return;
+    const { data, error } = await admin.auth.admin.createUser({
+      email: `no-code-admin-${Date.now()}@equerre.test`,
+      email_confirm: true,
+      user_metadata: { full_name: "Sans code" },
+      // Written by Auth only after the INSERT, so the trigger can't rely on it.
+      app_metadata: { provisioned_by: "tutor" },
+    });
+    const userId = data.user?.id;
+    if (userId) {
+      cleanups.push(() => admin.auth.admin.deleteUser(userId));
+    }
+    expect(error).not.toBeNull();
+  });
+});

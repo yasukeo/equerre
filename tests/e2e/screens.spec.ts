@@ -18,7 +18,10 @@ async function signIn(page: Page, email: string) {
 
 async function capture(page: Page, name: string, projectName: string) {
   await page.waitForLoadState("networkidle");
-  await page.screenshot({ path: `test-results/screens/${projectName}/${name}.png`, fullPage: true });
+  await page.screenshot({
+    path: `test-results/screens/${projectName}/${name}.png`,
+    fullPage: true,
+  });
 }
 
 for (const scheme of ["light", "dark"] as const) {
