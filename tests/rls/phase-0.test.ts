@@ -1,24 +1,8 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
-import type { Database } from "@/types/database";
+import { anonymousClient, seedId, signedInAs, type Client } from "./clients";
 
 // These go through the public API with the publishable key, exactly like a browser would.
 // If a policy is missing or too loose, a test here fails — the UI is not involved.
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`${name} is required for RLS tests (see vitest.rls.config.mts).`);
-  }
-  return value;
-}
-
-const url = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
-const publishableKey = requireEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
-const password = requireEnv("SEED_PASSWORD");
-
-const seedId = (prefix: string, n: number) =>
-  `${prefix}-0000-4000-8000-${String(n).padStart(12, "0")}`;
 
 const ids = {
   tutor: seedId("00000000", 1),
@@ -29,23 +13,6 @@ const ids = {
   salmaOnlyLesson: seedId("30000000", 6),
   otherLevelLesson: seedId("30000000", 7),
 };
-
-type Client = SupabaseClient<Database>;
-
-function anonymousClient(): Client {
-  return createClient<Database>(url, publishableKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-async function signedInAs(email: string): Promise<Client> {
-  const client = anonymousClient();
-  const { error } = await client.auth.signInWithPassword({ email, password });
-  if (error) {
-    throw new Error(`Could not sign in as ${email}: ${error.message}. Has the seed been loaded?`);
-  }
-  return client;
-}
 
 describe("a student", () => {
   let salma: Client;
