@@ -7,15 +7,24 @@ import { createClient } from "@/lib/supabase/server";
 const emailOtpType = z.enum(["signup", "invite", "magiclink", "recovery", "email_change", "email"]);
 
 /**
+ * The value of a query parameter that must appear exactly once. Links come from Supabase or
+ * from this app and never repeat a token, type or destination, so a repeat is refused.
+ */
+function single(searchParams: URLSearchParams, name: string): string | null {
+  const values = searchParams.getAll(name);
+  return values.length === 1 ? (values[0] ?? null) : null;
+}
+
+/**
  * Landing point for every email link: sign-up confirmation, magic link, password reset,
  * and the set-password link the tutor sends. Accepts both the PKCE `code` flow and the
  * `token_hash` flow (which also works when the link is opened on another device).
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
-  const code = searchParams.get("code");
-  const tokenHash = searchParams.get("token_hash");
-  const type = emailOtpType.safeParse(searchParams.get("type"));
+  const code = single(searchParams, "code");
+  const tokenHash = single(searchParams, "token_hash");
+  const type = emailOtpType.safeParse(single(searchParams, "type"));
 
   const supabase = await createClient();
   let verified = false;
@@ -36,7 +45,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/nouveau-mot-de-passe", request.url));
   }
 
-  const next = safeRedirectPath(searchParams.get("suite"), "");
+  const next = safeRedirectPath(single(searchParams, "suite"), "");
   if (next) {
     return NextResponse.redirect(new URL(next, request.url));
   }
