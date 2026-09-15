@@ -11,7 +11,31 @@
     "copied": "Copié"
   },
   "forms": {
-    "checkFields": "Corrigez les champs signalés ci-dessous."
+    "checkFields": "Corrigez les champs signalés.",
+    "phone": "Saisissez un numéro de 6 à 20 chiffres, par exemple +212 612 345 678.",
+    "tooLong": "120 caractères au maximum."
+  },
+  "contact": {
+    "selfHeading": "Pour vous joindre (facultatif)",
+    "tutorHeading": "Coordonnées (facultatif)",
+    "phone": "Téléphone",
+    "phoneHint": "Par exemple +212 612 345 678.",
+    "school": "Établissement",
+    "guardianName": "Nom du parent",
+    "guardianPhone": "Téléphone du parent"
+  },
+  "errors": {
+    "notFound": {
+      "title": "Page introuvable",
+      "lead": "Cette adresse ne correspond à aucune page. Vérifiez le lien, ou repartez de l’accueil.",
+      "home": "Revenir à l’accueil"
+    },
+    "generic": {
+      "title": "Cette page n’a pas pu s’afficher",
+      "lead": "Réessayez. Si le problème continue, repartez de l’accueil.",
+      "retry": "Réessayer",
+      "home": "Revenir à l’accueil"
+    }
   },
   "home": {
     "title": "Des maths qui tiennent debout.",
@@ -51,7 +75,7 @@
       "title": "Créer mon compte",
       "lead": "Votre professeure vous a donné un code de 8 caractères.",
       "inviteCode": "Code d’invitation",
-      "inviteCodeHint": "8 lettres et chiffres, par exemple BACPC2K7.",
+      "inviteCodeHint": "8 lettres et chiffres, sans I, O, 0 ni 1.",
       "fullName": "Prénom et nom",
       "passwordHint": "8 caractères au moins.",
       "submit": "Créer mon compte",
@@ -152,7 +176,9 @@
       "submit": "Créer le compte et envoyer le lien",
       "submitting": "Création…",
       "sent": "Compte créé pour {name}. Le lien pour choisir son mot de passe a été envoyé à {email}.",
-      "notSent": "Compte créé pour {name}. L’envoi d’e-mails n’est pas configuré : copiez ce lien et envoyez-le-lui, par WhatsApp par exemple. Il expire vite, envoyez-le maintenant.",
+      "notSent": "Compte créé pour {name}, mais l’e-mail n’est pas parti : copiez ce lien et envoyez-le-lui, par WhatsApp par exemple. Il expire vite, envoyez-le maintenant.",
+      "resent": "{name} n’avait pas encore activé son compte : un nouveau lien a été envoyé à {email}.",
+      "resentNotSent": "{name} n’avait pas encore activé son compte. Voici un nouveau lien à lui envoyer, par WhatsApp par exemple. Il expire vite, envoyez-le maintenant.",
       "copyLink": "Copier le lien",
       "codeHeading": "Créer un code d’invitation",
       "codeLead": "L’élève crée son compte lui-même depuis « Créer mon compte ». Pratique pour un groupe entier.",
@@ -174,8 +200,8 @@
         "maxUses": "Entre 1 et 200 élèves.",
         "validDays": "Entre 1 et 90 jours.",
         "secretKeyMissing": "La création de comptes n’est pas configurée : ajoutez SUPABASE_SECRET_KEY aux variables d’environnement, puis relancez l’application.",
-        "emailExists": "Un compte existe déjà pour cette adresse. L’élève peut utiliser « Mot de passe oublié ».",
-        "linkFailed": "Le compte est créé, mais le lien n’a pas pu être généré. L’élève peut utiliser « Mot de passe oublié ».",
+        "emailExists": "Un compte déjà utilisé existe pour cette adresse. L’élève peut se connecter, ou utiliser « Mot de passe oublié ».",
+        "linkFailed": "Le compte existe, mais le lien n’a pas pu être généré. Relancez « Créer le compte » avec la même adresse pour obtenir un nouveau lien.",
         "unknown": "L’opération n’a pas abouti. Réessayez dans un instant."
       }
     }

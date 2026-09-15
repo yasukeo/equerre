@@ -1,4 +1,5 @@
 import { MapPin, Video } from "lucide-react";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { SessionStatusChip } from "@/components/session-status";
@@ -7,6 +8,11 @@ import { requireViewer } from "@/lib/auth";
 import { formatLocal } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("nav.student");
+  return { title: t("home") };
+}
 
 export default function StudentHomePage() {
   return (

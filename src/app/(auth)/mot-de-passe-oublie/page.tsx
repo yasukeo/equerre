@@ -20,7 +20,7 @@ export default async function ForgotPasswordPage() {
       <p className="mt-8 border-t border-quadrillage pt-6 text-sm">
         <Link
           href="/connexion"
-          className="underline decoration-trait underline-offset-4 hover:decoration-encre"
+          className="inline-flex min-h-11 items-center underline decoration-trait underline-offset-4 hover:decoration-encre"
         >
           {tCommon("backToSignIn")}
         </Link>

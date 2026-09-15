@@ -1,15 +1,41 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { FormMessage } from "@/components/ui/form-message";
 import { initialFormState, submittedValue } from "@/lib/form-state";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 import { sendMagicLink, signInWithPassword } from "../actions";
 
-export function SignInForms({ next, linkExpired }: { next: string; linkExpired: boolean }) {
+/** Where to go after signing in, read from `?suite=`. Only this input waits for the URL. */
+function RedirectTarget() {
+  const searchParams = useSearchParams();
+  return (
+    <input type="hidden" name="suite" value={safeRedirectPath(searchParams.get("suite"), "")} />
+  );
+}
+
+function LinkExpiredAlert() {
+  const t = useTranslations("auth.signIn.errors");
+  const searchParams = useSearchParams();
+  if (searchParams.get("erreur") !== "lien") {
+    return null;
+  }
+  return (
+    <p
+      role="alert"
+      className="rounded-md border border-stylo-rouge/40 bg-lavis-rouge px-3 py-2.5 text-sm text-stylo-rouge"
+    >
+      {t("linkExpired")}
+    </p>
+  );
+}
+
+export function SignInForms() {
   const t = useTranslations("auth");
   const [passwordState, passwordAction, passwordPending] = useActionState(
     signInWithPassword,
@@ -19,17 +45,14 @@ export function SignInForms({ next, linkExpired }: { next: string; linkExpired: 
 
   return (
     <div className="mt-6 grid gap-8">
-      {linkExpired ? (
-        <p
-          role="alert"
-          className="rounded-md border border-stylo-rouge/40 bg-lavis-rouge px-3 py-2.5 text-sm text-stylo-rouge"
-        >
-          {t("signIn.errors.linkExpired")}
-        </p>
-      ) : null}
+      <Suspense fallback={null}>
+        <LinkExpiredAlert />
+      </Suspense>
 
       <form action={passwordAction} className="grid gap-4" noValidate>
-        <input type="hidden" name="suite" value={next} />
+        <Suspense fallback={null}>
+          <RedirectTarget />
+        </Suspense>
         <Field
           id="signin-email"
           name="email"
@@ -40,7 +63,7 @@ export function SignInForms({ next, linkExpired }: { next: string; linkExpired: 
           required
           defaultValue={submittedValue(passwordState, "email")}
         />
-        <div className="grid gap-2">
+        <div className="grid gap-1">
           <Field
             id="signin-password"
             name="password"
@@ -51,7 +74,7 @@ export function SignInForms({ next, linkExpired }: { next: string; linkExpired: 
           />
           <Link
             href="/mot-de-passe-oublie"
-            className="justify-self-end py-1 text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+            className="inline-flex min-h-11 items-center justify-self-end text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
           >
             {t("signIn.forgotPassword")}
           </Link>
@@ -73,7 +96,9 @@ export function SignInForms({ next, linkExpired }: { next: string; linkExpired: 
           <p className="text-sm text-encre-douce">{t("signIn.magicLinkHint")}</p>
         </div>
         <form action={linkAction} className="grid gap-4" noValidate>
-          <input type="hidden" name="suite" value={next} />
+          <Suspense fallback={null}>
+            <RedirectTarget />
+          </Suspense>
           <Field
             id="magic-link-email"
             name="email"
