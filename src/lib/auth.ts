@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
@@ -24,6 +25,9 @@ export function homePathFor(role: Role): string {
  * profile through RLS. Deduplicated per request. Call it inside a <Suspense> boundary.
  */
 export const getViewer = cache(async (): Promise<Viewer | null> => {
+  // getClaims compares the token's expiry with the current time. Cache Components only
+  // allows reading the clock once rendering is tied to a real request.
+  await connection();
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims.sub;
