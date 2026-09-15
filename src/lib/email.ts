@@ -10,14 +10,19 @@ export type OutgoingEmail = {
 };
 
 /**
- * Sends through Resend. Without RESEND_API_KEY it logs the email instead, so development
- * never needs a mail provider. Callers learn which happened from `delivered`.
+ * Sends through Resend. Without RESEND_API_KEY nothing is sent, and callers learn that from
+ * `delivered`. Emails can carry sign-in links, so their content is only ever printed in local
+ * development — never in a deployed environment's logs.
  */
 export async function sendEmail(email: OutgoingEmail): Promise<{ delivered: boolean }> {
   if (!serverEnv.RESEND_API_KEY) {
-    console.info(
-      `[email] RESEND_API_KEY is not set, so this email was not sent.\nTo: ${email.to}\nSubject: ${email.subject}\n\n${email.text}`,
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.info(
+        `[email] RESEND_API_KEY is not set, so this email was not sent.\nTo: ${email.to}\nSubject: ${email.subject}\n\n${email.text}`,
+      );
+    } else {
+      console.info(`[email] RESEND_API_KEY is not set; "${email.subject}" was not sent.`);
+    }
     return { delivered: false };
   }
 
@@ -31,7 +36,7 @@ export async function sendEmail(email: OutgoingEmail): Promise<{ delivered: bool
   });
 
   if (error) {
-    throw new Error(`Resend rejected the email to ${email.to}: ${error.message}`);
+    throw new Error(`Resend rejected an email: ${error.message}`);
   }
   return { delivered: true };
 }

@@ -43,7 +43,13 @@ describe.skipIf(!admin)("tutor provisioning through the admin API", () => {
     const { data, error } = await admin.auth.admin.createUser({
       email,
       email_confirm: true,
-      user_metadata: { invite_code: code, full_name: "Élève Provisionné" },
+      user_metadata: {
+        invite_code: code,
+        full_name: "Élève Provisionné",
+        phone: "+212 600 000 999",
+        school: "Lycée d’essai",
+        guardian_phone: "pas-un-numéro",
+      },
     });
     expect(error).toBeNull();
     const userId = data.user?.id;
@@ -53,7 +59,7 @@ describe.skipIf(!admin)("tutor provisioning through the admin API", () => {
 
     const profile = await tutor
       .from("profiles")
-      .select("role, level_code, full_name, email")
+      .select("role, level_code, full_name, email, phone, school, guardian_phone")
       .eq("id", userId)
       .single();
     expect(profile.data).toEqual({
@@ -61,6 +67,10 @@ describe.skipIf(!admin)("tutor provisioning through the admin API", () => {
       level_code: "1BAC-SM",
       full_name: "Élève Provisionné",
       email,
+      phone: "+212 600 000 999",
+      school: "Lycée d’essai",
+      // A malformed number is dropped instead of failing the sign-up.
+      guardian_phone: null,
     });
 
     const membership = await tutor
@@ -83,8 +93,9 @@ describe.skipIf(!admin)("tutor provisioning through the admin API", () => {
       email: `no-code-admin-${Date.now()}@equerre.test`,
       email_confirm: true,
       user_metadata: { full_name: "Sans code" },
-      // Written by Auth only after the INSERT, so the trigger can't rely on it.
-      app_metadata: { provisioned_by: "tutor" },
+      // "seed" is the one value the trigger honours. Auth writes app_metadata only after the
+      // INSERT, so even that can't be smuggled in through the admin API.
+      app_metadata: { provisioned_by: "seed" },
     });
     const userId = data.user?.id;
     if (userId) {
