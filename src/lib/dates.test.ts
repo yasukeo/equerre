@@ -9,8 +9,9 @@ import {
   localWeekBounds,
 } from "./dates";
 
-// Morocco suspends its UTC+1 offset for Ramadan. In 2026 that covers roughly
-// mid-February to late March, so 1 March is inside it and 15 September is not.
+// Morocco suspends its UTC+1 offset for Ramadan. In 2026 the clocks go back at
+// 15 February 02:00 UTC (+1 → 0) and forward at 22 March 02:00 UTC (0 → +1),
+// so 1 March is inside the period and 15 September is not.
 const RAMADAN_2026 = "2026-03-01";
 const SEPTEMBER_2026 = "2026-09-15";
 
@@ -78,6 +79,53 @@ describe("localMinutesOfDay", () => {
   it("counts from local midnight", () => {
     expect(localMinutesOfDay("2026-09-15T17:30:00Z")).toBe(18 * 60 + 30);
     expect(localMinutesOfDay("2026-03-01T17:30:00Z")).toBe(17 * 60 + 30);
+  });
+});
+
+describe("on the 2026 change-over days", () => {
+  const hours = ({ start, end }: { start: Date; end: Date }) =>
+    (end.getTime() - start.getTime()) / 3_600_000;
+
+  it("makes the day the clocks go back 25 hours long", () => {
+    const day = localDayBounds("2026-02-15T12:00:00Z");
+    expect(day.start.toISOString()).toBe("2026-02-14T23:00:00.000Z");
+    expect(day.end.toISOString()).toBe("2026-02-16T00:00:00.000Z");
+    expect(hours(day)).toBe(25);
+  });
+
+  it("makes the day the clocks go forward 23 hours long", () => {
+    const day = localDayBounds("2026-03-22T12:00:00Z");
+    expect(day.start.toISOString()).toBe("2026-03-22T00:00:00.000Z");
+    expect(day.end.toISOString()).toBe("2026-03-22T23:00:00.000Z");
+    expect(hours(day)).toBe(23);
+  });
+
+  it("gives those weeks 169 and 167 hours", () => {
+    const back = localWeekBounds("2026-02-15T12:00:00Z");
+    expect(back.start.toISOString()).toBe("2026-02-08T23:00:00.000Z");
+    expect(back.end.toISOString()).toBe("2026-02-16T00:00:00.000Z");
+    expect(hours(back)).toBe(169);
+
+    const forward = localWeekBounds("2026-03-22T12:00:00Z");
+    expect(forward.start.toISOString()).toBe("2026-03-16T00:00:00.000Z");
+    expect(forward.end.toISOString()).toBe("2026-03-22T23:00:00.000Z");
+    expect(hours(forward)).toBe(167);
+  });
+
+  it("keeps an 18:00 session at 18:00 local on both days", () => {
+    expect(localDateTimeToUtc("2026-02-15", "18:00").toISOString()).toBe(
+      "2026-02-15T18:00:00.000Z",
+    );
+    expect(localDateTimeToUtc("2026-03-22", "18:00").toISOString()).toBe(
+      "2026-03-22T17:00:00.000Z",
+    );
+  });
+
+  it("moves a time in the skipped hour forward rather than failing", () => {
+    // 02:30 doesn't exist on 22 March: it resolves to 03:30 local.
+    const skipped = localDateTimeToUtc("2026-03-22", "02:30");
+    expect(skipped.toISOString()).toBe("2026-03-22T02:30:00.000Z");
+    expect(formatLocal(skipped, "HH:mm")).toBe("03:30");
   });
 });
 
