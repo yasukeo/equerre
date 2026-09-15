@@ -25,9 +25,14 @@ async function StudentHome() {
   const supabase = await createClient();
   const nowIso = new Date().toISOString();
 
-  // RLS narrows both queries to this student: their sessions, their groups' sessions,
+  // RLS narrows every query to this student: their sessions, their groups' sessions,
   // and only the lessons they're allowed to read.
-  const [sessionsResult, lessonsResult] = await Promise.all([
+  //
+  // "New lessons" means this student's level plus lessons shared with them. RLS also lets
+  // them read other levels' public lessons, so filtering happens in the database, before
+  // the limit — otherwise public lessons from other levels could fill the list.
+  const lessonFields = "id, title, published_at, chapters!inner(title, level_code)" as const;
+  const [sessionsResult, levelLessonsResult, sharedLessonsResult] = await Promise.all([
     supabase
       .from("sessions")
       .select(
@@ -37,21 +42,28 @@ async function StudentHome() {
       .in("status", ["en_attente", "planifiee"])
       .order("starts_at")
       .limit(4),
+    viewer.levelCode
+      ? supabase
+          .from("lessons")
+          .select(lessonFields)
+          .eq("status", "published")
+          .eq("chapters.level_code", viewer.levelCode)
+          .order("published_at", { ascending: false })
+          .limit(5)
+      : null,
     supabase
       .from("lessons")
-      .select("id, title, published_at, visibility, chapter:chapters(title, level_code)")
+      .select(lessonFields)
       .eq("status", "published")
+      .eq("visibility", "specific")
       .order("published_at", { ascending: false })
-      .limit(12),
+      .limit(5),
   ]);
 
   const [next, ...later] = sessionsResult.data ?? [];
-  // Public lessons from other levels are readable too; "new lessons" means mine.
-  const lessons = (lessonsResult.data ?? [])
-    .filter(
-      (lesson) =>
-        lesson.visibility === "specific" || lesson.chapter?.level_code === viewer.levelCode,
-    )
+  const lessons = [...(levelLessonsResult?.data ?? []), ...(sharedLessonsResult.data ?? [])]
+    .filter((lesson, index, all) => all.findIndex((other) => other.id === lesson.id) === index)
+    .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
     .slice(0, 5);
   const firstName = viewer.fullName.split(" ")[0] || viewer.fullName;
 
@@ -152,7 +164,7 @@ async function StudentHome() {
               <li key={lesson.id} className="grid min-h-16 content-center gap-0.5 py-3">
                 <p className="font-medium">{lesson.title}</p>
                 <p className="text-sm text-encre-douce">
-                  {lesson.chapter?.title}
+                  {lesson.chapters?.title}
                   {lesson.published_at
                     ? ` · ${t("publishedOn", { date: formatLocal(lesson.published_at, "d MMMM") })}`
                     : null}
