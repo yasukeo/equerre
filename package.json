@@ -18,7 +18,7 @@
     "test:watch": "vitest",
     "test:rls": "vitest run --config vitest.rls.config.mts",
     "test:e2e": "playwright test",
-    "db:types": "supabase gen types typescript --linked --schema public > src/types/database.ts",
+    "db:types": "tsx --env-file=.env.local scripts/types.mts",
     "db:push": "supabase db push",
     "db:seed": "tsx --env-file=.env.local scripts/seed.mts"
   },
