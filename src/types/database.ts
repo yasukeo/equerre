@@ -14,6 +14,97 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignment_items: {
+        Row: {
+          assignment_id: string
+          exercise_id: string
+          position: number
+        }
+        Insert: {
+          assignment_id: string
+          exercise_id: string
+          position?: number
+        }
+        Update: {
+          assignment_id?: string
+          exercise_id?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_items_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_items_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assignments: {
+        Row: {
+          created_at: string
+          created_by: string
+          due_at: string
+          group_id: string | null
+          id: string
+          instructions: string | null
+          student_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          due_at: string
+          group_id?: string | null
+          id?: string
+          instructions?: string | null
+          student_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          due_at?: string
+          group_id?: string | null
+          id?: string
+          instructions?: string | null
+          student_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignments_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chapters: {
         Row: {
           created_at: string
@@ -55,6 +146,42 @@ export type Database = {
           },
         ]
       }
+      exercise_reveals: {
+        Row: {
+          assignment_id: string
+          exercise_id: string
+          revealed_at: string
+          student_id: string
+        }
+        Insert: {
+          assignment_id: string
+          exercise_id: string
+          revealed_at?: string
+          student_id: string
+        }
+        Update: {
+          assignment_id?: string
+          exercise_id?: string
+          revealed_at?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_reveals_assignment_id_exercise_id_fkey"
+            columns: ["assignment_id", "exercise_id"]
+            isOneToOne: false
+            referencedRelation: "assignment_items"
+            referencedColumns: ["assignment_id", "exercise_id"]
+          },
+          {
+            foreignKeyName: "exercise_reveals_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_solutions: {
         Row: {
           correct_choice_ids: string[] | null
@@ -62,6 +189,7 @@ export type Database = {
           exercise_id: string
           solution: Json
           tolerance: number | null
+          tolerance_kind: Database["public"]["Enums"]["tolerance_kind"]
           updated_at: string
         }
         Insert: {
@@ -70,6 +198,7 @@ export type Database = {
           exercise_id: string
           solution?: Json
           tolerance?: number | null
+          tolerance_kind?: Database["public"]["Enums"]["tolerance_kind"]
           updated_at?: string
         }
         Update: {
@@ -78,6 +207,7 @@ export type Database = {
           exercise_id?: string
           solution?: Json
           tolerance?: number | null
+          tolerance_kind?: Database["public"]["Enums"]["tolerance_kind"]
           updated_at?: string
         }
         Relationships: [
@@ -94,6 +224,7 @@ export type Database = {
         Row: {
           answer_type: Database["public"]["Enums"]["answer_type"]
           chapter_id: string
+          choice_mode: Database["public"]["Enums"]["choice_mode"] | null
           choices: Json | null
           created_at: string
           difficulty: number
@@ -107,6 +238,7 @@ export type Database = {
         Insert: {
           answer_type?: Database["public"]["Enums"]["answer_type"]
           chapter_id: string
+          choice_mode?: Database["public"]["Enums"]["choice_mode"] | null
           choices?: Json | null
           created_at?: string
           difficulty: number
@@ -120,6 +252,7 @@ export type Database = {
         Update: {
           answer_type?: Database["public"]["Enums"]["answer_type"]
           chapter_id?: string
+          choice_mode?: Database["public"]["Enums"]["choice_mode"] | null
           choices?: Json | null
           created_at?: string
           difficulty?: number
@@ -705,16 +838,179 @@ export type Database = {
           },
         ]
       }
+      submission_comments: {
+        Row: {
+          anchor: Json | null
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          submission_id: string
+          updated_at: string
+        }
+        Insert: {
+          anchor?: Json | null
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          submission_id: string
+          updated_at?: string
+        }
+        Update: {
+          anchor?: Json | null
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          submission_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submission_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_comments_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          answer: Json
+          assignment_id: string
+          auto_graded: boolean
+          corrected_at: string | null
+          corrected_by: string | null
+          exercise_id: string
+          feedback: string | null
+          file_paths: string[]
+          grade: number | null
+          id: string
+          status: Database["public"]["Enums"]["submission_status"]
+          student_id: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          answer?: Json
+          assignment_id: string
+          auto_graded?: boolean
+          corrected_at?: string | null
+          corrected_by?: string | null
+          exercise_id: string
+          feedback?: string | null
+          file_paths?: string[]
+          grade?: number | null
+          id?: string
+          status?: Database["public"]["Enums"]["submission_status"]
+          student_id: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: Json
+          assignment_id?: string
+          auto_graded?: boolean
+          corrected_at?: string | null
+          corrected_by?: string | null
+          exercise_id?: string
+          feedback?: string | null
+          file_paths?: string[]
+          grade?: number | null
+          id?: string
+          status?: Database["public"]["Enums"]["submission_status"]
+          student_id?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_assignment_id_exercise_id_fkey"
+            columns: ["assignment_id", "exercise_id"]
+            isOneToOne: false
+            referencedRelation: "assignment_items"
+            referencedColumns: ["assignment_id", "exercise_id"]
+          },
+          {
+            foreignKeyName: "submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_corrected_by_fkey"
+            columns: ["corrected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       invite_code_is_valid: { Args: { p_code: string }; Returns: boolean }
+      submit_exercise_answer: {
+        Args: {
+          p_answer?: Json
+          p_assignment_id: string
+          p_exercise_id: string
+          p_file_paths?: string[]
+        }
+        Returns: {
+          answer: Json
+          assignment_id: string
+          auto_graded: boolean
+          corrected_at: string | null
+          corrected_by: string | null
+          exercise_id: string
+          feedback: string | null
+          file_paths: string[]
+          grade: number | null
+          id: string
+          status: Database["public"]["Enums"]["submission_status"]
+          student_id: string
+          submitted_at: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "submissions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       answer_type: "upload" | "numeric" | "mcq"
       attendance_status: "present" | "absent" | "excuse"
+      choice_mode: "unique" | "multiple"
       lesson_visibility: "public" | "enrolled" | "specific"
       publication_status: "draft" | "published"
       session_mode: "en_ligne" | "domicile" | "chez_prof"
@@ -726,6 +1022,8 @@ export type Database = {
         | "absent"
         | "refusee"
       student_status: "actif" | "en_pause" | "arrete"
+      submission_status: "rendu" | "corrige"
+      tolerance_kind: "absolue" | "relative"
       user_role: "tutor" | "student" | "parent"
     }
     CompositeTypes: {
@@ -856,6 +1154,7 @@ export const Constants = {
     Enums: {
       answer_type: ["upload", "numeric", "mcq"],
       attendance_status: ["present", "absent", "excuse"],
+      choice_mode: ["unique", "multiple"],
       lesson_visibility: ["public", "enrolled", "specific"],
       publication_status: ["draft", "published"],
       session_mode: ["en_ligne", "domicile", "chez_prof"],
@@ -868,6 +1167,8 @@ export const Constants = {
         "refusee",
       ],
       student_status: ["actif", "en_pause", "arrete"],
+      submission_status: ["rendu", "corrige"],
+      tolerance_kind: ["absolue", "relative"],
       user_role: ["tutor", "student", "parent"],
     },
   },
