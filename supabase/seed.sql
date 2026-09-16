@@ -167,16 +167,21 @@ create or replace function pg_temp.seed_exercise(
   p_numeric numeric default null,
   p_tolerance numeric default null,
   p_choices jsonb default null,
-  p_correct text[] default null
+  p_correct text[] default null,
+  p_choice_mode public.choice_mode default null
 )
 returns void
 language plpgsql
 as $$
 begin
-  insert into public.exercises (id, chapter_id, title, statement, difficulty, answer_type, choices, tags)
+  insert into public.exercises (id, chapter_id, title, statement, difficulty, answer_type, choices, choice_mode, tags)
   values (
     pg_temp.uid('40000000', p_n), pg_temp.uid('20000000', p_chapter),
-    p_title, p_statement, p_difficulty, p_type, p_choices, p_tags
+    p_title, p_statement, p_difficulty, p_type, p_choices,
+    -- Whether the student sees radio buttons or checkboxes must not be read off
+    -- the number of correct answers, so it is stated here rather than derived.
+    case when p_type = 'mcq' then coalesce(p_choice_mode, 'unique'::public.choice_mode) end,
+    p_tags
   )
   on conflict (id) do update set
     chapter_id = excluded.chapter_id,
@@ -185,6 +190,7 @@ begin
     difficulty = excluded.difficulty,
     answer_type = excluded.answer_type,
     choices = excluded.choices,
+    choice_mode = excluded.choice_mode,
     tags = excluded.tags;
 
   insert into public.exercise_solutions (exercise_id, solution, correct_numeric, tolerance, correct_choice_ids)
@@ -553,7 +559,7 @@ select pg_temp.seed_exercise(4, 1, 'Continuité d''une fonction définie par mor
   pg_temp.doc(pg_temp.p('On définit $f(x) = x + a$ si $x < 1$ et $f(x) = 2x$ si $x \geq 1$. Pour quelle valeur de $a$ la fonction $f$ est-elle continue en $1$ ?')),
   pg_temp.doc(pg_temp.p('Il faut $\lim_{x \to 1^-} f(x) = f(1)$, soit $1 + a = 2$, donc $a = 1$.')),
   array['continuité'],
-  p_choices => pg_temp.choices('$a = 0$', '$a = 1$', '$a = 2$'), p_correct => array['b']);
+  p_choices => pg_temp.choices('$a = 0$', '$a = 1$', '$a = 2$'), p_correct => array['b'], p_choice_mode => 'unique');
 
 select pg_temp.seed_exercise(5, 1, 'Limite avec une racine', 5, 'numeric',
   pg_temp.doc(pg_temp.p('Calculer $\lim_{x \to +\infty} \left(\sqrt{x^2 + x} - x\right)$.')),
@@ -581,7 +587,7 @@ select pg_temp.seed_exercise(9, 2, 'Dérivée d''un quotient', 2, 'mcq',
   pg_temp.doc(pg_temp.p('$\left(\dfrac{1}{u}\right)'' = -\dfrac{u''}{u^2}$ avec $u = x^2 + 1$.')),
   array['dérivation'],
   p_choices => pg_temp.choices('$\dfrac{-2x}{(x^2+1)^2}$', '$\dfrac{2x}{(x^2+1)^2}$', '$\dfrac{-1}{(x^2+1)^2}$'),
-  p_correct => array['a']);
+  p_correct => array['a'], p_choice_mode => 'unique');
 
 select pg_temp.seed_exercise(10, 2, 'Problème d''optimisation', 4, 'upload',
   pg_temp.doc(pg_temp.p('Dans un carré de carton de $12$ cm de côté, on découpe aux quatre coins un carré de côté $x$ pour former une boîte sans couvercle. Déterminer $x$ pour que le volume soit maximal.')),
@@ -619,7 +625,7 @@ select pg_temp.seed_exercise(16, 4, 'Module d''un nombre complexe', 1, 'mcq',
   pg_temp.doc(pg_temp.p('Le module de $z = 3 - 4i$ est :')),
   pg_temp.doc(pg_temp.p('$|z| = \sqrt{3^2 + 4^2} = 5$.')),
   array['complexes', 'module'],
-  p_choices => pg_temp.choices('$5$', '$7$', '$\sqrt{7}$'), p_correct => array['a']);
+  p_choices => pg_temp.choices('$5$', '$7$', '$\sqrt{7}$'), p_correct => array['a'], p_choice_mode => 'unique');
 
 select pg_temp.seed_exercise(17, 4, 'Équation du second degré dans ℂ', 3, 'upload',
   pg_temp.doc(pg_temp.p('Résoudre dans $\mathbb{C}$ l''équation $z^2 - 2z + 5 = 0$.')),
@@ -668,7 +674,7 @@ select pg_temp.seed_exercise(25, 7, 'Reconnaître un nombre premier', 2, 'mcq',
   pg_temp.doc(pg_temp.p('Lequel de ces nombres est premier ?')),
   pg_temp.doc(pg_temp.p('$91 = 7 \times 13$ et $111 = 3 \times 37$, alors que $97$ n''est divisible par aucun premier inférieur à $\sqrt{97}$.')),
   array['arithmétique', 'nombres premiers'],
-  p_choices => pg_temp.choices('$91$', '$97$', '$111$'), p_correct => array['b']);
+  p_choices => pg_temp.choices('$91$', '$97$', '$111$'), p_correct => array['b'], p_choice_mode => 'unique');
 
 select pg_temp.seed_exercise(26, 7, 'Parité', 3, 'upload',
   pg_temp.doc(pg_temp.p('Montrer que, pour tout entier naturel $n$, le nombre $n^2 + n$ est pair.')),
