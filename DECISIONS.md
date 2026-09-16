@@ -123,6 +123,15 @@ Brief §4.1 asks for phone, school and guardian contact on the new profile. Both
 **D-036 — The trial invite code is development data.**
 The seed's `BACPC2K7` (5 uses, 30 days) exists for trying self sign-up. The sign-up hint no longer quotes it, and the README says to delete it before real students use the project.
 
+**D-037 — Automatic correction runs in Postgres, never in the browser or the server action.**
+A student must never read the expected answer, and must never be able to write her own grade. Both follow from one move: `public.submit_exercise_answer` is a `security definer` RPC that reads `exercise_solutions` — a table students cannot select — compares, and writes the grade itself. Numeric answers are compared with `numeric` arithmetic, so a tolerance of zero means what it says and the comparison never passes through a JavaScript double, where `parseFloat("4,8")` silently returns 4. The expected answer never reaches a variable the browser could observe.
+
+**D-038 — A corrected submission is final.**
+The upsert in `submit_exercise_answer` carries `where s.status = 'rendu'`, so a second send after a correction changes nothing and the function raises `submission_already_corrected`. Without it a student could send a wrong numeric answer, read her 0/20, and immediately send the right one. Photographed pages stay `rendu` until the tutor grades them, so a student can still replace a blurred page.
+
+**D-039 — The REST API exposes only what each role has to call.**
+`private.guard_submission_write()` stops a student writing `grade`, `status`, `feedback` or `corrected_at` on her own row; the RPC steps past it through a transaction-scoped `set_config('equerre.grading', …)`. On top of that, `20260916124117_function_grants.sql` revokes `execute` on `submit_exercise_answer` from `anon`, and on Supabase's `rls_auto_enable` event trigger from everyone — event triggers fire on DDL whatever the grants say, so that safety net is untouched. Two advisor warnings survive on purpose: a signed-in student must be able to submit, and `invite_code_is_valid` must answer before the account exists.
+
 ## Content
 
 **D-040 — Tiptap JSON vocabulary.**
