@@ -124,7 +124,8 @@
     "tutor": {
       "label": "Espace professeure",
       "today": "Aujourd’hui",
-      "invite": "Inviter un élève"
+      "invite": "Inviter un élève",
+      "lessons": "Leçons"
     },
     "student": {
       "label": "Mon espace",
@@ -204,6 +205,26 @@
         "linkFailed": "Le compte existe, mais le lien n’a pas pu être généré. Relancez « Créer le compte » avec la même adresse pour obtenir un nouveau lien.",
         "unknown": "L’opération n’a pas abouti. Réessayez dans un instant."
       }
+    },
+    "lessons": {
+      "title": "Leçons",
+      "empty": "Aucune leçon pour l’instant.",
+      "status": {
+        "draft": "Brouillon",
+        "published": "Publiée"
+      },
+      "visibility": {
+        "public": "Publique",
+        "enrolled": "Inscrites",
+        "specific": "Choisies"
+      },
+      "visibilityHint": {
+        "public": "Visible de tous, y compris hors connexion",
+        "enrolled": "Visible des élèves de ce niveau",
+        "specific": "Visible des élèves désignées"
+      },
+      "open": "Voir la page publique",
+      "count": "{count, plural, one {# leçon} other {# leçons}}"
     }
   },
   "student": {
