@@ -49,7 +49,7 @@ Fill in `.env.local`:
 | `NEXT_PUBLIC_SUPABASE_URL`             | Settings › API                                                                |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…`                                                            |
 | `SUPABASE_SECRET_KEY`                  | `sb_secret_…` — needed for "Inviter un élève"                                 |
-| `SUPABASE_DB_URL`                      | Session pooler connection string — needed for `db:seed` and `db:types`        |
+| `SUPABASE_DB_URL`                      | Session pooler connection string — needed for `db:seed`                       |
 | `RESEND_API_KEY`                       | Optional. Without it, emails are printed in the terminal                      |
 | `EMAIL_FROM`                           | Sender shown to students                                                      |
 | `CRON_SECRET`                          | Any random string of 32+ characters (used from phase 2)                       |
@@ -137,7 +137,7 @@ The database allows only one tutor.
 | `pnpm test:rls`             | Row-level security tests against the Supabase project, signed in as seed accounts |
 | `pnpm test:e2e`             | Playwright on an Android phone profile and desktop Chrome                         |
 | `pnpm db:push`              | Apply migrations to the linked project                                            |
-| `pnpm db:types`             | Regenerate `src/types/database.ts` from `SUPABASE_DB_URL`                         |
+| `pnpm db:types`             | Regenerate `src/types/database.ts` (needs `supabase login`)                       |
 | `pnpm db:seed`              | Load `supabase/seed.sql`                                                          |
 
 ## Project layout
