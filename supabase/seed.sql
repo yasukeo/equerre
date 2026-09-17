@@ -808,7 +808,7 @@ on conflict do nothing;
 
 -- ─────────────────────────────────────────────────────────────── clean up
 
-drop function pg_temp.seed_exercise(integer, integer, text, integer, public.answer_type, jsonb, jsonb, text[], numeric, numeric, jsonb, text[]);
+drop function pg_temp.seed_exercise(integer, integer, text, integer, public.answer_type, jsonb, jsonb, text[], numeric, numeric, jsonb, text[], public.choice_mode);
 drop function pg_temp.seed_user(integer, text, text, text);
 drop function pg_temp.choices(text[]);
 drop function pg_temp.doc(jsonb[]);
