@@ -10,11 +10,30 @@ export const APP_TIME_ZONE = "Africa/Casablanca";
 
 const inAppZone = tz(APP_TIME_ZONE);
 
+const longDate = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: APP_TIME_ZONE,
+});
+
 type DateInput = Date | string | number;
 
 /** Formats a UTC instant as Casablanca wall-clock time, in French. */
 export function formatLocal(value: DateInput, pattern: string): string {
   return format(value, pattern, { in: inAppZone, locale: fr });
+}
+
+/**
+ * A stored date as "1 septembre 2026", without ever reading the clock.
+ *
+ * `formatLocal` goes through TZDate, whose constructor calls `new Date()` with no
+ * arguments internally. Next refuses an unstable value like that while prerendering, so
+ * anything a static page shows has to come through here instead. Intl resolves the zone
+ * itself, Ramadan's two shifts included.
+ */
+export function formatLocalDate(value: DateInput): string {
+  return longDate.format(new Date(value));
 }
 
 /** The Casablanca calendar day (`yyyy-MM-dd`) an instant falls on. */

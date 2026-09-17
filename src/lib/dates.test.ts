@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   appUtcOffsetMinutes,
   formatLocal,
+  formatLocalDate,
   localDateKey,
   localDateTimeToUtc,
   localDayBounds,
@@ -134,5 +135,36 @@ describe("formatLocal", () => {
     expect(formatLocal("2026-09-15T17:00:00Z", "EEEE d MMMM 'à' HH:mm")).toBe(
       "mardi 15 septembre à 18:00",
     );
+  });
+});
+
+describe("formatLocalDate", () => {
+  it("never reads the clock, so a static page may render it", () => {
+    const RealDate = Date;
+    let argless = 0;
+    const spy = new Proxy(RealDate, {
+      construct(target, args: unknown[], newTarget) {
+        if (args.length === 0) argless += 1;
+        return Reflect.construct(target, args, newTarget) as object;
+      },
+    });
+
+    globalThis.Date = spy as DateConstructor;
+    try {
+      expect(formatLocalDate("2026-09-01T10:00:00Z")).toBe("1 septembre 2026");
+    } finally {
+      globalThis.Date = RealDate;
+    }
+
+    // formatLocal goes through TZDate, whose constructor calls new Date() internally;
+    // Next refuses that while prerendering. This helper exists to avoid it.
+    expect(argless).toBe(0);
+  });
+
+  it("puts an instant on the right Casablanca day on both sides of Ramadan", () => {
+    // Morocco is UTC+0 during Ramadan and UTC+1 the rest of the year, so the same
+    // wall-clock instant falls on a different day either side of it.
+    expect(formatLocalDate("2026-03-01T23:30:00Z")).toBe("1 mars 2026");
+    expect(formatLocalDate("2026-06-01T23:30:00Z")).toBe("2 juin 2026");
   });
 });
