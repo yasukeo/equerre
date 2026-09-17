@@ -1,0 +1,106 @@
+/* The rendered lesson. These elements come out of src/lib/lesson/render.tsx and out of
+   KaTeX, so they are styled by tag rather than by utility class. */
+
+@layer components {
+  .lecon-corps {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+  }
+
+  .lecon-corps > * + * {
+    margin-top: 1.25em;
+  }
+
+  .lecon-corps h2 {
+    margin-top: 2.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .lecon-corps h3 {
+    margin-top: 2rem;
+    font-size: 1.1875rem;
+    font-weight: 600;
+  }
+
+  .lecon-corps :is(ul, ol) {
+    padding-inline-start: 1.5rem;
+  }
+
+  .lecon-corps ul {
+    list-style: disc;
+  }
+
+  .lecon-corps ol {
+    list-style: decimal;
+  }
+
+  .lecon-corps li + li {
+    margin-top: 0.375rem;
+  }
+
+  .lecon-corps img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+  }
+
+  /* An encadré is a note pinned to the page: a coloured edge, never a heavy box. */
+  .lecon-encadre {
+    border-inline-start: 3px solid var(--stylo-bleu);
+    background: var(--lavis-bleu);
+    border-radius: 0 0.5rem 0.5rem 0;
+    padding: 1rem 1.25rem;
+  }
+
+  .lecon-encadre > * + * {
+    margin-top: 0.75em;
+  }
+
+  .lecon-encadre-titre {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--stylo-bleu);
+  }
+
+  .lecon-encadre[data-kind="attention"] {
+    border-inline-start-color: var(--stylo-rouge);
+    background: var(--lavis-rouge);
+  }
+
+  .lecon-encadre[data-kind="attention"] .lecon-encadre-titre {
+    color: var(--stylo-rouge);
+  }
+
+  .lecon-encadre[data-kind="exemple"] {
+    border-inline-start-color: var(--trait);
+    background: var(--sunken);
+  }
+
+  .lecon-encadre[data-kind="exemple"] .lecon-encadre-titre {
+    color: var(--encre-douce);
+  }
+
+  /* A long displayed formula scrolls on its own rather than widening the page. */
+  .lecon-math-bloc {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: 0.25rem;
+  }
+
+  .lecon-fichier a {
+    font-weight: 500;
+    color: var(--stylo-bleu);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .lecon-fichier-taille {
+    margin-inline-start: 0.5ch;
+    color: var(--encre-douce);
+    font-size: 0.875rem;
+  }
+}

@@ -1,0 +1,78 @@
+import "server-only";
+import { cacheLife, cacheTag } from "next/cache";
+import { publicClient } from "@/lib/supabase/public";
+import { parseLessonDocument, type LessonDocument } from "./document";
+
+/** Every public lesson page carries this, so publishing one refreshes the listings. */
+export const COURSE_INDEX_TAG = "cours:index";
+
+export const lessonTag = (slug: string) => `lecon:${slug}`;
+
+/** `2BAC-PC` in the database, `2bac-pc` in a URL. Codes are A–Z, 0–9 and dashes. */
+export const levelSlug = (code: string) => code.toLowerCase();
+export const levelCode = (slug: string) => slug.toUpperCase();
+
+export type LessonParams = { niveau: string; chapitre: string; lecon: string };
+
+export type PublicLesson = {
+  title: string;
+  summary: string | null;
+  content: LessonDocument;
+  publishedAt: string | null;
+  chapterTitle: string;
+  levelLabel: string;
+};
+
+/**
+ * Which lesson pages to prerender. Read anonymously, so it lists exactly the lessons a
+ * visitor may see — the same rule that will let them through at request time.
+ */
+export async function listPublicLessons(): Promise<LessonParams[]> {
+  "use cache";
+  cacheTag(COURSE_INDEX_TAG);
+  cacheLife("max");
+
+  const { data } = await publicClient()
+    .from("lessons")
+    .select("slug, position, chapters!inner(slug, levels!inner(code))")
+    .order("position");
+
+  return (data ?? []).map((row) => ({
+    niveau: levelSlug(row.chapters.levels.code),
+    chapitre: row.chapters.slug,
+    lecon: row.slug,
+  }));
+}
+
+export async function getPublicLesson(params: LessonParams): Promise<PublicLesson | null> {
+  "use cache";
+  cacheTag(lessonTag(params.lecon), COURSE_INDEX_TAG);
+
+  const { data } = await publicClient()
+    .from("lessons")
+    .select(
+      "title, summary, content, published_at, chapters!inner(title, slug, levels!inner(code, label))",
+    )
+    .eq("slug", params.lecon)
+    .eq("chapters.slug", params.chapitre)
+    .eq("chapters.levels.code", levelCode(params.niveau))
+    .maybeSingle();
+
+  if (!data) {
+    // A lesson about to be published must not be remembered as missing for a month.
+    // Only one cacheLife may run per call, which is why this returns before the other.
+    cacheLife("minutes");
+    return null;
+  }
+
+  cacheLife("max");
+
+  return {
+    title: data.title,
+    summary: data.summary,
+    content: parseLessonDocument(data.content),
+    publishedAt: data.published_at,
+    chapterTitle: data.chapters.title,
+    levelLabel: data.chapters.levels.label,
+  };
+}

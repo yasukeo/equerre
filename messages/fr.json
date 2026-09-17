@@ -237,5 +237,17 @@
       "button": "Choisir mon mot de passe",
       "expiry": "Si le lien a expiré, utilisez « Mot de passe oublié » sur la page de connexion."
     }
+  },
+  "lesson": {
+    "callout": {
+      "definition": "Définition",
+      "theoreme": "Théorème",
+      "propriete": "Propriété",
+      "exemple": "Exemple",
+      "attention": "Attention"
+    },
+    "loading": "Chargement de la leçon…",
+    "publishedOn": "Publié le {date}",
+    "allLessons": "Toutes les leçons"
   }
 }
