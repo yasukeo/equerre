@@ -4,7 +4,7 @@
 import { renderJSONContentToReactElement } from "@tiptap/static-renderer/json/react";
 import type { ReactNode } from "react";
 import { siteConfig } from "@/config/site";
-import { CALLOUT_KINDS, type CalloutKind, type LessonDocument } from "./document";
+import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "./document";
 import { renderMath } from "./math";
 
 type Attrs = Record<string, unknown> | undefined;
@@ -49,6 +49,7 @@ export function createLessonRenderer({ calloutLabel, fileHref }: LessonRenderOpt
     nodeMapping: {
       doc: ({ children }) => <>{children}</>,
       paragraph: ({ children }) => <p>{children}</p>,
+      hardBreak: () => <br />,
       // The lesson title is the page's h1, so the body starts at h2.
       heading: ({ node, children }) =>
         numberAttr(node.attrs, "level") === 3 ? <h3>{children}</h3> : <h2>{children}</h2>,
@@ -106,12 +107,13 @@ export function createLessonRenderer({ calloutLabel, fileHref }: LessonRenderOpt
       italic: ({ children }) => <em>{children}</em>,
     },
     // A node the editor can produce but this renderer does not know must not blank
-    // the lesson; it simply does not appear.
-    unhandledNode: () => null,
+    // the lesson, nor take the tutor's words with it: it is unwrapped, and whatever it
+    // holds is drawn through the same mapping. A leaf with nothing inside disappears.
+    unhandledNode: ({ children }) => <>{children}</>,
     unhandledMark: ({ children }) => <>{children}</>,
   });
 }
 
-export function renderLesson(content: LessonDocument, options: LessonRenderOptions): ReactNode {
+export function renderLesson(content: StoredLesson, options: LessonRenderOptions): ReactNode {
   return createLessonRenderer(options)({ content });
 }

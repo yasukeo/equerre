@@ -4,6 +4,7 @@
 // Callouts do not nest and a list item holds only paragraphs, so the schema needs
 // no recursion — which keeps both the zod parse and the inferred types simple.
 
+import type { JSONContent } from "@tiptap/core";
 import { z } from "zod";
 
 export const CALLOUT_KINDS = [
@@ -50,11 +51,12 @@ const blockMathSchema = z.object({
 const imageSchema = z.object({
   type: z.literal("image"),
   // The drawn size is stored with the image so the page does not jump while it loads.
+  // ProseMirror writes every attribute it was not given as null, hence nullish.
   attrs: z.object({
     src: z.string(),
-    alt: z.string().optional(),
-    width: z.number().int().positive().optional(),
-    height: z.number().int().positive().optional(),
+    alt: z.string().nullish(),
+    width: z.number().int().positive().nullish(),
+    height: z.number().int().positive().nullish(),
   }),
 });
 
@@ -63,7 +65,7 @@ const fileAttachmentSchema = z.object({
   attrs: z.object({
     path: z.string(),
     name: z.string(),
-    size: z.number().int().nonnegative().optional(),
+    size: z.number().int().nonnegative().nullish(),
   }),
 });
 
@@ -115,10 +117,23 @@ export const lessonDocumentSchema = z.object({
 export type LessonDocument = z.infer<typeof lessonDocumentSchema>;
 export type LessonBlock = z.infer<typeof lessonBlockSchema>;
 
-export const EMPTY_LESSON: LessonDocument = { type: "doc", content: [] };
+/**
+ * A lesson as the database holds it: a Tiptap document, trusted only in its envelope.
+ *
+ * The strict schema above belongs on the way in, where refusing a node can tell the
+ * tutor what to change. On the way out it must not be used: one node or mark outside
+ * the vocabulary (a line break, an underline, an attribute the editor wrote as null)
+ * would replace the whole body with nothing, silently, and the cache would keep that
+ * for a month. The renderer draws what it knows and unwraps what it does not.
+ */
+export type StoredLesson = JSONContent & { type: "doc" };
 
-/** A lesson read back from the database, or an empty one if it was never written. */
-export function parseLessonDocument(value: unknown): LessonDocument {
-  const result = lessonDocumentSchema.safeParse(value);
-  return result.success ? result.data : EMPTY_LESSON;
+export const EMPTY_LESSON: StoredLesson = { type: "doc", content: [] };
+
+export function readStoredLesson(value: unknown): StoredLesson {
+  if (typeof value !== "object" || value === null) return EMPTY_LESSON;
+  const { type, content } = value as { type?: unknown; content?: unknown };
+  return type === "doc" && (content === undefined || Array.isArray(content))
+    ? (value as StoredLesson)
+    : EMPTY_LESSON;
 }

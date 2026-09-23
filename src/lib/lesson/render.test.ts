@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import type { LessonDocument } from "./document";
+import type { LessonDocument, StoredLesson } from "./document";
 import { renderLesson } from "./render";
 
 const options = {
@@ -9,7 +9,7 @@ const options = {
   fileHref: (path: string) => `/cours/fichiers/${path}`,
 };
 
-function html(content: LessonDocument): string {
+function html(content: StoredLesson): string {
   return renderToStaticMarkup(renderLesson(content, options));
 }
 
@@ -138,5 +138,34 @@ describe("renderLesson", () => {
     expect(output).toContain('href="/cours/fichiers/abc/def.pdf"');
     expect(output).toContain("Fiche de révision");
     expect(output).toContain("2,3 Mo");
+  });
+  it("keeps the words inside a node it does not know", () => {
+    const quoted: StoredLesson = {
+      type: "doc",
+      content: [
+        {
+          type: "blockquote",
+          content: [{ type: "paragraph", content: [{ type: "text", text: "Citation gardée." }] }],
+        },
+      ],
+    };
+    expect(html(quoted)).toContain("<p>Citation gardée.</p>");
+  });
+
+  it("breaks the line where the tutor pressed Maj+Entrée", () => {
+    const broken: StoredLesson = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "Ligne 1" },
+            { type: "hardBreak" },
+            { type: "text", text: "Ligne 2" },
+          ],
+        },
+      ],
+    };
+    expect(html(broken)).toContain("Ligne 1<br/>Ligne 2");
   });
 });

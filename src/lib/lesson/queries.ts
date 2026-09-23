@@ -1,7 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { publicClient } from "@/lib/supabase/public";
-import { parseLessonDocument, type LessonDocument } from "./document";
+import { readStoredLesson, type StoredLesson } from "./document";
 
 /** Every public lesson page carries this, so publishing one refreshes the listings. */
 export const COURSE_INDEX_TAG = "cours:index";
@@ -17,7 +17,7 @@ export type LessonParams = { niveau: string; chapitre: string; lecon: string };
 export type PublicLesson = {
   title: string;
   summary: string | null;
-  content: LessonDocument;
+  content: StoredLesson;
   publishedAt: string | null;
   chapterTitle: string;
   levelLabel: string;
@@ -70,7 +70,7 @@ export async function getPublicLesson(params: LessonParams): Promise<PublicLesso
   return {
     title: data.title,
     summary: data.summary,
-    content: parseLessonDocument(data.content),
+    content: readStoredLesson(data.content),
     publishedAt: data.published_at,
     chapterTitle: data.chapters.title,
     levelLabel: data.chapters.levels.label,
