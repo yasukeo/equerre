@@ -89,7 +89,29 @@ describe("the lesson library", () => {
 describe("homework submissions", () => {
   let tutor: Client;
   let salma: Client;
-  const made = { assignment: "", numeric: "", upload: "", revealed: "", unready: "" };
+  const made = {
+    assignment: "",
+    second: "",
+    numeric: "",
+    upload: "",
+    revealed: "",
+    unready: "",
+    oracle: "",
+  };
+  const pages: string[] = [];
+  let handedIn = "";
+
+  const webp = (marker: string) => new Blob([`RIFF${marker}WEBPVP8 `], { type: "image/webp" });
+
+  async function uploadPage(marker: string): Promise<string> {
+    const path = `${ids.salma}/${crypto.randomUUID()}/${crypto.randomUUID()}.webp`;
+    const { error } = await salma.storage
+      .from("submissions")
+      .upload(path, webp(marker), { contentType: "image/webp" });
+    if (error) throw new Error(`could not upload a test page: ${error.message}`);
+    pages.push(path);
+    return path;
+  }
 
   beforeAll(async () => {
     tutor = await signedInAs("prof@equerre.test");
@@ -118,51 +140,74 @@ describe("homework submissions", () => {
     made.upload = await exercise("photo", "upload");
     made.revealed = await exercise("réponse 7", "numeric");
     made.unready = await exercise("sans réponse attendue", "numeric");
+    made.oracle = await exercise("réponse 3", "numeric");
 
     const { error: solutionsError } = await tutor.from("exercise_solutions").insert([
       { exercise_id: made.numeric, solution: { type: "doc" }, correct_numeric: 2, tolerance: 0 },
       { exercise_id: made.upload, solution: { type: "doc" } },
       { exercise_id: made.revealed, solution: { type: "doc" }, correct_numeric: 7, tolerance: 0 },
+      { exercise_id: made.oracle, solution: { type: "doc" }, correct_numeric: 3, tolerance: 0 },
       // made.unready deliberately gets no solution row.
     ]);
     if (solutionsError) throw new Error(solutionsError.message);
 
-    const { data: assignment } = await tutor
-      .from("assignments")
-      .insert({
-        title: "Test RLS — devoir",
-        due_at: new Date(Date.now() + 86_400_000).toISOString(),
-        student_id: ids.salma,
-        created_by: seedId("00000000", 1),
-      })
-      .select("id")
-      .single();
-    if (!assignment) throw new Error("could not create the assignment");
-    made.assignment = assignment.id;
+    const assignment = async (title: string, exercises: string[]) => {
+      const { data } = await tutor
+        .from("assignments")
+        .insert({
+          title: `Test RLS — ${title}`,
+          due_at: new Date(Date.now() + 86_400_000).toISOString(),
+          student_id: ids.salma,
+          created_by: seedId("00000000", 1),
+        })
+        .select("id")
+        .single();
+      if (!data) throw new Error(`could not create ${title}`);
+      const { error } = await tutor.from("assignment_items").insert(
+        exercises.map((exercise_id, position) => ({
+          assignment_id: data.id,
+          exercise_id,
+          position,
+        })),
+      );
+      if (error) throw new Error(error.message);
+      return data.id;
+    };
 
-    const { error: itemsError } = await tutor.from("assignment_items").insert(
-      [made.numeric, made.upload, made.revealed, made.unready].map((exercise_id, position) => ({
-        assignment_id: made.assignment,
-        exercise_id,
-        position,
-      })),
-    );
-    if (itemsError) throw new Error(itemsError.message);
+    made.assignment = await assignment("devoir", [
+      made.numeric,
+      made.upload,
+      made.revealed,
+      made.unready,
+      made.oracle,
+    ]);
+    // The same exercise again, in a second assignment.
+    made.second = await assignment("second devoir", [made.numeric]);
   });
 
   afterAll(async () => {
-    // Deleting the assignment cascades to its items, submissions and reveals.
-    if (made.assignment) await tutor.from("assignments").delete().eq("id", made.assignment);
-    const exercises = [made.numeric, made.upload, made.revealed, made.unready].filter(Boolean);
-    if (exercises.length) await tutor.from("exercises").delete().in("id", exercises);
+    // Deleting an assignment cascades to its items, submissions and reveals, which also
+    // frees its pages: a student may remove a page only while no submission holds it.
+    for (const id of [made.assignment, made.second].filter(Boolean)) {
+      await tutor.from("assignments").delete().eq("id", id);
+    }
+    if (pages.length) await salma.storage.from("submissions").remove(pages);
+    const exercises = [made.numeric, made.upload, made.revealed, made.unready, made.oracle];
+    await tutor.from("exercises").delete().in("id", exercises.filter(Boolean));
   });
 
-  const submit = (exercise: string, answer: Json, filePaths: string[] = []) =>
+  const submit = (
+    exercise: string,
+    answer: Json,
+    filePaths: string[] | null = [],
+    assignment: string = made.assignment,
+  ) =>
     salma.rpc("submit_exercise_answer", {
-      p_assignment_id: made.assignment,
+      p_assignment_id: assignment,
       p_exercise_id: exercise,
       p_answer: answer,
-      p_file_paths: filePaths,
+      // A raw HTTP call can send null here even though the generated types cannot.
+      p_file_paths: filePaths as string[],
     });
 
   it("cannot write a submission row directly, so she cannot unlock the answer first", async () => {
@@ -181,10 +226,16 @@ describe("homework submissions", () => {
     expect(data).toEqual([]);
   });
 
-  it("keeps a photographed page's solution closed until it is corrected", async () => {
-    const { data, error } = await submit(made.upload, { type: "upload" }, [
-      `${ids.salma}/ref/page-1.webp`,
+  it("refuses a page that was never uploaded", async () => {
+    const { error } = await submit(made.upload, { type: "upload" }, [
+      `${ids.salma}/${crypto.randomUUID()}/nowhere.webp`,
     ]);
+    expect(error?.message).toBe("page_not_uploaded");
+  });
+
+  it("keeps a photographed page's solution closed until it is corrected", async () => {
+    handedIn = await uploadPage("original");
+    const { data, error } = await submit(made.upload, { type: "upload" }, [handedIn]);
     expect(error).toBeNull();
     expect(data?.status).toBe("rendu");
 
@@ -206,7 +257,28 @@ describe("homework submissions", () => {
       .select("file_paths")
       .eq("exercise_id", made.upload)
       .single();
-    expect(data?.file_paths).toEqual([`${ids.salma}/ref/page-1.webp`]);
+    expect(data?.file_paths).toEqual([handedIn]);
+  });
+
+  it("cannot overwrite or delete a page she has handed in", async () => {
+    const overwrite = await salma.storage
+      .from("submissions")
+      .upload(handedIn, webp("swapped"), { contentType: "image/webp", upsert: true });
+    expect(overwrite.error).not.toBeNull();
+
+    const removal = await salma.storage.from("submissions").remove([handedIn]);
+    expect(removal.data ?? []).toEqual([]);
+
+    const { data } = await salma.storage.from("submissions").download(handedIn);
+    expect(await data?.text()).toContain("original");
+  });
+
+  it("may still remove a page she never handed in", async () => {
+    const spare = await uploadPage("spare");
+    const { data, error } = await salma.storage.from("submissions").remove([spare]);
+    expect(error).toBeNull();
+    expect(data?.map((object) => object.name)).toEqual([spare]);
+    pages.splice(pages.indexOf(spare), 1);
   });
 
   it("opens the solution once her answer is corrected, and not before", async () => {
@@ -222,13 +294,31 @@ describe("homework submissions", () => {
     expect(solutions.data?.[0]?.correct_numeric).toBe(2);
   });
 
-  it("forfeits an exercise once she asks to see its solution", async () => {
+  it("cannot copy an answer she has seen into another assignment", async () => {
+    const { error } = await submit(
+      made.numeric,
+      { type: "numeric", raw: "2", value: "2" },
+      [],
+      made.second,
+    );
+    expect(error?.message).toBe("exercise_done_elsewhere");
+  });
+
+  it("forfeits an exercise once she asks to see its solution, on the database's clock", async () => {
     const reveal = await salma.from("exercise_reveals").insert({
       assignment_id: made.assignment,
       exercise_id: made.revealed,
       student_id: ids.salma,
+      revealed_at: "2000-01-01T00:00:00Z",
     });
     expect(reveal.error).toBeNull();
+
+    const { data: stamped } = await salma
+      .from("exercise_reveals")
+      .select("revealed_at")
+      .eq("exercise_id", made.revealed)
+      .single();
+    expect(new Date(stamped?.revealed_at ?? 0).getFullYear()).toBeGreaterThan(2000);
 
     const solutions = await salma
       .from("exercise_solutions")
@@ -246,5 +336,69 @@ describe("homework submissions", () => {
 
     const { data } = await salma.from("submissions").select("id").eq("exercise_id", made.unready);
     expect(data).toEqual([]);
+  });
+
+  it("gives no second chance, and no glimpse of the grade, through a missing page list", async () => {
+    // A null page list used to fail the INSERT after grading, printing the would-be row,
+    // grade included, in the error details before rolling back. Guessing was free.
+    const wrong = await submit(made.oracle, { type: "numeric", raw: "4", value: "4" }, null);
+    expect(wrong.error).toBeNull();
+    expect(Number(wrong.data?.grade)).toBe(0);
+
+    const right = await submit(made.oracle, { type: "numeric", raw: "3", value: "3" }, null);
+    expect(right.error?.message).toBe("submission_already_corrected");
+    expect(JSON.stringify(right.error)).not.toContain("20.00");
+  });
+});
+
+describe("lesson attachments", () => {
+  let tutor: Client;
+  const files: string[] = [];
+  let publicFile = "";
+  let enrolledFile = "";
+
+  beforeAll(async () => {
+    tutor = await signedInAs("prof@equerre.test");
+    const { data: lessons } = await tutor
+      .from("lessons")
+      .select("id, visibility")
+      .eq("status", "published");
+    const open = lessons?.find((lesson) => lesson.visibility === "public");
+    const enrolled = lessons?.find((lesson) => lesson.visibility === "enrolled");
+    if (!open || !enrolled) {
+      throw new Error("the seed should publish a public and an enrolled lesson");
+    }
+
+    publicFile = `${open.id}/${crypto.randomUUID()}.pdf`;
+    enrolledFile = `${enrolled.id}/${crypto.randomUUID()}.pdf`;
+    for (const path of [publicFile, enrolledFile]) {
+      const { error } = await tutor.storage
+        .from("lesson-files")
+        .upload(path, new Blob(["%PDF-1.4\n%test\n"], { type: "application/pdf" }), {
+          contentType: "application/pdf",
+        });
+      if (error) throw new Error(`could not upload a test attachment: ${error.message}`);
+      files.push(path);
+    }
+  });
+
+  afterAll(async () => {
+    if (files.length) await tutor.storage.from("lesson-files").remove(files);
+  });
+
+  it("lets a visitor who is not signed in open an attachment of a public lesson", async () => {
+    const { data, error } = await anonymousClient()
+      .storage.from("lesson-files")
+      .createSignedUrl(publicFile, 60);
+    expect(error).toBeNull();
+    expect(data?.signedUrl).toContain("lesson-files");
+  });
+
+  it("keeps an enrolled lesson's attachment from that same visitor", async () => {
+    const { data, error } = await anonymousClient()
+      .storage.from("lesson-files")
+      .createSignedUrl(enrolledFile, 60);
+    expect(error).not.toBeNull();
+    expect(data?.signedUrl ?? null).toBeNull();
   });
 });
