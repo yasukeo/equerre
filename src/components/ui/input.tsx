@@ -8,6 +8,16 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input data-slot="input" className={cn(controlClasses, className)} {...props} />;
 }
 
+export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
+  return (
+    <textarea
+      data-slot="textarea"
+      className={cn(controlClasses, "py-2 leading-relaxed", className)}
+      {...props}
+    />
+  );
+}
+
 /** A native select: the most reliable picker on low-end Android. */
 export function Select({ className, ...props }: ComponentProps<"select">) {
   return <select data-slot="select" className={cn(controlClasses, "pe-8", className)} {...props} />;

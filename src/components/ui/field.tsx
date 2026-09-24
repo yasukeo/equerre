@@ -1,7 +1,7 @@
 import { CircleAlert } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { Input, Label, Select } from "./input";
+import { Input, Label, Select, Textarea } from "./input";
 
 type FieldShellProps = {
   id: string;
@@ -85,6 +85,35 @@ export function SelectField({
         >
           {children}
         </Select>
+      )}
+    </FieldShell>
+  );
+}
+
+type TextareaFieldProps = Omit<ComponentProps<"textarea">, "id"> & {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+};
+
+export function TextareaField({
+  id,
+  label,
+  hint,
+  error,
+  className,
+  ...textareaProps
+}: TextareaFieldProps) {
+  return (
+    <FieldShell id={id} label={label} hint={hint} error={error} className={className}>
+      {(describedBy) => (
+        <Textarea
+          id={id}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          {...textareaProps}
+        />
       )}
     </FieldShell>
   );

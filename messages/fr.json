@@ -229,7 +229,79 @@
         "specific": "Visible des élèves désignées"
       },
       "open": "Voir la page publique",
-      "count": "{count, plural, one {# leçon} other {# leçons}}"
+      "count": "{count, plural, one {# leçon} other {# leçons}}",
+      "new": "Nouvelle leçon"
+    },
+    "newLesson": {
+      "title": "Nouvelle leçon",
+      "lead": "Choisissez son chapitre et donnez-lui un titre. Elle commence en brouillon : personne ne la voit tant que vous ne l’avez pas publiée.",
+      "chapter": "Chapitre",
+      "chapterPlaceholder": "Choisir un chapitre",
+      "lessonTitle": "Titre",
+      "lessonTitleHint": "Il donne aussi son adresse à la leçon, qui ne change plus ensuite.",
+      "submit": "Créer et ouvrir l’éditeur",
+      "submitting": "Création…",
+      "errors": {
+        "fields": "Vérifiez le chapitre et le titre.",
+        "chapter": "Choisissez un chapitre.",
+        "title": "Donnez un titre de 1 à 160 caractères.",
+        "unknown": "La leçon n’a pas pu être créée. Réessayez."
+      }
+    },
+    "lessonEditor": {
+      "title": "Modifier la leçon",
+      "back": "Toutes les leçons",
+      "unsaved": "Modifications non enregistrées",
+      "fields": {
+        "title": "Titre",
+        "summary": "Résumé",
+        "summaryHint": "Une phrase, affichée sous le titre et dans les partages.",
+        "visibility": "Qui peut la lire",
+        "body": "Contenu"
+      },
+      "mathShortcut": "Astuce : tapez $$x^2$$ dans le texte pour une formule, et $$$x^2$$$ seul sur une ligne pour une formule centrée.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "publish": "Publier",
+      "unpublish": "Repasser en brouillon",
+      "saved": "Leçon enregistrée.",
+      "published": "Leçon publiée : les élèves concernés la voient dès maintenant.",
+      "unpublished": "Leçon repassée en brouillon : plus aucun élève ne la voit.",
+      "errors": {
+        "fields": "Vérifiez le titre et le résumé.",
+        "title": "Donnez un titre de 1 à 160 caractères.",
+        "summary": "Le résumé tient en 300 caractères au plus.",
+        "content": "Le contenu contient un élément que la leçon ne sait pas afficher. Rechargez la page puis réessayez.",
+        "notFound": "Cette leçon n’existe plus.",
+        "unknown": "L’enregistrement a échoué. Réessayez."
+      },
+      "toolbar": {
+        "label": "Mise en forme",
+        "paragraph": "Texte",
+        "heading2": "Titre de section",
+        "heading3": "Sous-titre",
+        "bold": "Gras",
+        "italic": "Italique",
+        "bulletList": "Liste à puces",
+        "orderedList": "Liste numérotée",
+        "inlineMath": "Formule dans le texte",
+        "blockMath": "Formule centrée",
+        "callout": "Encadré",
+        "calloutNone": "Sans encadré",
+        "undo": "Annuler",
+        "redo": "Rétablir"
+      },
+      "math": {
+        "titleInline": "Formule dans le texte",
+        "titleBlock": "Formule centrée",
+        "latex": "Code LaTeX",
+        "hint": "Par exemple x^2, \\sqrt 2, \\pi ou \\infty.",
+        "preview": "Aperçu",
+        "insert": "Insérer",
+        "update": "Mettre à jour",
+        "remove": "Supprimer la formule",
+        "cancel": "Annuler"
+      }
     }
   },
   "student": {

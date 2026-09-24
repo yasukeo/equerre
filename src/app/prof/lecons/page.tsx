@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { buttonVariants } from "@/components/ui/button";
 import { LessonsList } from "./lessons-list";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,7 +15,12 @@ export default async function TutorLessonsPage() {
 
   return (
     <div className="grid max-w-4xl gap-6">
-      <h1 className="text-xl font-semibold">{t("title")}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold">{t("title")}</h1>
+        <Link href="/prof/lecons/nouvelle" className={buttonVariants()}>
+          {t("new")}
+        </Link>
+      </div>
       <Suspense fallback={<LessonsSkeleton />}>
         <LessonsList />
       </Suspense>

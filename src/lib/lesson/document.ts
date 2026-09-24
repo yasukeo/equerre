@@ -1,8 +1,9 @@
 // The lesson vocabulary, as recorded in DECISIONS.md, D-040. It is deliberately
 // small: everything the tutor can write, and nothing the renderer cannot draw.
 //
-// Callouts do not nest and a list item holds only paragraphs, so the schema needs
-// no recursion — which keeps both the zod parse and the inferred types simple.
+// Callouts do not nest. A list item opens with a paragraph and may hold lists of its
+// own, which is the only recursion: the editor (src/lib/lesson/editor-schema.ts) is
+// configured so that it cannot produce anything this schema refuses.
 
 import type { JSONContent } from "@tiptap/core";
 import { z } from "zod";
@@ -29,7 +30,10 @@ const inlineMathSchema = z.object({
   attrs: z.object({ latex: z.string() }),
 });
 
-const inlineSchema = z.discriminatedUnion("type", [textSchema, inlineMathSchema]);
+// Maj+Entrée: a line break inside a paragraph.
+const hardBreakSchema = z.object({ type: z.literal("hardBreak") });
+
+const inlineSchema = z.discriminatedUnion("type", [textSchema, inlineMathSchema, hardBreakSchema]);
 
 const paragraphSchema = z.object({
   type: z.literal("paragraph"),
@@ -71,7 +75,9 @@ const fileAttachmentSchema = z.object({
 
 const listItemSchema = z.object({
   type: z.literal("listItem"),
-  content: z.array(paragraphSchema).min(1),
+  get content() {
+    return z.array(listItemContentSchema).min(1);
+  },
 });
 
 const bulletListSchema = z.object({
@@ -83,6 +89,12 @@ const orderedListSchema = z.object({
   type: z.literal("orderedList"),
   content: z.array(listItemSchema).min(1),
 });
+
+const listItemContentSchema = z.discriminatedUnion("type", [
+  paragraphSchema,
+  bulletListSchema,
+  orderedListSchema,
+]);
 
 const calloutContentSchema = z.discriminatedUnion("type", [
   paragraphSchema,

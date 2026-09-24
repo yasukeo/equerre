@@ -71,7 +71,12 @@ export async function LessonsList() {
                   key={lesson.id}
                   className="flex flex-wrap items-center gap-x-3 gap-y-2 bg-surface px-4 py-3"
                 >
-                  <span className="min-w-0 flex-1 font-medium">{lesson.title}</span>
+                  <Link
+                    href={`/prof/lecons/${lesson.id}`}
+                    className="min-w-0 flex-1 font-medium underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+                  >
+                    {lesson.title}
+                  </Link>
 
                   <PublicationChip status={status} label={t(`status.${status}`)} />
                   <VisibilityChip

@@ -1,0 +1,121 @@
+/* The lesson editor: a sheet of the cahier with a toolbar pinned to its top. The body is
+   styled by lecon.css, so what the tutor types looks like what readers will see. */
+
+@layer components {
+  .editeur {
+    border: 1px solid var(--trait);
+    border-radius: 0.5rem;
+    background: var(--surface);
+  }
+
+  /* Focus is a highlighter halo with an ink edge (DESIGN.md), never colour alone. */
+  .editeur:focus-within {
+    border-color: var(--encre);
+    box-shadow: 0 0 0 3px var(--surligneur);
+  }
+
+  .editeur-barre {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 3.25rem;
+    padding: 0.375rem;
+    border-bottom: 1px solid var(--quadrillage);
+    border-radius: 0.5rem 0.5rem 0 0;
+    background: var(--sunken);
+  }
+
+  .editeur-bouton {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border-radius: 0.375rem;
+    color: var(--encre);
+  }
+
+  .editeur-bouton:hover:not(:disabled) {
+    background: var(--quadrillage);
+  }
+
+  .editeur-bouton[aria-pressed="true"] {
+    background: var(--lavis-bleu);
+    color: var(--stylo-bleu);
+    box-shadow: inset 0 0 0 1px var(--stylo-bleu);
+  }
+
+  .editeur-bouton:disabled {
+    opacity: 0.4;
+  }
+
+  .editeur-bouton:focus-visible,
+  .editeur-choix:focus-visible {
+    outline: 2px solid var(--encre);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 4px var(--surligneur);
+  }
+
+  .editeur-choix {
+    min-height: 2.75rem;
+    padding-inline: 0.5rem;
+    border: 1px solid var(--trait);
+    border-radius: 0.375rem;
+    background: var(--surface);
+    color: var(--encre);
+    font-size: 0.875rem;
+  }
+
+  .editeur-separateur {
+    width: 1px;
+    align-self: stretch;
+    margin-inline: 0.25rem;
+    background: var(--quadrillage);
+  }
+
+  .editeur-page {
+    min-height: 22rem;
+    padding: 1.25rem;
+    outline: none;
+  }
+
+  /* An encadré shows its kind above it while editing, as the page does. */
+  .editeur-page .lecon-encadre::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--stylo-bleu);
+  }
+
+  .editeur-page .lecon-encadre[data-kind="attention"]::before {
+    color: var(--stylo-rouge);
+  }
+
+  .editeur-page .lecon-encadre[data-kind="exemple"]::before {
+    color: var(--encre-douce);
+  }
+
+  /* A formula is edited by clicking it. */
+  .editeur-page [data-type="inline-math"],
+  .editeur-page [data-type="block-math"] {
+    cursor: pointer;
+    border-radius: 0.25rem;
+  }
+
+  .editeur-page [data-type="inline-math"]:hover,
+  .editeur-page [data-type="block-math"]:hover {
+    background: var(--lavis-bleu);
+  }
+
+  .editeur-page [data-type="block-math"] {
+    overflow-x: auto;
+    padding-block: 0.25rem;
+  }
+}
