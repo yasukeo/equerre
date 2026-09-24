@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { formatLocalDate } from "@/lib/dates";
-import type { CalloutKind } from "@/lib/lesson/document";
+import { LessonArticle } from "@/components/lesson-article";
 import { getPublicLesson, listPublicLessons, type LessonParams } from "@/lib/lesson/queries";
-import { renderLesson } from "@/lib/lesson/render";
 
 export async function generateStaticParams(): Promise<LessonParams[]> {
   const lessons = await listPublicLessons();
@@ -45,42 +42,14 @@ async function Lesson({ params }: { params: Promise<LessonParams> }) {
   const lesson = await getPublicLesson(await params);
   if (!lesson) notFound();
 
-  const t = await getTranslations("lesson");
-  const callout: Record<CalloutKind, string> = {
-    definition: t("callout.definition"),
-    theoreme: t("callout.theoreme"),
-    propriete: t("callout.propriete"),
-    exemple: t("callout.exemple"),
-    attention: t("callout.attention"),
-  };
-
   return (
-    <article>
-      <p className="text-sm text-encre-douce">
-        {lesson.levelLabel} · {lesson.chapterTitle}
-      </p>
-
-      <h1 className="mt-2 text-[clamp(1.875rem,1.5rem+1.6vw,2.75rem)] leading-tight font-semibold text-balance [font-variation-settings:'HEXP'_100]">
-        {lesson.title}
-      </h1>
-
-      {lesson.summary === null ? null : (
-        <p className="mt-4 text-lg text-encre-douce">{lesson.summary}</p>
-      )}
-
-      {lesson.publishedAt === null ? null : (
-        <p className="mt-4 text-sm text-encre-douce">
-          {t("publishedOn", { date: formatLocalDate(lesson.publishedAt) })}
-        </p>
-      )}
-
-      <div className="lecon-corps mt-10">
-        {renderLesson(lesson.content, {
-          calloutLabel: (kind) => callout[kind],
-          fileHref: (path) => `/cours/fichiers/${path}`,
-        })}
-      </div>
-    </article>
+    <LessonArticle
+      title={lesson.title}
+      summary={lesson.summary}
+      publishedAt={lesson.publishedAt}
+      context={`${lesson.levelLabel} · ${lesson.chapterTitle}`}
+      content={lesson.content}
+    />
   );
 }
 

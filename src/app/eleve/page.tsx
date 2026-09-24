@@ -1,6 +1,7 @@
 import { MapPin, Video } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 import { Suspense } from "react";
 import { SessionStatusChip } from "@/components/session-status";
 import { buttonVariants } from "@/components/ui/button";
@@ -37,7 +38,7 @@ async function StudentHome() {
   // "New lessons" means this student's level plus lessons shared with them. RLS also lets
   // them read other levels' public lessons, so filtering happens in the database, before
   // the limit — otherwise public lessons from other levels could fill the list.
-  const lessonFields = "id, title, published_at, chapters!inner(title, level_code)" as const;
+  const lessonFields = "id, slug, title, published_at, chapters!inner(title, level_code)" as const;
   const [sessionsResult, levelLessonsResult, sharedLessonsResult] = await Promise.all([
     supabase
       .from("sessions")
@@ -164,14 +165,19 @@ async function StudentHome() {
         ) : (
           <ul className="mt-3 divide-y divide-quadrillage border-y border-quadrillage" role="list">
             {lessons.map((lesson) => (
-              <li key={lesson.id} className="grid min-h-16 content-center gap-0.5 py-3">
-                <p className="font-medium">{lesson.title}</p>
-                <p className="text-sm text-encre-douce">
-                  {lesson.chapters?.title}
-                  {lesson.published_at
-                    ? ` · ${t("publishedOn", { date: formatLocal(lesson.published_at, "d MMMM") })}`
-                    : null}
-                </p>
+              <li key={lesson.id}>
+                <Link
+                  href={`/eleve/cours/${lesson.slug}`}
+                  className="grid min-h-16 content-center gap-0.5 py-3 hover:bg-sunken"
+                >
+                  <span className="font-medium">{lesson.title}</span>
+                  <span className="text-sm text-encre-douce">
+                    {lesson.chapters?.title}
+                    {lesson.published_at
+                      ? ` · ${t("publishedOn", { date: formatLocal(lesson.published_at, "d MMMM") })}`
+                      : null}
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>

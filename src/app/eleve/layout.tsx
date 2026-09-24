@@ -1,4 +1,4 @@
-import { House, UserRound } from "lucide-react";
+import { BookOpen, House, UserRound } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/shell/app-shell";
@@ -17,6 +17,11 @@ export default async function StudentLayout({ children }: { children: ReactNode 
           <li className="flex flex-1 md:block">
             <NavLink href="/eleve" exact icon={<House aria-hidden="true" />}>
               {t("home")}
+            </NavLink>
+          </li>
+          <li className="flex flex-1 md:block">
+            <NavLink href="/eleve/cours" icon={<BookOpen aria-hidden="true" />}>
+              {t("lessons")}
             </NavLink>
           </li>
           <li className="flex flex-1 md:block">

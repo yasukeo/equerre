@@ -135,7 +135,8 @@
     "student": {
       "label": "Mon espace",
       "home": "Accueil",
-      "profile": "Profil"
+      "profile": "Profil",
+      "lessons": "Cours"
     }
   },
   "session": {
@@ -325,6 +326,15 @@
       "noGroups": "Aucun groupe",
       "notProvided": "Non renseigné",
       "help": "Une information est fausse ? Signalez-la à votre professeure."
+    },
+    "lessons": {
+      "title": "Cours",
+      "mine": "Mes cours",
+      "others": "Ouverts à tous",
+      "othersHint": "Des cours publics d’autres niveaux, pour réviser ou prendre de l’avance.",
+      "empty": "Aucun cours publié pour vous pour l’instant.",
+      "shared": "Partagé avec vous",
+      "back": "Tous les cours"
     }
   },
   "email": {

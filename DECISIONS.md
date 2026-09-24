@@ -143,6 +143,9 @@ Lessons, exercise statements and solutions use Tiptap's JSON with these node typ
 **D-042 — Saving a lesson refreshes the public site at once.**
 `saveLesson` calls `updateTag` for the lesson and for the course index, so publishing, withdrawing, restricting or editing a lesson shows immediately, even on a page prerendered at build — checked end to end against the production build. A lesson that is withdrawn or made private then answers with the not-found content and `<meta name="robots" content="noindex">`, but with a 200 status: the page streams its static shell before the lesson is read, and a status cannot change once streaming has started. Next documents this trade-off; a real 404 would mean checking the lesson in `proxy` before the response starts, which is not worth a database query on every lesson page today.
 
+**D-043 — A signed-in student reads lessons through her own session.**
+`/eleve/cours` lists every published lesson she may read and `/eleve/cours/[slug]` shows one, both through the cookie-bound client in `src/lib/lesson/readable.ts`, so the lessons select policy alone decides what she sees (D-050, D-060) and nothing is cached across students — the cached, anonymous client of D-042 stays for public pages only. Her level's lessons and those shared with her come first, other levels' public lessons after, under « Ouverts à tous ». The public page and hers render through one `LessonArticle`, so what the tutor checks on one is what the other shows. Checked in the browser as a seed student, active and then stopped: a stopped student is left with the public lessons, and the address of a lesson shared with her answers « Page introuvable ».
+
 ## Files and storage
 
 **D-050 — Lesson images are public; lesson files follow the lesson.**
