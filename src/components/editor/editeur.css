@@ -82,6 +82,11 @@
     outline: none;
   }
 
+  /* A field of a form rather than a page: an exercise statement or its solution. */
+  .editeur-page-champ {
+    min-height: 10rem;
+  }
+
   /* An encadré shows its kind above it while editing, as the page does. */
   .editeur-page .lecon-encadre::before {
     content: attr(data-label);

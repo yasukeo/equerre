@@ -135,6 +135,28 @@ export type LessonDocument = z.infer<typeof lessonDocumentSchema>;
 export type LessonBlock = z.infer<typeof lessonBlockSchema>;
 
 /**
+ * An exercise's statement and its worked solution: the lesson vocabulary without attached
+ * documents. The lesson-files bucket lets a reader open a PDF only when the lesson in its
+ * folder name is hers to read, and an exercise is not a lesson (D-050, D-044).
+ */
+export const exerciseBlockSchema = z.discriminatedUnion("type", [
+  paragraphSchema,
+  headingSchema,
+  blockMathSchema,
+  bulletListSchema,
+  orderedListSchema,
+  calloutSchema,
+  imageSchema,
+]);
+
+export const exerciseDocumentSchema = z.object({
+  type: z.literal("doc"),
+  content: z.array(exerciseBlockSchema),
+});
+
+export type ExerciseDocument = z.infer<typeof exerciseDocumentSchema>;
+
+/**
  * A lesson as the database holds it: a Tiptap document, trusted only in its envelope.
  *
  * The strict schema above belongs on the way in, where refusing a node can tell the

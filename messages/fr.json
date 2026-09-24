@@ -130,7 +130,8 @@
       "label": "Espace professeure",
       "today": "Aujourd’hui",
       "invite": "Inviter un élève",
-      "lessons": "Leçons"
+      "lessons": "Leçons",
+      "exercises": "Exercices"
     },
     "student": {
       "label": "Mon espace",
@@ -260,7 +261,6 @@
         "visibility": "Qui peut la lire",
         "body": "Contenu"
       },
-      "mathShortcut": "Astuce : tapez $$x^2$$ dans le texte pour une formule, et $$$x^2$$$ seul sur une ligne pour une formule centrée.",
       "save": "Enregistrer",
       "saving": "Enregistrement…",
       "publish": "Publier",
@@ -275,78 +275,129 @@
         "content": "Le contenu contient un élément que la leçon ne sait pas afficher. Rechargez la page puis réessayez.",
         "notFound": "Cette leçon n’existe plus.",
         "unknown": "L’enregistrement a échoué. Réessayez."
+      }
+    },
+    "exercises": {
+      "title": "Exercices",
+      "new": "Nouvel exercice",
+      "empty": "Aucun exercice pour l’instant. Commencez par en créer un.",
+      "count": "{count, plural, =1 {1 exercice} other {# exercices}}",
+      "difficulty": "Difficulté {level}/5",
+      "incomplete": "Incomplet",
+      "incompleteHint": "Il manque l’énoncé ou la réponse attendue : l’exercice ne peut pas encore être donné.",
+      "answerType": {
+        "upload": "Photo de la copie",
+        "numeric": "Nombre",
+        "mcq": "QCM"
+      }
+    },
+    "newExercise": {
+      "title": "Nouvel exercice",
+      "lead": "Choisissez son chapitre, donnez-lui un titre et dites comment l’élève répondra. Vous écrirez l’énoncé et le corrigé ensuite.",
+      "chapter": "Chapitre",
+      "chapterPlaceholder": "Choisir un chapitre",
+      "exerciseTitle": "Titre",
+      "answerType": "L’élève répond par",
+      "answerTypeHint": "Vous pourrez changer d’avis tant qu’aucun élève n’a répondu ni demandé le corrigé.",
+      "answerTypeDetail": {
+        "upload": "Il photographie sa copie, vous la corrigez vous-même.",
+        "numeric": "Il tape un nombre, corrigé aussitôt avec la tolérance que vous fixez.",
+        "mcq": "Il coche une ou plusieurs réponses, corrigées aussitôt."
       },
-      "toolbar": {
-        "label": "Mise en forme",
-        "paragraph": "Texte",
-        "heading2": "Titre de section",
-        "heading3": "Sous-titre",
-        "bold": "Gras",
-        "italic": "Italique",
-        "bulletList": "Liste à puces",
-        "orderedList": "Liste numérotée",
-        "inlineMath": "Formule dans le texte",
-        "blockMath": "Formule centrée",
-        "callout": "Encadré",
-        "calloutNone": "Sans encadré",
-        "undo": "Annuler",
-        "redo": "Rétablir",
-        "image": "Ajouter une image",
-        "imageEdit": "Modifier l’image",
-        "file": "Joindre un PDF",
-        "fileEdit": "Modifier le document"
+      "submit": "Créer et ouvrir l’éditeur",
+      "submitting": "Création…",
+      "errors": {
+        "fields": "Vérifiez les champs signalés.",
+        "chapter": "Choisissez un chapitre.",
+        "title": "Donnez un titre de 1 à 160 caractères.",
+        "answerType": "Choisissez comment l’élève répondra.",
+        "unknown": "La création a échoué. Réessayez."
+      }
+    },
+    "exerciseEditor": {
+      "title": "Modifier l’exercice",
+      "back": "Tous les exercices",
+      "unsaved": "Modifications non enregistrées",
+      "incomplete": "Incomplet",
+      "incompleteHint": "Il manque l’énoncé ou la réponse attendue : l’exercice ne peut pas encore être donné.",
+      "answered": "{count, plural, =1 {Un élève a déjà répondu ou demandé le corrigé} other {# élèves ont déjà répondu ou demandé le corrigé}} : changer la réponse attendue ne modifie pas les notes déjà données.",
+      "fields": {
+        "title": "Titre",
+        "chapter": "Chapitre",
+        "difficulty": "Difficulté",
+        "tags": "Mots-clés",
+        "tagsHint": "Séparés par des virgules, par exemple « limites, forme indéterminée ».",
+        "statement": "Énoncé",
+        "answerType": "L’élève répond par",
+        "solution": "Corrigé",
+        "solutionHint": "L’élève le voit une fois sa réponse corrigée, ou s’il demande la solution : il renonce alors à l’exercice."
       },
-      "math": {
-        "titleInline": "Formule dans le texte",
-        "titleBlock": "Formule centrée",
-        "latex": "Code LaTeX",
-        "hint": "Par exemple x^2, \\sqrt 2, \\pi ou \\infty.",
-        "preview": "Aperçu",
-        "insert": "Insérer",
-        "update": "Mettre à jour",
-        "remove": "Supprimer la formule",
-        "cancel": "Annuler"
+      "difficulty": {
+        "1": "1 — Application directe",
+        "2": "2 — Facile",
+        "3": "3 — Moyen",
+        "4": "4 — Difficile",
+        "5": "5 — Très difficile"
       },
-      "image": {
-        "titleNew": "Ajouter une image",
-        "titleEdit": "Modifier l’image",
-        "file": "Image",
-        "fileHint": "JPEG, PNG ou WebP. Une grande photo est réduite avant l’envoi.",
-        "alt": "Description",
-        "altHint": "Ce que montre l’image, pour un élève qui ne peut pas la voir.",
-        "insert": "Ajouter",
-        "update": "Mettre à jour",
-        "uploading": "Envoi…",
+      "answerTypeLocked": "Des élèves ont déjà répondu ou demandé le corrigé : la façon de répondre ne peut plus changer. Pour une autre forme de réponse, créez un nouvel exercice.",
+      "upload": {
+        "hint": "L’élève photographie sa copie, page par page. Vous la corrigez et la notez vous-même."
+      },
+      "numeric": {
+        "correct": "Réponse attendue",
+        "correctHint": "Virgule ou point. Pour une puissance de dix : 3e8 ou 3×10^8.",
+        "tolerance": "Tolérance",
+        "toleranceHint": "0 ou vide : seule la valeur exacte est acceptée. En %, tapez 1 pour 1 %.",
+        "toleranceKind": "Unité",
+        "absolue": "en valeur",
+        "relative": "en %",
+        "missing": "Sans réponse attendue, l’exercice ne peut pas être donné.",
+        "exact": "Seule la réponse {value} sera acceptée.",
+        "range": "Acceptée entre {low} et {high}."
+      },
+      "mcq": {
+        "mode": "L’élève voit",
+        "modeHint": "Ce choix est le seul indice qu’il reçoit : des cases à cocher n’annoncent pas combien de réponses sont justes.",
+        "unique": "Des boutons ronds : une seule réponse",
+        "multiple": "Des cases à cocher : une ou plusieurs réponses",
+        "hint": "Une formule s’écrit entre dollars, par exemple $a = 1$. Cochez la ou les bonnes réponses.",
+        "choice": "Choix {number}",
+        "right": "Bonne réponse",
+        "up": "Monter le choix {number}",
+        "down": "Descendre le choix {number}",
+        "remove": "Retirer le choix {number}",
+        "add": "Ajouter un choix",
+        "rightFor": "Choix {number} : bonne réponse"
+      },
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "saved": "Exercice enregistré.",
+      "delete": {
+        "title": "Supprimer l’exercice",
+        "start": "Supprimer cet exercice…",
+        "confirmQuestion": "L’exercice, son corrigé et sa réponse attendue seront effacés. Supprimer ?",
+        "confirm": "Oui, supprimer",
         "cancel": "Annuler",
-        "remove": "Retirer l’image",
-        "errors": {
-          "missing": "Choisissez une image.",
-          "alt": "Décrivez l’image en quelques mots.",
-          "type": "Choisissez une image JPEG, PNG ou WebP.",
-          "unreadable": "Cette image ne peut pas être lue. Essayez-en une autre.",
-          "tooLarge": "Cette image reste trop lourde, même réduite.",
-          "upload": "L’envoi a échoué. Vérifiez la connexion puis réessayez."
-        }
+        "assigned": "Cet exercice a été donné en devoir : il reste dans la banque pour que les copies des élèves gardent leur énoncé."
       },
-      "file": {
-        "titleNew": "Joindre un document PDF",
-        "titleEdit": "Modifier le document",
-        "file": "Document",
-        "fileHint": "Un PDF de 20 Mo au plus. Seuls les élèves qui peuvent lire la leçon pourront l’ouvrir.",
-        "name": "Nom affiché",
-        "nameHint": "Ce que les élèves verront, par exemple « Fiche d’exercices ».",
-        "insert": "Joindre",
-        "update": "Mettre à jour",
-        "uploading": "Envoi…",
-        "cancel": "Annuler",
-        "remove": "Retirer le document",
-        "errors": {
-          "missing": "Choisissez un fichier PDF.",
-          "name": "Donnez un nom au document.",
-          "type": "Ce fichier n’est pas un PDF.",
-          "tooLarge": "Ce PDF dépasse 20 Mo.",
-          "upload": "L’envoi a échoué. Vérifiez la connexion puis réessayez."
-        }
+      "errors": {
+        "fields": "Vérifiez les champs signalés.",
+        "unknown": "L’enregistrement a échoué. Réessayez.",
+        "notFound": "Cet exercice n’existe plus.",
+        "chapter": "Choisissez un chapitre.",
+        "title": "Donnez un titre de 1 à 160 caractères.",
+        "difficulty": "Choisissez une difficulté de 1 à 5.",
+        "tags": "Dix mots-clés au plus, de 40 caractères chacun.",
+        "answerType": "Choisissez comment l’élève répondra.",
+        "document": "Ce texte contient un élément que l’exercice ne sait pas afficher. Rechargez la page puis réessayez.",
+        "number": "Ce nombre n’est pas lisible. Exemples : 4,8 ou -0,5 ou 3e8.",
+        "tolerance": "La tolérance est un nombre positif ou nul.",
+        "toleranceTooLarge": "En pourcentage, la tolérance ne dépasse pas 100 %.",
+        "choices": "Il faut de 2 à 8 choix, chacun rédigé.",
+        "oneRight": "Avec des boutons ronds, une seule réponse peut être juste.",
+        "answerTypeLocked": "Des élèves ont déjà répondu ou demandé le corrigé : la façon de répondre ne peut plus changer.",
+        "deleteAssigned": "Cet exercice a été donné en devoir : il ne peut pas être supprimé.",
+        "tolerancePercent": "Pour une tolérance en pourcentage, choisissez « en % » dans Unité."
       }
     }
   },
@@ -402,5 +453,80 @@
     "loading": "Chargement de la leçon…",
     "publishedOn": "Publié le {date}",
     "allLessons": "Toutes les leçons"
+  },
+  "editor": {
+    "mathShortcut": "Astuce : tapez $$x^2$$ dans le texte pour une formule, et $$$x^2$$$ seul sur une ligne pour une formule centrée.",
+    "toolbar": {
+      "label": "Mise en forme · {field}",
+      "paragraph": "Texte",
+      "heading2": "Titre de section",
+      "heading3": "Sous-titre",
+      "bold": "Gras",
+      "italic": "Italique",
+      "bulletList": "Liste à puces",
+      "orderedList": "Liste numérotée",
+      "inlineMath": "Formule dans le texte",
+      "blockMath": "Formule centrée",
+      "callout": "Encadré",
+      "calloutNone": "Sans encadré",
+      "undo": "Annuler",
+      "redo": "Rétablir",
+      "image": "Ajouter une image",
+      "imageEdit": "Modifier l’image",
+      "file": "Joindre un PDF",
+      "fileEdit": "Modifier le document"
+    },
+    "math": {
+      "titleInline": "Formule dans le texte",
+      "titleBlock": "Formule centrée",
+      "latex": "Code LaTeX",
+      "hint": "Par exemple x^2, \\sqrt 2, \\pi ou \\infty.",
+      "preview": "Aperçu",
+      "insert": "Insérer",
+      "update": "Mettre à jour",
+      "remove": "Supprimer la formule",
+      "cancel": "Annuler"
+    },
+    "image": {
+      "titleNew": "Ajouter une image",
+      "titleEdit": "Modifier l’image",
+      "file": "Image",
+      "fileHint": "JPEG, PNG ou WebP. Une grande photo est réduite avant l’envoi.",
+      "alt": "Description",
+      "altHint": "Ce que montre l’image, pour un élève qui ne peut pas la voir.",
+      "insert": "Ajouter",
+      "update": "Mettre à jour",
+      "uploading": "Envoi…",
+      "cancel": "Annuler",
+      "remove": "Retirer l’image",
+      "errors": {
+        "missing": "Choisissez une image.",
+        "alt": "Décrivez l’image en quelques mots.",
+        "type": "Choisissez une image JPEG, PNG ou WebP.",
+        "unreadable": "Cette image ne peut pas être lue. Essayez-en une autre.",
+        "tooLarge": "Cette image reste trop lourde, même réduite.",
+        "upload": "L’envoi a échoué. Vérifiez la connexion puis réessayez."
+      }
+    },
+    "file": {
+      "titleNew": "Joindre un document PDF",
+      "titleEdit": "Modifier le document",
+      "file": "Document",
+      "fileHint": "Un PDF de 20 Mo au plus. Seuls les élèves qui peuvent lire la leçon pourront l’ouvrir.",
+      "name": "Nom affiché",
+      "nameHint": "Ce que les élèves verront, par exemple « Fiche d’exercices ».",
+      "insert": "Joindre",
+      "update": "Mettre à jour",
+      "uploading": "Envoi…",
+      "cancel": "Annuler",
+      "remove": "Retirer le document",
+      "errors": {
+        "missing": "Choisissez un fichier PDF.",
+        "name": "Donnez un nom au document.",
+        "type": "Ce fichier n’est pas un PDF.",
+        "tooLarge": "Ce PDF dépasse 20 Mo.",
+        "upload": "L’envoi a échoué. Vérifiez la connexion puis réessayez."
+      }
+    }
   }
 }

@@ -25,7 +25,7 @@ type Props = {
  * formula without closing, so each opening mounts it afresh with that formula's LaTeX.
  */
 export function MathDialog({ target, onSubmit, onRemove, onClose }: Props) {
-  const t = useTranslations("tutor.lessonEditor.math");
+  const t = useTranslations("editor.math");
   const ref = useRef<HTMLDialogElement>(null);
   const [latex, setLatex] = useState(target.latex);
 
@@ -53,6 +53,9 @@ export function MathDialog({ target, onSubmit, onRemove, onClose }: Props) {
         className="grid gap-4 p-5"
         onSubmit={(event) => {
           event.preventDefault();
+          // The dialog is rendered from inside the page's form, and React bubbles a submit
+          // through the component tree, portal or not: it must not save the page too.
+          event.stopPropagation();
           if (latex.trim() !== "") onSubmit(latex.trim());
         }}
       >

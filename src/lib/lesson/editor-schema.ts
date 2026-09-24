@@ -15,6 +15,8 @@ export type LessonEditorOptions = {
   /** Called when a formula is clicked, to reopen it for editing. */
   onMathClick?: (kind: "inline" | "block", node: ProseMirrorNode, pos: number) => void;
   calloutLabels?: Partial<Record<CalloutKind, string>>;
+  /** Attached PDFs: lessons only, since the lesson-files bucket follows lesson visibility. */
+  attachments?: boolean;
 };
 
 export function lessonExtensions(options: LessonEditorOptions = {}): Extensions {
@@ -44,6 +46,6 @@ export function lessonExtensions(options: LessonEditorOptions = {}): Extensions 
     }),
     Callout.configure({ labels: options.calloutLabels ?? {} }),
     LessonImage,
-    FileAttachment,
+    ...(options.attachments === false ? [] : [FileAttachment]),
   ];
 }

@@ -1,4 +1,4 @@
-import { BookOpen, House, UserPlus } from "lucide-react";
+import { BookOpen, House, NotebookPen, UserPlus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/shell/app-shell";
@@ -22,6 +22,11 @@ export default async function TutorLayout({ children }: { children: ReactNode })
           <li className="flex flex-1 md:block">
             <NavLink href="/prof/lecons" icon={<BookOpen aria-hidden="true" />}>
               {t("lessons")}
+            </NavLink>
+          </li>
+          <li className="flex flex-1 md:block">
+            <NavLink href="/prof/exercices" icon={<NotebookPen aria-hidden="true" />}>
+              {t("exercises")}
             </NavLink>
           </li>
           <li className="flex flex-1 md:block">

@@ -976,6 +976,25 @@ export type Database = {
     }
     Functions: {
       invite_code_is_valid: { Args: { p_code: string }; Returns: boolean }
+      save_exercise: {
+        Args: {
+          p_answer_type: Database["public"]["Enums"]["answer_type"]
+          p_chapter_id: string
+          p_choice_mode: Database["public"]["Enums"]["choice_mode"]
+          p_choices: Json
+          p_correct_choice_ids: string[]
+          p_correct_numeric: string
+          p_difficulty: number
+          p_id: string
+          p_solution: Json
+          p_statement: Json
+          p_tags: string[]
+          p_title: string
+          p_tolerance: string
+          p_tolerance_kind: Database["public"]["Enums"]["tolerance_kind"]
+        }
+        Returns: undefined
+      }
       submit_exercise_answer: {
         Args: {
           p_answer?: Json

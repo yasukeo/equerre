@@ -18,7 +18,7 @@ export type ImageTarget = {
 export type InsertedImage = { src: string; alt: string; width: number; height: number };
 
 type Props = {
-  lessonId: string;
+  folderId: string;
   target: ImageTarget;
   onInsert: (image: InsertedImage) => void;
   onUpdate: (alt: string) => void;
@@ -31,8 +31,8 @@ type Props = {
  * reduced in the browser and stored only when the tutor confirms, so closing the dialog
  * leaves nothing behind in storage.
  */
-export function ImageDialog({ lessonId, target, onInsert, onUpdate, onRemove, onClose }: Props) {
-  const t = useTranslations("tutor.lessonEditor.image");
+export function ImageDialog({ folderId, target, onInsert, onUpdate, onRemove, onClose }: Props) {
+  const t = useTranslations("editor.image");
   const ref = useRef<HTMLDialogElement>(null);
   // Set once the dialog is closed, so an upload finishing afterwards inserts nothing.
   const closed = useRef(false);
@@ -71,7 +71,7 @@ export function ImageDialog({ lessonId, target, onInsert, onUpdate, onRemove, on
     setPending(true);
     try {
       const prepared = await prepareImage(file, LESSON_IMAGE_PREPARATION);
-      const src = await uploadLessonImage(lessonId, prepared);
+      const src = await uploadLessonImage(folderId, prepared);
       if (closed.current) return;
       onInsert({ src, alt: description, width: prepared.width, height: prepared.height });
     } catch (failure) {
@@ -102,6 +102,9 @@ export function ImageDialog({ lessonId, target, onInsert, onUpdate, onRemove, on
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
+          // The dialog is rendered from inside the page's form, and React bubbles a submit
+          // through the component tree, portal or not: it must not save the page too.
+          event.stopPropagation();
           void submit();
         }}
       >

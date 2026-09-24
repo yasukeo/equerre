@@ -2,7 +2,7 @@ import { getSchema } from "@tiptap/core";
 import { wrapInList } from "@tiptap/pm/schema-list";
 import { EditorState, NodeSelection, TextSelection } from "@tiptap/pm/state";
 import { describe, expect, it } from "vitest";
-import { CALLOUT_KINDS, lessonDocumentSchema } from "./document";
+import { CALLOUT_KINDS, exerciseDocumentSchema, lessonDocumentSchema } from "./document";
 import { liftOutOfCallout, wrapInCallout } from "./callout-extension";
 import { lessonExtensions } from "./editor-schema";
 import { blockInsertionRange } from "./insert-block";
@@ -377,5 +377,37 @@ describe("where a new image or document goes", () => {
       "fileAttachment",
       "paragraph",
     ]);
+  });
+});
+
+describe("the exercise editor's schema", () => {
+  const exerciseSchema = getSchema(lessonExtensions({ attachments: false }));
+
+  it("is the lesson's without attached documents", () => {
+    expect(Object.keys(exerciseSchema.nodes).sort()).toEqual(
+      Object.keys(schema.nodes)
+        .filter((name) => name !== "fileAttachment")
+        .sort(),
+    );
+  });
+
+  it("produces only documents that saving an exercise accepts", () => {
+    const statement = exerciseSchema
+      .nodeFromJSON({
+        type: "doc",
+        content: [
+          paragraph(text("Calculer "), { type: "inlineMath", attrs: { latex: "f'(2)" } }),
+          image,
+          {
+            type: "callout",
+            attrs: { kind: "attention" },
+            content: [paragraph(text("Justifier."))],
+          },
+        ],
+      })
+      .toJSON();
+    expect(exerciseDocumentSchema.safeParse(statement).error?.issues ?? []).toEqual([]);
+    const withFile = { type: "doc", content: [attachment] };
+    expect(exerciseDocumentSchema.safeParse(withFile).success).toBe(false);
   });
 });

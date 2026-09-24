@@ -18,9 +18,12 @@ export const LESSON_IMAGE_PREPARATION = {
   quality: 0.85,
 } as const;
 
-/** Stores an image and returns its public address. A name is never reused, so it is cached for a year. */
-export async function uploadLessonImage(lessonId: string, image: PreparedImage): Promise<string> {
-  const name = `${lessonId}/${crypto.randomUUID()}.${image.extension}`;
+/**
+ * Stores an image in the folder of the lesson or exercise that shows it, and returns its
+ * public address. A name is never reused, so it is cached for a year.
+ */
+export async function uploadLessonImage(folderId: string, image: PreparedImage): Promise<string> {
+  const name = `${folderId}/${crypto.randomUUID()}.${image.extension}`;
   const bucket = createClient().storage.from("lesson-assets");
   const { error } = await bucket.upload(name, image.blob, {
     contentType: image.type,

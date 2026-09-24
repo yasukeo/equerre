@@ -710,3 +710,143 @@ describe("the tutor's lessons", () => {
     expect(error).not.toBeNull();
   });
 });
+
+describe("the exercise bank", () => {
+  let tutor: Client;
+  let salma: Client;
+  let exercise = "";
+  let assignment = "";
+  let chapterId = "";
+
+  const save = (client: Client, overrides: Partial<Parameters<typeof saveArgs>[0]> = {}) =>
+    client.rpc("save_exercise", saveArgs(overrides));
+
+  function saveArgs(overrides: {
+    answerType?: "upload" | "numeric" | "mcq";
+    correct?: string;
+    tolerance?: string;
+    kind?: "absolue" | "relative";
+    choices?: { id: string; label: string }[];
+    mode?: "unique" | "multiple";
+    right?: string[];
+  }) {
+    return {
+      p_id: exercise,
+      p_chapter_id: chapterId,
+      p_title: "Test RLS — banque",
+      p_statement: { type: "doc", content: [{ type: "paragraph" }] },
+      p_difficulty: 2,
+      p_tags: ["test"],
+      p_answer_type: overrides.answerType ?? "numeric",
+      p_choices: overrides.choices ?? [],
+      p_choice_mode: overrides.mode ?? "unique",
+      p_solution: { type: "doc", content: [] },
+      p_correct_numeric: overrides.correct ?? "",
+      p_tolerance: overrides.tolerance ?? "",
+      p_tolerance_kind: overrides.kind ?? "absolue",
+      p_correct_choice_ids: overrides.right ?? [],
+    };
+  }
+
+  beforeAll(async () => {
+    tutor = await signedInAs("prof@equerre.test");
+    salma = await signedInAs("salma.alaoui@equerre.test");
+    const { data: chapter } = await tutor.from("chapters").select("id").limit(1).single();
+    if (!chapter) throw new Error("no chapter to hang the test exercise on");
+    chapterId = chapter.id;
+    const { data, error } = await tutor
+      .from("exercises")
+      .insert({
+        chapter_id: chapterId,
+        title: "Test RLS — banque",
+        statement: { type: "doc", content: [] },
+        difficulty: 1,
+        answer_type: "upload",
+      })
+      .select("id")
+      .single();
+    if (error || !data) throw new Error(`could not create the test exercise: ${error?.message}`);
+    exercise = data.id;
+  });
+
+  afterAll(async () => {
+    if (assignment) await tutor.from("assignments").delete().eq("id", assignment);
+    if (exercise) await tutor.from("exercises").delete().eq("id", exercise);
+  });
+
+  it("stores the tutor's expected answer exactly as she typed it", async () => {
+    const { error } = await save(tutor, { correct: "0.1", tolerance: "0.015", kind: "relative" });
+    expect(error).toBeNull();
+
+    const { data } = await tutor
+      .from("exercise_solutions")
+      .select("correct_numeric::text, tolerance::text, tolerance_kind")
+      .eq("exercise_id", exercise)
+      .single();
+    expect(data).toEqual({
+      correct_numeric: "0.1",
+      tolerance: "0.015",
+      tolerance_kind: "relative",
+    });
+  });
+
+  it("keeps a question's right answers among its choices, one behind radio buttons", async () => {
+    const choices = [
+      { id: "a", label: "$a = 0$" },
+      { id: "b", label: "$a = 1$" },
+    ];
+    expect((await save(tutor, { answerType: "mcq", choices, right: ["b"] })).error).toBeNull();
+    expect(
+      (await save(tutor, { answerType: "mcq", choices, right: ["a", "b"] })).error?.message,
+    ).toBe("choices_invalid");
+    expect(
+      (await save(tutor, { answerType: "mcq", choices, mode: "multiple", right: ["z"] })).error
+        ?.message,
+    ).toBe("choices_invalid");
+
+    const { data } = await tutor
+      .from("exercises")
+      .select("answer_type, choice_mode, choices")
+      .eq("id", exercise)
+      .single();
+    expect(data).toMatchObject({ answer_type: "mcq", choice_mode: "unique" });
+  });
+
+  it("is saved by the tutor alone", async () => {
+    expect((await save(salma, { answerType: "upload" })).error?.message).toBe("not_tutor");
+    const anon = await anonymousClient().rpc("save_exercise", saveArgs({ answerType: "upload" }));
+    expect(anon.error).not.toBeNull();
+  });
+
+  it("keeps its kind of answer once a student has asked for the solution", async () => {
+    expect((await save(tutor, { answerType: "upload" })).error).toBeNull();
+    const { data } = await tutor
+      .from("assignments")
+      .insert({
+        title: "Test RLS — banque",
+        due_at: new Date(Date.now() + 86_400_000).toISOString(),
+        student_id: ids.salma,
+        created_by: seedId("00000000", 1),
+      })
+      .select("id")
+      .single();
+    if (!data) throw new Error("could not create the test assignment");
+    assignment = data.id;
+    await tutor
+      .from("assignment_items")
+      .insert({ assignment_id: assignment, exercise_id: exercise });
+    const reveal = await salma
+      .from("exercise_reveals")
+      .insert({ assignment_id: assignment, exercise_id: exercise, student_id: ids.salma });
+    expect(reveal.error).toBeNull();
+
+    expect((await save(tutor, { answerType: "numeric", correct: "2" })).error?.message).toBe(
+      "answer_type_locked",
+    );
+    // The same kind still saves: the wording can be corrected.
+    expect((await save(tutor, { answerType: "upload" })).error).toBeNull();
+    // And the exercise stays in the bank while the homework holds it.
+    const removed = await tutor.from("exercises").delete().eq("id", exercise);
+    expect(removed.error?.code).toBe("23503");
+  });
+});

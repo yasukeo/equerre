@@ -12,7 +12,6 @@ import { LessonEditor } from "./lesson-editor";
 // The editor draws the lesson as the page will: same maths, same encadrés.
 import "katex/dist/katex.min.css";
 import "@/app/cours/lecon.css";
-import "../editeur.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.lessonEditor");

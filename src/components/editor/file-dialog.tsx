@@ -38,7 +38,7 @@ function readableName(fileName: string): string {
  * bucket, where only those who may read the lesson can open it (DECISIONS.md, D-050).
  */
 export function FileDialog({ lessonId, target, onInsert, onUpdate, onRemove, onClose }: Props) {
-  const t = useTranslations("tutor.lessonEditor.file");
+  const t = useTranslations("editor.file");
   const ref = useRef<HTMLDialogElement>(null);
   const closed = useRef(false);
   const [file, setFile] = useState<File | null>(null);
@@ -96,6 +96,9 @@ export function FileDialog({ lessonId, target, onInsert, onUpdate, onRemove, onC
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
+          // The dialog is rendered from inside the page's form, and React bubbles a submit
+          // through the component tree, portal or not: it must not save the page too.
+          event.stopPropagation();
           void submit();
         }}
       >
