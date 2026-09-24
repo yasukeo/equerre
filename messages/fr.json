@@ -290,7 +290,11 @@
         "callout": "Encadré",
         "calloutNone": "Sans encadré",
         "undo": "Annuler",
-        "redo": "Rétablir"
+        "redo": "Rétablir",
+        "image": "Ajouter une image",
+        "imageEdit": "Modifier l’image",
+        "file": "Joindre un PDF",
+        "fileEdit": "Modifier le document"
       },
       "math": {
         "titleInline": "Formule dans le texte",
@@ -302,6 +306,47 @@
         "update": "Mettre à jour",
         "remove": "Supprimer la formule",
         "cancel": "Annuler"
+      },
+      "image": {
+        "titleNew": "Ajouter une image",
+        "titleEdit": "Modifier l’image",
+        "file": "Image",
+        "fileHint": "JPEG, PNG ou WebP. Une grande photo est réduite avant l’envoi.",
+        "alt": "Description",
+        "altHint": "Ce que montre l’image, pour un élève qui ne peut pas la voir.",
+        "insert": "Ajouter",
+        "update": "Mettre à jour",
+        "uploading": "Envoi…",
+        "cancel": "Annuler",
+        "remove": "Retirer l’image",
+        "errors": {
+          "missing": "Choisissez une image.",
+          "alt": "Décrivez l’image en quelques mots.",
+          "type": "Choisissez une image JPEG, PNG ou WebP.",
+          "unreadable": "Cette image ne peut pas être lue. Essayez-en une autre.",
+          "tooLarge": "Cette image reste trop lourde, même réduite.",
+          "upload": "L’envoi a échoué. Vérifiez la connexion puis réessayez."
+        }
+      },
+      "file": {
+        "titleNew": "Joindre un document PDF",
+        "titleEdit": "Modifier le document",
+        "file": "Document",
+        "fileHint": "Un PDF de 20 Mo au plus. Seuls les élèves qui peuvent lire la leçon pourront l’ouvrir.",
+        "name": "Nom affiché",
+        "nameHint": "Ce que les élèves verront, par exemple « Fiche d’exercices ».",
+        "insert": "Joindre",
+        "update": "Mettre à jour",
+        "uploading": "Envoi…",
+        "cancel": "Annuler",
+        "remove": "Retirer le document",
+        "errors": {
+          "missing": "Choisissez un fichier PDF.",
+          "name": "Donnez un nom au document.",
+          "type": "Ce fichier n’est pas un PDF.",
+          "tooLarge": "Ce PDF dépasse 20 Mo.",
+          "upload": "L’envoi a échoué. Vérifiez la connexion puis réessayez."
+        }
       }
     }
   },

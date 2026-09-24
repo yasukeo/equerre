@@ -3,8 +3,8 @@
 
 import { renderJSONContentToReactElement } from "@tiptap/static-renderer/json/react";
 import type { ReactNode } from "react";
-import { siteConfig } from "@/config/site";
 import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "./document";
+import { formatFileSize } from "./file-size";
 import { renderMath } from "./math";
 
 type Attrs = Record<string, unknown> | undefined;
@@ -35,13 +35,7 @@ function calloutKind(attrs: Attrs): CalloutKind {
 
 function readableSize(attrs: Attrs): string | null {
   const bytes = numberAttr(attrs, "size");
-  if (bytes === undefined) return null;
-  const show = (value: number, digits: number) =>
-    new Intl.NumberFormat(siteConfig.defaultLocale, { maximumFractionDigits: digits }).format(
-      value,
-    );
-  const megabytes = bytes / 1_048_576;
-  return megabytes >= 1 ? `${show(megabytes, 1)} Mo` : `${show(bytes / 1024, 0)} Ko`;
+  return bytes === undefined ? null : formatFileSize(bytes);
 }
 
 export function createLessonRenderer({ calloutLabel, fileHref }: LessonRenderOptions) {

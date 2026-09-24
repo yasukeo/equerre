@@ -9,6 +9,7 @@ import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
 import { Callout } from "./callout-extension";
 import type { CalloutKind } from "./document";
+import { FileAttachment, LessonImage } from "./media-extensions";
 
 export type LessonEditorOptions = {
   /** Called when a formula is clicked, to reopen it for editing. */
@@ -42,5 +43,7 @@ export function lessonExtensions(options: LessonEditorOptions = {}): Extensions 
       katexOptions: { throwOnError: false, trust: false, strict: false },
     }),
     Callout.configure({ labels: options.calloutLabels ?? {} }),
+    LessonImage,
+    FileAttachment,
   ];
 }

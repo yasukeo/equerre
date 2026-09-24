@@ -415,6 +415,38 @@ describe("lesson attachments", () => {
     expect(error).not.toBeNull();
     expect(data?.signedUrl ?? null).toBeNull();
   });
+
+  it("cannot be added, replaced or removed by a student, image or document", async () => {
+    const salma = await signedInAs("salma.alaoui@equerre.test");
+    const lessonId = publicFile.split("/")[0];
+    const image = await salma.storage
+      .from("lesson-assets")
+      .upload(`${lessonId}/${crypto.randomUUID()}.png`, new Blob(["x"], { type: "image/png" }), {
+        contentType: "image/png",
+      });
+    expect(image.error).not.toBeNull();
+
+    const document = await salma.storage
+      .from("lesson-files")
+      .upload(`${lessonId}/${crypto.randomUUID()}.pdf`, new Blob(["%PDF-1.4\n"]), {
+        contentType: "application/pdf",
+      });
+    expect(document.error).not.toBeNull();
+
+    // She may read this one, since its lesson is public; she may not overwrite it.
+    const replaced = await salma.storage
+      .from("lesson-files")
+      .upload(publicFile, new Blob(["%PDF-1.4\n%forged\n"]), {
+        contentType: "application/pdf",
+        upsert: true,
+      });
+    expect(replaced.error).not.toBeNull();
+
+    const { data: removed } = await salma.storage.from("lesson-files").remove([publicFile]);
+    expect(removed ?? []).toEqual([]);
+    const { data: still } = await tutor.storage.from("lesson-files").download(publicFile);
+    expect(await still?.text()).toBe("%PDF-1.4\n%test\n");
+  });
 });
 
 describe("a student's own profile", () => {

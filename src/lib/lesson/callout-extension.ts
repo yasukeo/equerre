@@ -83,7 +83,7 @@ export const Callout = Node.create<CalloutOptions>({
   name: "callout",
   group: "block",
   // The same content the renderer and the strict schema accept; encadrés do not nest.
-  content: "(paragraph | blockMath | bulletList | orderedList)+",
+  content: "(paragraph | blockMath | bulletList | orderedList | image)+",
   defining: true,
 
   addOptions() {

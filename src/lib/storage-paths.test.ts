@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isLessonFileName, isSubmissionPageName } from "./storage-paths";
+import {
+  isLessonFileName,
+  isLessonImageName,
+  isLessonImageUrl,
+  isSubmissionPageName,
+} from "./storage-paths";
 
 const a = "0f8b8a4e-3c1d-4a9e-9b1f-2d3c4b5a6f70";
 const b = "1a2b3c4d-5e6f-4a1b-8c2d-3e4f5a6b7c8d";
@@ -25,6 +30,38 @@ describe("isLessonFileName", () => {
     "",
   ])("refuses %j", (name) => {
     expect(isLessonFileName(name)).toBe(false);
+  });
+});
+
+describe("lesson images", () => {
+  const library = "https://abc.supabase.co/storage/v1/object/public/lesson-assets";
+
+  it.each(["webp", "jpg", "png"])("accepts a .%s image in the library", (ext) => {
+    expect(isLessonImageName(`${a}/${b}.${ext}`)).toBe(true);
+    expect(isLessonImageUrl(`${library}/${a}/${b}.${ext}`)).toBe(true);
+  });
+
+  it.each([
+    `${a}/${b}.svg`,
+    `${a}/${b}.gif`,
+    `${a}/figure.png`,
+    `${a}/../${b}.png`,
+    `${a}/${b}/${c}.png`,
+  ])("refuses the name %j", (name) => {
+    expect(isLessonImageName(name)).toBe(false);
+    expect(isLessonImageUrl(`${library}/${name}`)).toBe(false);
+  });
+
+  it.each([
+    `https://x.test/${a}/${b}.png`,
+    `https://abc.supabase.co/storage/v1/object/public/submissions/${a}/${b}.png`,
+    `https://abc.supabase.co/storage/v1/object/sign/lesson-assets/${a}/${b}.png`,
+    `${library}/${a}/${b}.png?token=x`,
+    `${library}/${a}/${b}.png#x`,
+    `//abc.supabase.co/storage/v1/object/public/lesson-assets/${a}/${b}.png`,
+    `javascript://abc.supabase.co/storage/v1/object/public/lesson-assets/${a}/${b}.png`,
+  ])("refuses the address %j", (src) => {
+    expect(isLessonImageUrl(src)).toBe(false);
   });
 });
 

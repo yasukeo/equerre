@@ -7,6 +7,7 @@
 
 import type { JSONContent } from "@tiptap/core";
 import { z } from "zod";
+import { LESSON_FILE_NAME, LESSON_IMAGE_URL } from "@/lib/storage-paths";
 
 export const CALLOUT_KINDS = [
   "definition",
@@ -52,23 +53,25 @@ const blockMathSchema = z.object({
   attrs: z.object({ latex: z.string() }),
 });
 
+// Images come from the lesson library and documents from the private lesson-files bucket,
+// both under id-shaped names (D-052, D-053): nothing is fetched from anywhere else.
 const imageSchema = z.object({
   type: z.literal("image"),
   // The drawn size is stored with the image so the page does not jump while it loads.
   // ProseMirror writes every attribute it was not given as null, hence nullish.
   attrs: z.object({
-    src: z.string(),
-    alt: z.string().nullish(),
-    width: z.number().int().positive().nullish(),
-    height: z.number().int().positive().nullish(),
+    src: z.string().regex(LESSON_IMAGE_URL),
+    alt: z.string().max(500).nullish(),
+    width: z.number().int().positive().max(20_000).nullish(),
+    height: z.number().int().positive().max(20_000).nullish(),
   }),
 });
 
 const fileAttachmentSchema = z.object({
   type: z.literal("fileAttachment"),
   attrs: z.object({
-    path: z.string(),
-    name: z.string(),
+    path: z.string().regex(LESSON_FILE_NAME),
+    name: z.string().trim().min(1).max(200),
     size: z.number().int().nonnegative().nullish(),
   }),
 });

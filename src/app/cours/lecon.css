@@ -44,6 +44,9 @@
     max-width: 100%;
     height: auto;
     border-radius: 0.5rem;
+    /* A figure drawn on a transparent background is a sheet of paper: dark strokes would
+       vanish on the dark page. A photo covers it entirely. */
+    background: #fff;
   }
 
   /* An encadré is a note pinned to the page: a coloured edge, never a heavy box. */

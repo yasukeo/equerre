@@ -1,13 +1,16 @@
 "use client";
 
+import { NodeSelection } from "@tiptap/pm/state";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import {
   Bold,
   Heading2,
   Heading3,
+  ImagePlus,
   Italic,
   List,
   ListOrdered,
+  Paperclip,
   Pilcrow,
   Redo2,
   Sigma,
@@ -36,8 +39,17 @@ import { FormMessage } from "@/components/ui/form-message";
 import { fieldError, initialFormState, type FormState } from "@/lib/form-state";
 import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "@/lib/lesson/document";
 import { lessonExtensions } from "@/lib/lesson/editor-schema";
+import { blockInsertionRange } from "@/lib/lesson/insert-block";
 import { saveLesson } from "../actions";
+import { FileDialog, type FileTarget, type InsertedFile } from "./file-dialog";
+import { ImageDialog, type ImageTarget, type InsertedImage } from "./image-dialog";
 import { MathDialog, type MathTarget } from "./math-dialog";
+
+type MediaType = "image" | "fileAttachment";
+
+function stringAttr(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
 
 const VISIBILITIES: LessonVisibility[] = ["enrolled", "specific", "public"];
 
@@ -89,6 +101,8 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
   const [status, setStatus] = useState(lesson.status);
   const [content, setContent] = useState(() => JSON.stringify(initialBody));
   const [math, setMath] = useState<MathTarget | null>(null);
+  const [image, setImage] = useState<ImageTarget | null>(null);
+  const [file, setFile] = useState<FileTarget | null>(null);
 
   const snapshot = snapshotOf(title, summary, visibility, content);
   // The lesson as last saved, in the editor's own form. Null until the editor exists:
@@ -124,6 +138,23 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
         "aria-labelledby": "lesson-body-label",
         "aria-multiline": "true",
         role: "textbox",
+      },
+      // A double click on an image or a document opens it, as a click on a formula does.
+      handleDoubleClickOn: (_view, _pos, node, nodePos, _event, direct) => {
+        if (!direct) return false;
+        if (node.type.name === "image") {
+          setImage({
+            pos: nodePos,
+            src: stringAttr(node.attrs.src),
+            alt: stringAttr(node.attrs.alt),
+          });
+          return true;
+        }
+        if (node.type.name === "fileAttachment") {
+          setFile({ pos: nodePos, name: stringAttr(node.attrs.name) });
+          return true;
+        }
+        return false;
       },
     },
     onCreate: ({ editor: created }) => {
@@ -188,6 +219,62 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
       : chain.deleteInlineMath({ pos: math.pos })
     ).run();
     setMath(null);
+  };
+
+  /** The image or document the tutor has selected, if that is what she has selected. */
+  const selected = (type: MediaType) => {
+    const selection = editor?.state.selection;
+    return selection instanceof NodeSelection && selection.node.type.name === type
+      ? { node: selection.node, pos: selection.from }
+      : null;
+  };
+
+  const insertMedia = (type: MediaType, attrs: InsertedImage | InsertedFile) => {
+    if (!editor) return;
+    const nodeType = editor.schema.nodes[type];
+    const range = nodeType ? blockInsertionRange(editor.state, nodeType) : null;
+    const chain = editor.chain().focus();
+    (range
+      ? chain.insertContentAt(range, { type, attrs })
+      : chain.insertContent({ type, attrs })
+    ).run();
+  };
+
+  /** Changes or removes the node at `pos`, provided it is still the one the dialog opened. */
+  const changeMedia = (type: MediaType, pos: number, attrs: Record<string, unknown> | null) => {
+    editor
+      ?.chain()
+      .focus()
+      .command(({ tr }) => {
+        const node = tr.doc.nodeAt(pos);
+        if (node?.type.name !== type) return false;
+        if (attrs === null) tr.delete(pos, pos + node.nodeSize);
+        else tr.setNodeMarkup(pos, undefined, { ...node.attrs, ...attrs });
+        return true;
+      })
+      .run();
+  };
+
+  const openImage = () => {
+    const current = selected("image");
+    setImage(
+      current
+        ? {
+            pos: current.pos,
+            src: stringAttr(current.node.attrs.src),
+            alt: stringAttr(current.node.attrs.alt),
+          }
+        : { pos: null, src: "", alt: "" },
+    );
+  };
+
+  const openFile = () => {
+    const current = selected("fileAttachment");
+    setFile(
+      current
+        ? { pos: current.pos, name: stringAttr(current.node.attrs.name) }
+        : { pos: null, name: "" },
+    );
   };
 
   return (
@@ -268,7 +355,13 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
             {t("fields.body")}
           </span>
           <div className="editeur">
-            <Toolbar editor={editor} calloutLabels={calloutLabels} onMath={openMath} />
+            <Toolbar
+              editor={editor}
+              calloutLabels={calloutLabels}
+              onMath={openMath}
+              onImage={openImage}
+              onFile={openFile}
+            />
             <EditorContent editor={editor} />
           </div>
           <p className="text-sm text-encre-douce">{t("mathShortcut")}</p>
@@ -315,6 +408,44 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
           onClose={() => setMath(null)}
         />
       ) : null}
+      {image ? (
+        <ImageDialog
+          lessonId={lesson.id}
+          target={image}
+          onInsert={(inserted) => {
+            insertMedia("image", inserted);
+            setImage(null);
+          }}
+          onUpdate={(alt) => {
+            if (image.pos !== null) changeMedia("image", image.pos, { alt });
+            setImage(null);
+          }}
+          onRemove={() => {
+            if (image.pos !== null) changeMedia("image", image.pos, null);
+            setImage(null);
+          }}
+          onClose={() => setImage(null)}
+        />
+      ) : null}
+      {file ? (
+        <FileDialog
+          lessonId={lesson.id}
+          target={file}
+          onInsert={(inserted) => {
+            insertMedia("fileAttachment", inserted);
+            setFile(null);
+          }}
+          onUpdate={(name) => {
+            if (file.pos !== null) changeMedia("fileAttachment", file.pos, { name });
+            setFile(null);
+          }}
+          onRemove={() => {
+            if (file.pos !== null) changeMedia("fileAttachment", file.pos, null);
+            setFile(null);
+          }}
+          onClose={() => setFile(null)}
+        />
+      ) : null}
     </>
   );
 }
@@ -332,6 +463,8 @@ function readToolbarState(editor: Editor) {
     callout: editor.isActive("callout")
       ? (editor.getAttributes("callout").kind as CalloutKind)
       : "",
+    image: editor.isActive("image"),
+    file: editor.isActive("fileAttachment"),
     canUndo: editor.can().undo(),
     canRedo: editor.can().redo(),
   };
@@ -341,10 +474,14 @@ function Toolbar({
   editor,
   calloutLabels,
   onMath,
+  onImage,
+  onFile,
 }: {
   editor: Editor | null;
   calloutLabels: Record<CalloutKind, string>;
   onMath: (display: boolean) => void;
+  onImage: () => void;
+  onFile: () => void;
 }) {
   const t = useTranslations("tutor.lessonEditor.toolbar");
 
@@ -441,6 +578,10 @@ function Toolbar({
       <span className="editeur-separateur" aria-hidden="true" />
       {tool(t("inlineMath"), <Sigma {...icon} />, () => onMath(false))}
       {tool(t("blockMath"), <SquareSigma {...icon} />, () => onMath(true))}
+      <span className="editeur-separateur" aria-hidden="true" />
+      {/* While one is selected, the same button edits it rather than adding another. */}
+      {tool(active.image ? t("imageEdit") : t("image"), <ImagePlus {...icon} />, onImage)}
+      {tool(active.file ? t("fileEdit") : t("file"), <Paperclip {...icon} />, onFile)}
       <span className="editeur-separateur" aria-hidden="true" />
       <select
         aria-label={t("callout")}

@@ -1,10 +1,11 @@
 import { getSchema } from "@tiptap/core";
 import { wrapInList } from "@tiptap/pm/schema-list";
-import { EditorState, TextSelection } from "@tiptap/pm/state";
+import { EditorState, NodeSelection, TextSelection } from "@tiptap/pm/state";
 import { describe, expect, it } from "vitest";
 import { CALLOUT_KINDS, lessonDocumentSchema } from "./document";
 import { liftOutOfCallout, wrapInCallout } from "./callout-extension";
 import { lessonExtensions } from "./editor-schema";
+import { blockInsertionRange } from "./insert-block";
 
 const schema = getSchema(lessonExtensions());
 
@@ -26,8 +27,10 @@ describe("the lesson editor's schema", () => {
       "bulletList",
       "callout",
       "doc",
+      "fileAttachment",
       "hardBreak",
       "heading",
+      "image",
       "inlineMath",
       "listItem",
       "orderedList",
@@ -213,5 +216,166 @@ describe("the toolbar's transforms", () => {
     });
     const parsed = lessonDocumentSchema.parse(lesson);
     expect(parsed.content[0]).toMatchObject({ type: "orderedList", attrs: { start: 2 } });
+  });
+});
+
+// ── Images and documents ──────────────────────────────────────────────────────────────
+
+const LESSON = "0b6f1c3e-8d2a-4f7b-9c1e-5a4d3b2c1f00";
+const LIBRARY_IMAGE = `https://abc.supabase.co/storage/v1/object/public/lesson-assets/${LESSON}/7d1e2f3a-4b5c-4d6e-8f9a-0b1c2d3e4f50.webp`;
+const LESSON_FILE = `${LESSON}/2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f.pdf`;
+
+const image = {
+  type: "image",
+  attrs: { src: LIBRARY_IMAGE, alt: "Un triangle", width: 640, height: 480 },
+};
+const attachment = {
+  type: "fileAttachment",
+  attrs: { path: LESSON_FILE, name: "Fiche d’exercices", size: 245_760 },
+};
+
+/** Reads an element's attributes the way a parse rule does, without a DOM. */
+function element(attributes: Record<string, string>) {
+  return { getAttribute: (name: string) => attributes[name] ?? null } as unknown as HTMLElement;
+}
+
+describe("images and documents in the editor", () => {
+  it("writes them as saving accepts them, an image inside an encadré included", () => {
+    const lesson = fromEditor({
+      type: "doc",
+      content: [
+        image,
+        { type: "callout", attrs: { kind: "exemple" }, content: [paragraph(text("vu")), image] },
+        attachment,
+      ],
+    });
+    expect(lessonDocumentSchema.safeParse(lesson).error?.issues ?? []).toEqual([]);
+    // No title: the vocabulary has none.
+    expect(JSON.stringify(lesson)).not.toContain("title");
+  });
+
+  it("keeps a document out of encadrés and lists", () => {
+    const inCallout = {
+      type: "doc",
+      content: [{ type: "callout", attrs: { kind: "exemple" }, content: [attachment] }],
+    };
+    const inList = {
+      type: "doc",
+      content: [{ type: "bulletList", content: [item(paragraph(text("a")), attachment)] }],
+    };
+    expect(() => fromEditor(inCallout)).toThrow();
+    expect(() => fromEditor(inList)).toThrow();
+  });
+
+  it("takes in a pasted image only from the lesson library", () => {
+    const rule = schema.nodes.image!.spec.parseDOM![0]!;
+    expect(rule.getAttrs!(element({ src: "https://x.test/figure.png" }))).toBe(false);
+    expect(rule.getAttrs!(element({ src: "data:image/png;base64,iVBORw0KGgo=" }))).toBe(false);
+    expect(rule.getAttrs!(element({ src: LIBRARY_IMAGE, alt: "Un triangle" }))).toMatchObject({
+      src: LIBRARY_IMAGE,
+      alt: "Un triangle",
+    });
+  });
+
+  it("reads a pasted image's attributes as the save expects them", () => {
+    const rule = schema.nodes.image!.spec.parseDOM![0]!;
+    // Tiptap would read « 3 » as a number and « 640.5 » as a fraction; saving refuses both.
+    const attrs = rule.getAttrs!(
+      element({ src: LIBRARY_IMAGE, alt: "3", width: "640.5", height: "480" }),
+    );
+    expect(attrs).toEqual({ src: LIBRARY_IMAGE, alt: "3", height: 480 });
+  });
+
+  it("takes in a pasted document only under the name the editor gave it", () => {
+    const rule = schema.nodes.fileAttachment!.spec.parseDOM![0]!;
+    expect(rule.getAttrs!(element({ "data-path": "../../auth/v1/logout" }))).toBe(false);
+    expect(
+      rule.getAttrs!(element({ "data-path": LESSON_FILE, "data-name": "2024", "data-size": "12" })),
+    ).toEqual({ path: LESSON_FILE, name: "2024", size: 12 });
+  });
+});
+
+describe("where a new image or document goes", () => {
+  const insert = (state: EditorState, type: "image" | "fileAttachment") => {
+    const range = blockInsertionRange(state, schema.nodes[type]!);
+    if (!range) throw new Error("nowhere to insert");
+    const tr = state.tr.replaceRangeWith(
+      range.from,
+      range.to,
+      schema.nodeFromJSON(type === "image" ? image : attachment),
+    );
+    tr.doc.check();
+    return tr.doc.toJSON() as { content: { type: string; content?: { type: string }[] }[] };
+  };
+  const types = (nodes: { type: string }[] | undefined) => (nodes ?? []).map((node) => node.type);
+
+  it("goes after the paragraph the cursor is in", () => {
+    const state = stateOf(
+      { type: "doc", content: [paragraph(text("avant")), paragraph(text("après"))] },
+      "avant",
+    );
+    expect(types(insert(state, "image").content)).toEqual(["paragraph", "image", "paragraph"]);
+  });
+
+  it("takes over an empty paragraph", () => {
+    const doc = schema.nodeFromJSON({
+      type: "doc",
+      content: [paragraph(text("avant")), paragraph(), paragraph(text("après"))],
+    });
+    const state = EditorState.create({ schema, doc, selection: TextSelection.create(doc, 8) });
+    expect(types(insert(state, "fileAttachment").content)).toEqual([
+      "paragraph",
+      "fileAttachment",
+      "paragraph",
+    ]);
+  });
+
+  it("keeps an image inside its encadré and puts a document after it", () => {
+    const json = {
+      type: "doc",
+      content: [
+        {
+          type: "callout",
+          attrs: { kind: "exemple" },
+          content: [paragraph(text("dedans")), paragraph(text("fin"))],
+        },
+      ],
+    };
+    const withImage = insert(stateOf(json, "dedans"), "image");
+    expect(types(withImage.content)).toEqual(["callout"]);
+    expect(types(withImage.content[0]?.content)).toEqual(["paragraph", "image", "paragraph"]);
+
+    const withFile = insert(stateOf(json, "dedans"), "fileAttachment");
+    expect(types(withFile.content)).toEqual(["callout", "fileAttachment"]);
+  });
+
+  it("does not split a list in two", () => {
+    const state = stateOf(
+      {
+        type: "doc",
+        content: [
+          {
+            type: "bulletList",
+            content: [item(paragraph(text("un"))), item(paragraph(text("deux")))],
+          },
+        ],
+      },
+      "un",
+    );
+    expect(types(insert(state, "image").content)).toEqual(["bulletList", "image"]);
+  });
+
+  it("goes right after a selected image", () => {
+    const doc = schema.nodeFromJSON({
+      type: "doc",
+      content: [paragraph(text("a")), image, paragraph(text("b"))],
+    });
+    const state = EditorState.create({ schema, doc, selection: NodeSelection.create(doc, 3) });
+    expect(types(insert(state, "fileAttachment").content)).toEqual([
+      "paragraph",
+      "image",
+      "fileAttachment",
+      "paragraph",
+    ]);
   });
 });
