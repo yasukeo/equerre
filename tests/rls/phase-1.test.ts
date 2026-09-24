@@ -488,3 +488,150 @@ describe("pages waiting to be handed in", () => {
     expect(error).not.toBeNull();
   });
 });
+
+describe("a student the tutor has paused or stopped", () => {
+  // Nour is used by no other test, so a run that dies half-way cannot leave a student that
+  // the rest of the suite depends on paused or stopped.
+  const nourId = seedId("00000000", 106);
+  let tutor: Client;
+  let nour: Client;
+  const made = { upcoming: "", exercise: "", open: "", done: "" };
+
+  const setStatus = async (status: "actif" | "en_pause" | "arrete") => {
+    const { error } = await tutor.from("profiles").update({ status }).eq("id", nourId);
+    if (error) throw new Error(`could not set ${status}: ${error.message}`);
+  };
+
+  beforeAll(async () => {
+    tutor = await signedInAs("prof@equerre.test");
+    nour = await signedInAs("nour.fassi@equerre.test");
+
+    // The seeded sessions are all in the past; add one still to come, with its link.
+    const { data: type } = await tutor
+      .from("session_types")
+      .select("id, mode")
+      .eq("is_group", false)
+      .limit(1)
+      .single();
+    if (!type) throw new Error("no individual session type in the seed");
+    const startsAt = new Date(Date.now() + 2 * 86_400_000);
+    const { data: session, error: sessionError } = await tutor
+      .from("sessions")
+      .insert({
+        session_type_id: type.id,
+        mode: type.mode,
+        starts_at: startsAt.toISOString(),
+        ends_at: new Date(startsAt.getTime() + 3_600_000).toISOString(),
+        student_id: nourId,
+        status: "planifiee",
+        meeting_url: "https://meet.example/test-rls",
+      })
+      .select("id")
+      .single();
+    if (!session) throw new Error(`could not create the session: ${sessionError?.message}`);
+    made.upcoming = session.id;
+
+    const { data: chapter } = await tutor.from("chapters").select("id").limit(1).single();
+    if (!chapter) throw new Error("no chapter");
+    const { data: exercise } = await tutor
+      .from("exercises")
+      .insert({
+        chapter_id: chapter.id,
+        title: "Test RLS — statut",
+        statement: { type: "doc", content: [] },
+        difficulty: 1,
+        answer_type: "numeric",
+      })
+      .select("id")
+      .single();
+    if (!exercise) throw new Error("could not create the exercise");
+    made.exercise = exercise.id;
+    await tutor.from("exercise_solutions").insert({
+      exercise_id: made.exercise,
+      solution: { type: "doc" },
+      correct_numeric: 2,
+      tolerance: 0,
+    });
+
+    const assignment = async (title: string) => {
+      const { data } = await tutor
+        .from("assignments")
+        .insert({
+          title: `Test RLS — ${title}`,
+          due_at: new Date(Date.now() + 86_400_000).toISOString(),
+          student_id: nourId,
+          created_by: seedId("00000000", 1),
+        })
+        .select("id")
+        .single();
+      if (!data) throw new Error(`could not create ${title}`);
+      await tutor
+        .from("assignment_items")
+        .insert({ assignment_id: data.id, exercise_id: made.exercise, position: 0 });
+      return data.id;
+    };
+    made.done = await assignment("rendu avant la pause");
+    made.open = await assignment("pas encore rendu");
+
+    // Work handed in while she was still active.
+    const { error } = await nour.rpc("submit_exercise_answer", {
+      p_assignment_id: made.done,
+      p_exercise_id: made.exercise,
+      p_answer: { type: "numeric", raw: "5", value: "5" },
+    });
+    if (error) throw new Error(`could not hand in: ${error.message}`);
+  });
+
+  afterAll(async () => {
+    await setStatus("actif");
+    if (made.upcoming) await tutor.from("sessions").delete().eq("id", made.upcoming);
+    for (const id of [made.open, made.done].filter(Boolean)) {
+      await tutor.from("assignments").delete().eq("id", id);
+    }
+    if (made.exercise) await tutor.from("exercises").delete().eq("id", made.exercise);
+  });
+
+  it("while active, sees what is to come", async () => {
+    const { data } = await nour.from("sessions").select("meeting_url").eq("id", made.upcoming);
+    expect(data?.[0]?.meeting_url).toBe("https://meet.example/test-rls");
+  });
+
+  it("paused: keeps her lessons and her past, loses what is to come, cannot hand in", async () => {
+    await setStatus("en_pause");
+
+    const upcoming = await nour.from("sessions").select("id").eq("id", made.upcoming);
+    expect(upcoming.data).toEqual([]);
+    const past = await nour.from("sessions").select("id");
+    expect(past.data?.length).toBeGreaterThan(0);
+
+    const enrolled = await nour.from("lessons").select("id").eq("visibility", "enrolled");
+    expect(enrolled.data?.length).toBeGreaterThan(0);
+
+    const open = await nour.from("assignments").select("id").eq("id", made.open);
+    expect(open.data?.length).toBe(1);
+
+    const { error } = await nour.rpc("submit_exercise_answer", {
+      p_assignment_id: made.open,
+      p_exercise_id: made.exercise,
+      p_answer: { type: "numeric", raw: "2", value: "2" },
+    });
+    expect(error?.message).toBe("account_not_active");
+  });
+
+  it("stopped: keeps only her own past work and the public lessons", async () => {
+    await setStatus("arrete");
+
+    expect((await nour.from("sessions").select("id")).data).toEqual([]);
+    expect((await nour.from("groups").select("id")).data).toEqual([]);
+
+    const lessons = await nour.from("lessons").select("visibility");
+    expect(lessons.data?.length).toBeGreaterThan(0);
+    expect(lessons.data?.every((lesson) => lesson.visibility === "public")).toBe(true);
+
+    expect((await nour.from("assignments").select("id").eq("id", made.open)).data).toEqual([]);
+    expect((await nour.from("assignments").select("id").eq("id", made.done)).data?.length).toBe(1);
+
+    const work = await nour.from("submissions").select("grade").eq("assignment_id", made.done);
+    expect(work.data?.length).toBe(1);
+  });
+});
