@@ -41,6 +41,23 @@ import { MathDialog, type MathTarget } from "./math-dialog";
 
 const VISIBILITIES: LessonVisibility[] = ["enrolled", "specific", "public"];
 
+function snapshotOf(title: string, summary: string, visibility: string, content: string) {
+  return [title, summary, visibility, content].join("\u0000");
+}
+
+/**
+ * The editor's document as it is saved. StarterKit's trailing node adds an empty paragraph
+ * after a lesson ending with an encadré, on the first transaction of any kind, including a
+ * click: it is there to type into, so it is neither saved nor counted as a change.
+ */
+function serialize(editor: Editor): string {
+  const json = editor.getJSON();
+  const blocks = json.content ?? [];
+  const last = blocks.at(-1);
+  const trailing = blocks.length > 1 && last?.type === "paragraph" && !last.content?.length;
+  return JSON.stringify(trailing ? { ...json, content: blocks.slice(0, -1) } : json);
+}
+
 // The editor needs a block to put the cursor in.
 const EMPTY_BODY: StoredLesson = { type: "doc", content: [{ type: "paragraph" }] };
 
@@ -73,10 +90,13 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
   const [content, setContent] = useState(() => JSON.stringify(initialBody));
   const [math, setMath] = useState<MathTarget | null>(null);
 
-  const snapshot = [title, summary, visibility, content].join("\u0000");
-  const [savedSnapshot, setSavedSnapshot] = useState(snapshot);
+  const snapshot = snapshotOf(title, summary, visibility, content);
+  // The lesson as last saved, in the editor's own form. Null until the editor exists:
+  // the stored JSON comes back from jsonb with its keys reordered, so it never compares
+  // equal to what the editor writes and every lesson would open as « unsaved ».
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
   const submittedSnapshot = useRef(snapshot);
-  const dirty = snapshot !== savedSnapshot;
+  const dirty = savedSnapshot !== null && snapshot !== savedSnapshot;
 
   const extensions = useMemo(
     () =>
@@ -106,7 +126,19 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
         role: "textbox",
       },
     },
-    onUpdate: ({ editor: current }) => setContent(JSON.stringify(current.getJSON())),
+    onCreate: ({ editor: created }) => {
+      if (savedSnapshot === null) {
+        const written = serialize(created);
+        setContent(written);
+        setSavedSnapshot(snapshotOf(lesson.title, lesson.summary, lesson.visibility, written));
+      } else if (serialize(created) !== content) {
+        // With Cache Components, Next keeps a page it navigates away from hidden rather than
+        // unmounting it; Tiptap destroys its editor then and rebuilds it from the stored
+        // lesson when the page shows again. What the tutor had typed is put back.
+        created.commands.setContent(JSON.parse(content) as StoredLesson, { emitUpdate: false });
+      }
+    },
+    onUpdate: ({ editor: current }) => setContent(serialize(current)),
   });
 
   const [state, formAction, pending] = useActionState(
@@ -296,6 +328,7 @@ function readToolbarState(editor: Editor) {
     h3: editor.isActive("heading", { level: 3 }),
     bulletList: editor.isActive("bulletList"),
     orderedList: editor.isActive("orderedList"),
+    inList: editor.isActive("bulletList") || editor.isActive("orderedList"),
     callout: editor.isActive("callout")
       ? (editor.getAttributes("callout").kind as CalloutKind)
       : "",
@@ -327,6 +360,7 @@ function Toolbar({
     return <div className="editeur-barre" aria-hidden="true" />;
   }
   const active = tracked ?? readToolbarState(editor);
+  const headingsBlocked = active.callout !== "" || active.inList;
 
   const run =
     (command: (chain: ReturnType<Editor["chain"]>) => ReturnType<Editor["chain"]>) => () =>
@@ -369,12 +403,14 @@ function Toolbar({
         <Heading2 {...icon} />,
         run((c) => c.toggleHeading({ level: 2 })),
         active.h2,
+        headingsBlocked,
       )}
       {tool(
         t("heading3"),
         <Heading3 {...icon} />,
         run((c) => c.toggleHeading({ level: 3 })),
         active.h3,
+        headingsBlocked,
       )}
       <span className="editeur-separateur" aria-hidden="true" />
       {tool(

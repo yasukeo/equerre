@@ -51,18 +51,34 @@ export async function createLesson(_previous: FormState, formData: FormData): Pr
     .limit(1)
     .maybeSingle();
 
-  // The slug is the lesson's address and unique across the site: a clash gets a number.
-  // It is set once, so a link that has been shared keeps working when the title changes.
-  const base = slugify(parsed.data.title) || "lecon";
+  // The slug is the lesson's address and unique across the site: a clash gets the next free
+  // number. It is set once, so a link that has been shared keeps working when the title
+  // changes. A title with no Latin letter or digit — one in Arabic — slugifies to nothing,
+  // and a shared fallback would run out of numbers, so it gets a random suffix instead.
+  const base = slugify(parsed.data.title) || `lecon-${crypto.randomUUID().slice(0, 8)}`;
+  const { data: taken } = await supabase
+    .from("lessons")
+    .select("slug")
+    .or(`slug.eq.${base},slug.like.${base}-*`);
+  const used = new Set((taken ?? []).map((row) => row.slug));
+  let number = 1;
+  while (used.has(number === 1 ? base : `${base}-${number}`)) number += 1;
   let createdId: string | null = null;
 
-  for (let attempt = 1; attempt <= 20 && createdId === null; attempt += 1) {
+  // A few tries cover another lesson taking the same slug in the meantime.
+  for (let attempt = 0; attempt < 5 && createdId === null; attempt += 1) {
+    const candidate =
+      attempt === 0
+        ? number === 1
+          ? base
+          : `${base}-${number}`
+        : `${base}-${crypto.randomUUID().slice(0, 8)}`;
     const { data, error } = await supabase
       .from("lessons")
       .insert({
         chapter_id: parsed.data.chapterId,
         title: parsed.data.title,
-        slug: attempt === 1 ? base : `${base}-${attempt}`,
+        slug: candidate,
         content: FIRST_PARAGRAPH,
         // A draft for her level's students: nothing reaches the public site by accident.
         status: "draft",

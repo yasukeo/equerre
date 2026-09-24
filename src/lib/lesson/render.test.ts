@@ -168,4 +168,22 @@ describe("renderLesson", () => {
     };
     expect(html(broken)).toContain("Ligne 1<br/>Ligne 2");
   });
+  it("starts a numbered list where the tutor numbered it", () => {
+    const numbered: StoredLesson = {
+      type: "doc",
+      content: [
+        {
+          type: "orderedList",
+          attrs: { start: 2 },
+          content: [
+            {
+              type: "listItem",
+              content: [{ type: "paragraph", content: [{ type: "text", text: "suite" }] }],
+            },
+          ],
+        },
+      ],
+    };
+    expect(html(numbered)).toContain('<ol start="2">');
+  });
 });

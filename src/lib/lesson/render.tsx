@@ -55,7 +55,11 @@ export function createLessonRenderer({ calloutLabel, fileHref }: LessonRenderOpt
         numberAttr(node.attrs, "level") === 3 ? <h3>{children}</h3> : <h2>{children}</h2>,
       text: ({ node }) => (typeof node.text === "string" ? node.text : null),
       bulletList: ({ children }) => <ul>{children}</ul>,
-      orderedList: ({ children }) => <ol>{children}</ol>,
+      orderedList: ({ node, children }) => {
+        const start = node.attrs?.start;
+        const from = typeof start === "number" && Number.isInteger(start) && start !== 1;
+        return <ol start={from ? start : undefined}>{children}</ol>;
+      },
       listItem: ({ children }) => <li>{children}</li>,
       inlineMath: ({ node }) => (
         <span

@@ -32,7 +32,9 @@ export function lessonExtensions(options: LessonEditorOptions = {}): Extensions 
       // The lesson title is the page's h1, so the body starts at h2.
       heading: { levels: [2, 3] },
     }),
-    ListItem.extend({ content: "paragraph (bulletList | orderedList)*" }),
+    // Paragraphs and lists only, after a first paragraph. Room for several paragraphs
+    // is what lets a list be made from a selection spanning more than one block.
+    ListItem.extend({ content: "paragraph (paragraph | bulletList | orderedList)*" }),
     Mathematics.configure({
       inlineOptions: { onClick: (node, pos) => options.onMathClick?.("inline", node, pos) },
       blockOptions: { onClick: (node, pos) => options.onMathClick?.("block", node, pos) },

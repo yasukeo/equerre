@@ -87,6 +87,8 @@ const bulletListSchema = z.object({
 
 const orderedListSchema = z.object({
   type: z.literal("orderedList"),
+  // A numbered procedure broken by a displayed formula carries on with « 2. ».
+  attrs: z.object({ start: z.number().int().nonnegative().optional() }).optional(),
   content: z.array(listItemSchema).min(1),
 });
 
