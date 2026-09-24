@@ -635,3 +635,46 @@ describe("a student the tutor has paused or stopped", () => {
     expect(work.data?.length).toBe(1);
   });
 });
+
+describe("the tutor's lessons", () => {
+  it("can be created through the API with the new row returned", async () => {
+    // INSERT … RETURNING has to pass the select policy too. When that policy looked the
+    // lesson up again by id, the row being inserted was invisible to it and the tutor could
+    // not create a lesson at all; only a real run of the editor showed it.
+    const tutor = await signedInAs("prof@equerre.test");
+    const { data: chapter } = await tutor.from("chapters").select("id").limit(1).single();
+    expect(chapter).not.toBeNull();
+    if (!chapter) return;
+
+    const { data, error } = await tutor
+      .from("lessons")
+      .insert({
+        chapter_id: chapter.id,
+        title: "Test RLS — leçon",
+        slug: `test-rls-${Date.now()}`,
+        content: { type: "doc", content: [{ type: "paragraph" }] },
+        status: "draft",
+        visibility: "enrolled",
+      })
+      .select("id")
+      .single();
+
+    expect(error).toBeNull();
+    expect(data?.id).toBeTruthy();
+    if (data) await tutor.from("lessons").delete().eq("id", data.id);
+  });
+
+  it("cannot be written by a student", async () => {
+    const salma = await signedInAs("salma.alaoui@equerre.test");
+    const { data: chapter } = await salma.from("chapters").select("id").limit(1).single();
+    if (!chapter) return;
+    const { error } = await salma.from("lessons").insert({
+      chapter_id: chapter.id,
+      title: "Pas à elle",
+      slug: `test-rls-student-${Date.now()}`,
+      status: "draft",
+      visibility: "public",
+    });
+    expect(error).not.toBeNull();
+  });
+});
