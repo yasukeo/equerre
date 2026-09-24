@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { generateInviteCode } from "@/lib/invite-code";
+import { adoptNeverUsedAccount } from "@/lib/provisioning";
 import { adminClient, seedId, signedInAs, type Client } from "./clients";
 
 // Exercises the tutor's "Créer le compte d'un élève" path end to end against the real
@@ -9,6 +10,7 @@ import { adminClient, seedId, signedInAs, type Client } from "./clients";
 
 const admin = adminClient();
 const saturdayGroup = seedId("10000000", 2);
+const tuesdayGroup = seedId("10000000", 1);
 
 describe.skipIf(!admin)("tutor provisioning through the admin API", () => {
   // Supabase query builders are thenables rather than Promises.
@@ -102,5 +104,66 @@ describe.skipIf(!admin)("tutor provisioning through the admin API", () => {
       cleanups.push(() => admin.auth.admin.deleteUser(userId));
     }
     expect(error).not.toBeNull();
+  });
+  it("gives the tutor's entries to an account someone else created and nobody used", async () => {
+    if (!admin) return;
+    const tutor = await signedInAs("prof@equerre.test");
+
+    // A class code of the squatter's choosing: another level, another group.
+    const code = generateInviteCode();
+    const { error: codeError } = await tutor.from("invite_codes").insert({
+      code,
+      level_code: "TC",
+      group_id: tuesdayGroup,
+      max_uses: 1,
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    });
+    expect(codeError).toBeNull();
+    cleanups.push(() => tutor.from("invite_codes").delete().eq("code", code));
+
+    const email = `squat-${Date.now()}@equerre.test`;
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      email_confirm: false,
+      user_metadata: {
+        invite_code: code,
+        full_name: "Pas la bonne personne",
+        guardian_name: "Imposteur",
+        guardian_phone: "+212 699 999 999",
+      },
+    });
+    expect(error).toBeNull();
+    const userId = data.user?.id;
+    if (!userId) return;
+    cleanups.push(() => admin.auth.admin.deleteUser(userId));
+
+    const adopted = await adoptNeverUsedAccount(admin, userId, {
+      fullName: "Vraie Élève",
+      levelCode: "1BAC-SM",
+      groupId: saturdayGroup,
+      phone: "",
+      school: "",
+      guardianName: "",
+      guardianPhone: "",
+    });
+    expect(adopted).toBe(true);
+
+    const profile = await tutor
+      .from("profiles")
+      .select("full_name, level_code, guardian_name, guardian_phone")
+      .eq("id", userId)
+      .single();
+    expect(profile.data).toEqual({
+      full_name: "Vraie Élève",
+      level_code: "1BAC-SM",
+      guardian_name: null,
+      guardian_phone: null,
+    });
+
+    const groups = await tutor.from("group_members").select("group_id").eq("student_id", userId);
+    expect(groups.data).toEqual([{ group_id: saturdayGroup }]);
+
+    const { data: authUser } = await admin.auth.admin.getUserById(userId);
+    expect(authUser.user?.email_confirmed_at).toBeTruthy();
   });
 });

@@ -10,6 +10,7 @@ import { escapeHtml, sendEmail } from "@/lib/email";
 import { publicEnv } from "@/lib/env";
 import { fieldErrorsFor, textField, type FormState } from "@/lib/form-state";
 import { generateInviteCode } from "@/lib/invite-code";
+import { adoptNeverUsedAccount } from "@/lib/provisioning";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -103,7 +104,7 @@ export async function inviteStudent(_previous: FormState, formData: FormData): P
   // Inviting the same address again sends a fresh link, as long as nobody has signed in with it.
   const { data: existing } = await supabase
     .from("profiles")
-    .select("id, role, full_name")
+    .select("id, role")
     .eq("email", input.email)
     .maybeSingle();
   if (existing) {
@@ -117,9 +118,15 @@ export async function inviteStudent(_previous: FormState, formData: FormData): P
     if (existing.role !== "student" || !sameAddress || authUser.user.last_sign_in_at) {
       return { status: "error", message: t("errors.emailExists"), values };
     }
+    // The tutor's form describes the student (DECISIONS.md, D-061). Whoever created this
+    // account — her, earlier, or someone holding a class code — nobody has used it yet,
+    // so it takes what she has just typed: name, level, group and contact details.
+    if (!(await adoptNeverUsedAccount(admin, existing.id, input))) {
+      return { status: "error", message: t("errors.unknown"), values };
+    }
     return sendSetPasswordLink(admin, {
       email: input.email,
-      name: existing.full_name || input.fullName,
+      name: input.fullName,
       resent: true,
       values,
     });
