@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { isLessonFileName } from "@/lib/storage-paths";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -11,11 +12,16 @@ import { createClient } from "@/lib/supabase/server";
  */
 export async function GET(_request: Request, context: RouteContext<"/cours/fichiers/[...chemin]">) {
   const { chemin } = await context.params;
+  const name = chemin.join("/");
+
+  // Next decodes each segment after splitting on "/", and storage-js puts the name into a
+  // URL unencoded, so "..%2F" once carried this request to other Supabase endpoints with
+  // the visitor's token. Only the id-shaped names the app writes are signed (D-052).
+  if (!isLessonFileName(name)) notFound();
+
   const supabase = await createClient();
 
-  const { data } = await supabase.storage
-    .from("lesson-files")
-    .createSignedUrl(chemin.join("/"), 600);
+  const { data } = await supabase.storage.from("lesson-files").createSignedUrl(name, 600);
 
   if (!data) notFound();
 
