@@ -228,9 +228,23 @@ describe("homework submissions", () => {
 
   it("refuses a page that was never uploaded", async () => {
     const { error } = await submit(made.upload, { type: "upload" }, [
-      `${ids.salma}/${crypto.randomUUID()}/nowhere.webp`,
+      `${ids.salma}/${crypto.randomUUID()}/${crypto.randomUUID()}.webp`,
     ]);
     expect(error?.message).toBe("page_not_uploaded");
+  });
+
+  it("refuses a page name that could carry a signing request somewhere else", async () => {
+    const { error } = await submit(made.upload, { type: "upload" }, [
+      `${ids.salma}/${crypto.randomUUID()}/../../../../../auth/v1/logout?scope=global`,
+    ]);
+    expect(error?.message).toBe("file_path_invalid");
+  });
+
+  it("cannot store a page under any name but the one the app writes", async () => {
+    const { error } = await salma.storage
+      .from("submissions")
+      .upload(`${ids.salma}/ref/page-1.webp`, webp("odd"), { contentType: "image/webp" });
+    expect(error).not.toBeNull();
   });
 
   it("keeps a photographed page's solution closed until it is corrected", async () => {
@@ -400,5 +414,77 @@ describe("lesson attachments", () => {
       .createSignedUrl(enrolledFile, 60);
     expect(error).not.toBeNull();
     expect(data?.signedUrl ?? null).toBeNull();
+  });
+});
+
+describe("a student's own profile", () => {
+  let tutor: Client;
+  let salma: Client;
+  let guardianName: string | null = null;
+
+  beforeAll(async () => {
+    tutor = await signedInAs("prof@equerre.test");
+    salma = await signedInAs("salma.alaoui@equerre.test");
+    const { data } = await tutor
+      .from("profiles")
+      .select("guardian_name")
+      .eq("id", ids.salma)
+      .single();
+    guardianName = data?.guardian_name ?? null;
+  });
+
+  afterAll(async () => {
+    await tutor.from("profiles").update({ guardian_name: guardianName }).eq("id", ids.salma);
+  });
+
+  it("cannot replace her guardian's phone, her name or her creation date", async () => {
+    for (const change of [
+      { guardian_phone: "+212 611111111" },
+      { full_name: "Omar El Idrissi" },
+      { created_at: "2000-01-01T00:00:00Z" },
+    ]) {
+      const { error } = await salma.from("profiles").update(change).eq("id", ids.salma);
+      expect(error?.message).toBe("profile_field_not_editable");
+    }
+  });
+
+  it("is still edited by the tutor", async () => {
+    const { error } = await tutor
+      .from("profiles")
+      .update({ guardian_name: "Test RLS — tuteur" })
+      .eq("id", ids.salma);
+    expect(error).toBeNull();
+  });
+});
+
+describe("pages waiting to be handed in", () => {
+  let salma: Client;
+  const uploaded: string[] = [];
+  const page = () => new Blob(["RIFFdraftWEBPVP8 "], { type: "image/webp" });
+
+  beforeAll(async () => {
+    salma = await signedInAs("salma.alaoui@equerre.test");
+  });
+
+  afterAll(async () => {
+    if (uploaded.length) await salma.storage.from("submissions").remove(uploaded);
+  });
+
+  it("are capped at forty, so one account cannot fill the project's storage", async () => {
+    // One at a time, as the cap is counted against what is already stored.
+    for (let i = 0; i < 40; i++) {
+      const name = `${ids.salma}/${crypto.randomUUID()}/${crypto.randomUUID()}.webp`;
+      const { error } = await salma.storage.from("submissions").upload(name, page(), {
+        contentType: "image/webp",
+      });
+      expect(error).toBeNull();
+      uploaded.push(name);
+    }
+
+    const extra = `${ids.salma}/${crypto.randomUUID()}/${crypto.randomUUID()}.webp`;
+    const { error } = await salma.storage.from("submissions").upload(extra, page(), {
+      contentType: "image/webp",
+    });
+    expect(error).not.toBeNull();
   });
 });
