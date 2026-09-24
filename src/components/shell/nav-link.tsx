@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type NavLinkProps = {
@@ -13,10 +13,31 @@ type NavLinkProps = {
   exact?: boolean;
 };
 
-export function NavLink({ href, icon, children, exact = false }: NavLinkProps) {
-  const pathname = usePathname();
-  const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+/**
+ * A navigation link that marks itself when it leads to the current page.
+ *
+ * Under Cache Components, usePathname() suspends while prerendering a route whose dynamic
+ * param is only known at request time (/prof/lecons/[id]), and a layout that calls it outside
+ * a boundary fails the build. The fallback is the same link, unmarked, so the navigation is
+ * in the static shell of every page and the mark follows as soon as the path is known.
+ */
+export function NavLink(props: NavLinkProps) {
+  return (
+    <Suspense fallback={<NavLinkView {...props} active={false} />}>
+      <CurrentNavLink {...props} />
+    </Suspense>
+  );
+}
 
+function CurrentNavLink(props: NavLinkProps) {
+  const pathname = usePathname();
+  const active = props.exact
+    ? pathname === props.href
+    : pathname === props.href || pathname.startsWith(`${props.href}/`);
+  return <NavLinkView {...props} active={active} />;
+}
+
+function NavLinkView({ href, icon, children, active }: NavLinkProps & { active: boolean }) {
   return (
     <Link
       href={href}
