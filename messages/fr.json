@@ -118,6 +118,11 @@
         "sessionMissing": "Ce lien a expiré. Demandez-en un nouveau depuis « Mot de passe oublié ».",
         "unknown": "Le mot de passe n’a pas été enregistré. Réessayez dans un instant."
       }
+    },
+    "confirmLink": {
+      "title": "Confirmer",
+      "lead": "Ce lien ouvre votre espace. Appuyez sur « Continuer » pour terminer : il ne sert qu’une fois.",
+      "submit": "Continuer"
     }
   },
   "nav": {

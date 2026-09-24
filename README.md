@@ -100,7 +100,7 @@ In the Supabase dashboard, under **Authentication**:
   - _Confirm sign up:_ `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`
   - _Reset password:_ `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`
 
-  After verifying, `/auth/confirm` sends people to their own home, or to the set-password page for a reset link.
+  `/auth/confirm` does not spend a `token_hash` link on the spot: it opens a « Continuer » page whose button does, so a mail scanner that opens the link cannot use it up first. After that, people land on their own home, or on the set-password page for a reset link.
 
 - **Emails › SMTP:** send through Resend. Supabase's built-in mail only reaches your own team and a few messages an hour.
 - **Providers › Email:** turn on leaked password protection, and set the email OTP expiry to 24 hours so a set-password link survives until the student opens it.

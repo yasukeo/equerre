@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { homePathFor } from "@/lib/auth";
 import { contactFieldsSchema, contactMetadata, contactValues } from "@/lib/contact";
+import { destinationAfterEmailLink, emailOtpType } from "@/lib/email-link";
 import { publicEnv } from "@/lib/env";
 import { fieldErrorsFor, textField, type FormState } from "@/lib/form-state";
 import { INVITE_CODE_PATTERN } from "@/lib/invite-code";
@@ -14,7 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 const emailSchema = z.string().trim().toLowerCase().pipe(z.email());
 const newPasswordSchema = z.string().min(8).max(72);
 
-/** Where email links land. `/auth/confirm` exchanges the token, then sends people on. */
+/** Where email links land. `/auth/confirm` sends them on to be confirmed with a click. */
 function confirmUrl(next = ""): string {
   const url = new URL("/auth/confirm", publicEnv.NEXT_PUBLIC_SITE_URL);
   if (next) {
@@ -276,4 +277,28 @@ export async function signOut(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/connexion");
+}
+
+/**
+ * Spends an email link's token_hash, from the « Continuer » button on /connexion/confirmer.
+ * Verifying on GET let mail scanners, which open links to inspect them, spend the token
+ * before the person could (DECISIONS.md, D-062).
+ */
+export async function confirmEmailLink(formData: FormData): Promise<void> {
+  const tokenHash = formData.get("token_hash");
+  const type = emailOtpType.safeParse(formData.get("type"));
+  const suite = formData.get("suite");
+  if (typeof tokenHash !== "string" || tokenHash === "" || !type.success) {
+    redirect("/connexion?erreur=lien");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({ type: type.data, token_hash: tokenHash });
+  if (error) {
+    redirect("/connexion?erreur=lien");
+  }
+
+  redirect(
+    await destinationAfterEmailLink(supabase, type.data, typeof suite === "string" ? suite : null),
+  );
 }
