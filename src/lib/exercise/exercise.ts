@@ -13,6 +13,7 @@ import {
   parseDecimal,
   subtractDecimal,
 } from "@/lib/decimal";
+import { readStoredLesson } from "@/lib/lesson/document";
 import type { Database } from "@/types/database";
 
 export type AnswerType = Database["public"]["Enums"]["answer_type"];
@@ -146,4 +147,26 @@ export function acceptedRange(
   return margin === "0"
     ? { kind: "exact", value }
     : { kind: "range", low: subtractDecimal(value, margin), high: addDecimal(value, margin) };
+}
+
+/** An exercise row as the bank reads it, with its answer key embedded. */
+export type ExerciseRowForReadiness = {
+  statement: unknown;
+  answer_type: AnswerType;
+  solution: { correct_numeric: number | null; correct_choice_ids: string[] | null } | null;
+};
+
+/** Whether an exercise read from the database can be given as homework now. */
+export function isRowReady(row: ExerciseRowForReadiness): boolean {
+  return isReady(
+    readiness({
+      statementEmpty: isDocumentEmpty(readStoredLesson(row.statement)),
+      answerType: row.answer_type,
+      correctNumeric:
+        row.solution?.correct_numeric === null || row.solution?.correct_numeric === undefined
+          ? null
+          : String(row.solution.correct_numeric),
+      correctChoiceIds: row.solution?.correct_choice_ids ?? null,
+    }),
+  );
 }

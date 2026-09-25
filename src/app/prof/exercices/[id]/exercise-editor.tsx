@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { unstable_rethrow } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -287,7 +288,17 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
             {complete ? null : (
               <IncompleteChip label={t("incomplete")} hint={t("incompleteHint")} />
             )}
-            {dirty ? <span className="text-sm text-encre-douce">{t("unsaved")}</span> : null}
+            {dirty ? (
+              <span className="text-sm text-encre-douce">{t("unsaved")}</span>
+            ) : complete ? (
+              // Only once saved and whole: leaving by this link would drop unsaved changes.
+              <Link
+                href={`/prof/devoirs/nouveau?exercice=${exercise.id}`}
+                className="text-sm text-stylo-bleu underline underline-offset-2"
+              >
+                {t("assign")}
+              </Link>
+            ) : null}
           </div>
           {locked ? (
             <p className="text-sm text-encre-douce">
@@ -365,6 +376,9 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
 
         <fieldset className="grid gap-4 rounded-md border border-quadrillage p-4">
           <legend className="px-1 text-sm font-medium">{t("fields.answerType")}</legend>
+          {exercise.assigned && fields.answerType !== "upload" ? (
+            <p className="text-sm text-encre-douce">{t("assignedHint")}</p>
+          ) : null}
           {locked ? (
             <p id="exercise-type-locked" className="text-sm text-encre-douce">
               {t("answerTypeLocked")}

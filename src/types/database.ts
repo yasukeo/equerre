@@ -972,9 +972,35 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      assignment_hand_in_counts: {
+        Row: {
+          assignment_id: string | null
+          students: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      create_assignment: {
+        Args: {
+          p_due_at: string
+          p_exercise_ids: string[]
+          p_group_id?: string
+          p_instructions?: string
+          p_student_id?: string
+          p_title: string
+        }
+        Returns: string
+      }
+      delete_assignment: { Args: { p_id: string }; Returns: undefined }
       invite_code_is_valid: { Args: { p_code: string }; Returns: boolean }
       save_exercise: {
         Args: {

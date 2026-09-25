@@ -42,6 +42,15 @@ export function localDateKey(value: DateInput): string {
 }
 
 /**
+ * The Casablanca calendar day `days` days after the one an instant falls on. Counted on the
+ * calendar, not in 24-hour steps: the week before Ramadan's change of offset has a day of 23
+ * or 25 hours, and a week of hours would land on the wrong day near midnight.
+ */
+export function localDateKeyInDays(value: DateInput, days: number): string {
+  return formatLocal(addDays(value, days, { in: inAppZone }), "yyyy-MM-dd");
+}
+
+/**
  * The UTC instant for a wall-clock date and time in Casablanca.
  * `date` is `yyyy-MM-dd`, `time` is `HH:mm`.
  */

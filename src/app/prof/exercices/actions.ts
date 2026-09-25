@@ -107,16 +107,24 @@ export async function saveExercise(_previous: FormState, formData: FormData): Pr
   const supabase = await createClient();
   const { error } = await supabase.rpc("save_exercise", parsed.args);
   if (error) {
-    const known = ["answer_type_locked", "choices_invalid", "number_invalid", "exercise_not_found"];
+    const known = [
+      "answer_type_locked",
+      "exercise_assigned_needs_answer",
+      "choices_invalid",
+      "number_invalid",
+      "exercise_not_found",
+    ];
     const reason = known.find((code) => error.message.includes(code));
     const message =
       reason === "answer_type_locked"
         ? t("errors.answerTypeLocked")
-        : reason === "exercise_not_found"
-          ? t("errors.notFound")
-          : reason
-            ? t("errors.fields")
-            : t("errors.unknown");
+        : reason === "exercise_assigned_needs_answer"
+          ? t("errors.assignedNeedsAnswer")
+          : reason === "exercise_not_found"
+            ? t("errors.notFound")
+            : reason
+              ? t("errors.fields")
+              : t("errors.unknown");
     return { status: "error", message };
   }
 

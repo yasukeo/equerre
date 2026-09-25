@@ -2,8 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { AnswerTypeChip, IncompleteChip } from "@/components/exercise-status";
 import { requireViewer } from "@/lib/auth";
-import { isDocumentEmpty, isReady, readiness } from "@/lib/exercise/exercise";
-import { readStoredLesson } from "@/lib/lesson/document";
+import { isRowReady } from "@/lib/exercise/exercise";
 import { createClient } from "@/lib/supabase/server";
 
 const FIELDS =
@@ -56,18 +55,7 @@ export async function ExercisesList() {
 
           <ul className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
             {chapter.exercises.map((exercise) => {
-              const ready = isReady(
-                readiness({
-                  statementEmpty: isDocumentEmpty(readStoredLesson(exercise.statement)),
-                  answerType: exercise.answer_type,
-                  correctNumeric:
-                    exercise.solution?.correct_numeric === null ||
-                    exercise.solution?.correct_numeric === undefined
-                      ? null
-                      : String(exercise.solution.correct_numeric),
-                  correctChoiceIds: exercise.solution?.correct_choice_ids ?? null,
-                }),
-              );
+              const ready = isRowReady(exercise);
 
               return (
                 <li

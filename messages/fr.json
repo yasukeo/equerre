@@ -131,7 +131,8 @@
       "today": "Aujourd’hui",
       "invite": "Inviter un élève",
       "lessons": "Leçons",
-      "exercises": "Exercices"
+      "exercises": "Exercices",
+      "assignments": "Devoirs"
     },
     "student": {
       "label": "Mon espace",
@@ -397,8 +398,114 @@
         "oneRight": "Avec des boutons ronds, une seule réponse peut être juste.",
         "answerTypeLocked": "Des élèves ont déjà répondu ou demandé le corrigé : la façon de répondre ne peut plus changer.",
         "deleteAssigned": "Cet exercice a été donné en devoir : il ne peut pas être supprimé.",
-        "tolerancePercent": "Pour une tolérance en pourcentage, choisissez « en % » dans Unité."
+        "tolerancePercent": "Pour une tolérance en pourcentage, choisissez « en % » dans Unité.",
+        "assignedNeedsAnswer": "Cet exercice est donné en devoir : il doit garder une réponse attendue, sans quoi les élèves ne pourraient plus le rendre."
+      },
+      "assign": "Donner en devoir",
+      "assignedHint": "Cet exercice est donné en devoir : il doit garder une réponse attendue."
+    },
+    "assignments": {
+      "title": "Devoirs",
+      "new": "Nouveau devoir",
+      "empty": "Aucun devoir pour l’instant. Donnez-en un à un élève ou à un groupe.",
+      "upcoming": "À rendre",
+      "past": "Échéance passée",
+      "group": "Groupe {name}",
+      "due": "à rendre le {date}",
+      "exercises": "{count, plural, =1 {1 exercice} other {# exercices}}",
+      "handedIn": "{total, plural, =1 {{done} sur 1 élève a rendu au moins un exercice} other {{done} sur # élèves ont rendu au moins un exercice}}"
+    },
+    "newAssignment": {
+      "title": "Nouveau devoir",
+      "lead": "Choisissez à qui il s’adresse, pour quand, et les exercices de la banque, dans l’ordre où l’élève les fera.",
+      "fields": {
+        "title": "Titre",
+        "titleHint": "Ce que l’élève verra, par exemple « Limites — série 2 ».",
+        "recipient": "Pour",
+        "recipientPlaceholder": "Choisir un groupe ou un élève",
+        "groups": "Groupes",
+        "students": "Élèves",
+        "groupOption": "{name} ({count, plural, =1 {1 élève} other {# élèves}})",
+        "due": "À rendre le",
+        "dueDate": "Date",
+        "dueTime": "Heure",
+        "dueHint": "Heure du Maroc. L’élève peut encore rendre après cette heure.",
+        "instructions": "Consignes",
+        "instructionsHint": "Facultatif. Par exemple : « Rédigez sur une copie double, une page par exercice. »"
+      },
+      "exercises": {
+        "chosen": "{count, plural, =0 {Exercices du devoir} =1 {1 exercice dans le devoir} other {# exercices dans le devoir}}",
+        "chosenEmpty": "Cochez des exercices dans la banque ci-dessous.",
+        "up": "Monter « {title} »",
+        "down": "Descendre « {title} »",
+        "remove": "Retirer « {title} »",
+        "bank": "Banque d’exercices",
+        "bankHint": "Seuls les exercices prêts à être donnés apparaissent : ceux qui ont un énoncé et une réponse attendue.",
+        "level": "Niveau",
+        "allLevels": "Tous les niveaux",
+        "search": "Chercher",
+        "searchPlaceholder": "Titre, chapitre ou mot-clé",
+        "none": "Aucun exercice prêt ne correspond.",
+        "difficulty": "Difficulté {level}/5",
+        "full": "{max} exercices au plus par devoir : retirez-en un pour en choisir un autre."
+      },
+      "submit": "Donner le devoir",
+      "submitting": "Envoi…",
+      "errors": {
+        "fields": "Vérifiez les champs signalés.",
+        "title": "Donnez un titre de 1 à 160 caractères.",
+        "instructions": "Les consignes tiennent en 2 000 caractères au plus.",
+        "due": "Choisissez une date et une heure.",
+        "dueInPast": "Cette date est déjà passée.",
+        "recipient": "Choisissez un groupe ou un élève.",
+        "recipientGone": "Cet élève n’est plus actif, ou ce groupe n’existe plus. Choisissez à nouveau.",
+        "exercises": "Choisissez de 1 à 30 exercices.",
+        "exerciseNotReady": "Un exercice choisi n’a plus d’énoncé ou de réponse attendue. Rechargez la page.",
+        "unknown": "L’envoi a échoué. Réessayez.",
+        "dueSkipped": "Cette heure n’existe pas ce jour-là : les horloges sautent une heure au changement d’heure. Choisissez-en une autre."
       }
+    },
+    "assignment": {
+      "title": "Devoir",
+      "back": "Tous les devoirs",
+      "group": "groupe {name}",
+      "recipient": "Pour {recipient}",
+      "due": "à rendre le {date}",
+      "exercises": "{count, plural, =1 {1 exercice} other {# exercices}}",
+      "progress": "Suivi",
+      "progressCaption": "Où en est chaque élève, exercice par exercice",
+      "noStudents": "Personne n’est concerné pour l’instant : le groupe n’a pas d’élève.",
+      "student": "Élève",
+      "exerciseColumn": "Ex. {number}",
+      "cell": {
+        "none": "Pas encore rendu",
+        "handedIn": "À corriger",
+        "graded": "{grade}/20",
+        "revealed": "Corrigé vu",
+        "doneElsewhere": "Déjà fait ailleurs"
+      },
+      "saved": "Devoir enregistré.",
+      "edit": {
+        "title": "Modifier le devoir",
+        "dueHint": "Heure du Maroc.",
+        "save": "Enregistrer",
+        "saving": "Enregistrement…",
+        "failed": "L’enregistrement a échoué. Réessayez."
+      },
+      "delete": {
+        "title": "Supprimer le devoir",
+        "start": "Supprimer ce devoir…",
+        "confirmQuestion": "Le devoir disparaîtra pour les élèves concernés. Supprimer ?",
+        "confirm": "Oui, supprimer",
+        "cancel": "Annuler",
+        "hasWork": "Des élèves ont déjà répondu ou consulté un corrigé : le devoir reste, pour que leur travail ne soit pas perdu."
+      },
+      "errors": {
+        "notFound": "Ce devoir n’existe plus.",
+        "hasWork": "Des élèves ont déjà répondu ou consulté un corrigé : le devoir ne peut plus être supprimé.",
+        "unknown": "L’opération a échoué. Réessayez."
+      },
+      "legendElsewhere": "« Déjà fait ailleurs » : l’élève a été corrigé, ou a vu le corrigé, de cet exercice dans un autre devoir. Il ne peut plus le rendre ici."
     }
   },
   "student": {

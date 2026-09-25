@@ -850,3 +850,208 @@ describe("the exercise bank", () => {
     expect(removed.error?.code).toBe("23503");
   });
 });
+
+describe("homework the tutor gives", () => {
+  let tutor: Client;
+  let salma: Client;
+  let ready: string[] = [];
+  let unready = "";
+  const made: string[] = [];
+  const inAWeek = () => new Date(Date.now() + 7 * 86_400_000).toISOString();
+
+  beforeAll(async () => {
+    tutor = await signedInAs("prof@equerre.test");
+    salma = await signedInAs("salma.alaoui@equerre.test");
+    const { data } = await tutor
+      .from("exercises")
+      .select("id, solution:exercise_solutions!inner(correct_numeric)")
+      .eq("answer_type", "numeric")
+      .not("solution.correct_numeric", "is", null)
+      .limit(2);
+    ready = (data ?? []).map((row) => row.id);
+    if (ready.length < 2)
+      throw new Error("the seed should hold two numeric exercises with answers");
+
+    const { data: chapter } = await tutor.from("chapters").select("id").limit(1).single();
+    const { data: exercise } = await tutor
+      .from("exercises")
+      .insert({
+        chapter_id: chapter?.id ?? "",
+        title: "Test RLS — sans réponse",
+        statement: { type: "doc", content: [] },
+        difficulty: 1,
+        answer_type: "numeric",
+      })
+      .select("id")
+      .single();
+    unready = exercise?.id ?? "";
+  });
+
+  afterAll(async () => {
+    if (made.length) await tutor.from("assignments").delete().in("id", made);
+    if (unready) await tutor.from("exercises").delete().eq("id", unready);
+  });
+
+  it("is written whole, its exercises in the order given", async () => {
+    const { data: id, error } = await tutor.rpc("create_assignment", {
+      p_title: "Test RLS — devoir",
+      p_due_at: inAWeek(),
+      p_exercise_ids: [ready[1] ?? "", ready[0] ?? ""],
+      p_student_id: ids.salma,
+    });
+    expect(error).toBeNull();
+    if (id) made.push(id);
+
+    const { data: items } = await tutor
+      .from("assignment_items")
+      .select("exercise_id, position")
+      .eq("assignment_id", id ?? "")
+      .order("position");
+    expect(items?.map((item) => item.exercise_id)).toEqual([ready[1], ready[0]]);
+
+    // Salma sees it; it is hers.
+    const { data: mine } = await salma
+      .from("assignments")
+      .select("id")
+      .eq("id", id ?? "");
+    expect(mine?.length).toBe(1);
+  });
+
+  it("refuses an exercise the grading would refuse, and a date already past", async () => {
+    const notReady = await tutor.rpc("create_assignment", {
+      p_title: "Test RLS — devoir",
+      p_due_at: inAWeek(),
+      p_exercise_ids: [unready],
+      p_student_id: ids.salma,
+    });
+    expect(notReady.error?.message).toBe("exercise_not_ready");
+
+    const past = await tutor.rpc("create_assignment", {
+      p_title: "Test RLS — devoir",
+      p_due_at: new Date(Date.now() - 60_000).toISOString(),
+      p_exercise_ids: [ready[0] ?? ""],
+      p_student_id: ids.salma,
+    });
+    expect(past.error?.message).toBe("due_in_past");
+  });
+
+  it("is given and deleted by the tutor alone", async () => {
+    const args = {
+      p_title: "Test RLS — devoir",
+      p_due_at: inAWeek(),
+      p_exercise_ids: [ready[0] ?? ""],
+      p_student_id: ids.salma,
+    };
+    expect((await salma.rpc("create_assignment", args)).error?.message).toBe("not_tutor");
+    expect((await anonymousClient().rpc("create_assignment", args)).error).not.toBeNull();
+    expect((await salma.rpc("delete_assignment", { p_id: made[0] ?? "" })).error?.message).toBe(
+      "not_tutor",
+    );
+  });
+
+  it("is not deleted once a student has opened a solution in it", async () => {
+    const id = made[0] ?? "";
+    const reveal = await salma
+      .from("exercise_reveals")
+      .insert({ assignment_id: id, exercise_id: ready[0] ?? "", student_id: ids.salma });
+    expect(reveal.error).toBeNull();
+
+    const { error } = await tutor.rpc("delete_assignment", { p_id: id });
+    expect(error?.message).toBe("assignment_has_work");
+    const { data } = await tutor.from("assignments").select("id").eq("id", id);
+    expect(data?.length).toBe(1);
+  });
+
+  it("is deleted when nobody has touched it", async () => {
+    const { data: id } = await tutor.rpc("create_assignment", {
+      p_title: "Test RLS — devoir vide",
+      p_due_at: inAWeek(),
+      p_exercise_ids: [ready[0] ?? ""],
+      p_student_id: ids.salma,
+    });
+    expect(id).toBeTruthy();
+    const { error } = await tutor.rpc("delete_assignment", { p_id: id ?? "" });
+    expect(error).toBeNull();
+    const { data } = await tutor
+      .from("assignments")
+      .select("id")
+      .eq("id", id ?? "");
+    expect(data).toEqual([]);
+  });
+});
+
+describe("an exercise given as homework", () => {
+  let tutor: Client;
+  let exercise = "";
+  let assignment = "";
+  let chapterId = "";
+
+  const save = (correct: string) =>
+    tutor.rpc("save_exercise", {
+      p_id: exercise,
+      p_chapter_id: chapterId,
+      p_title: "Test RLS — clé",
+      p_statement: { type: "doc", content: [{ type: "paragraph" }] },
+      p_difficulty: 1,
+      p_tags: [],
+      p_answer_type: "numeric",
+      p_choices: [],
+      p_choice_mode: "unique",
+      p_solution: { type: "doc", content: [] },
+      p_correct_numeric: correct,
+      p_tolerance: "",
+      p_tolerance_kind: "absolue",
+      p_correct_choice_ids: [],
+    });
+
+  beforeAll(async () => {
+    tutor = await signedInAs("prof@equerre.test");
+    const { data: chapter } = await tutor.from("chapters").select("id").limit(1).single();
+    chapterId = chapter?.id ?? "";
+    const { data } = await tutor
+      .from("exercises")
+      .insert({
+        chapter_id: chapterId,
+        title: "Test RLS — clé",
+        statement: { type: "doc", content: [] },
+        difficulty: 1,
+        answer_type: "numeric",
+      })
+      .select("id")
+      .single();
+    exercise = data?.id ?? "";
+    if ((await save("4.8")).error) throw new Error("could not give the test exercise its key");
+    const { data: id } = await tutor.rpc("create_assignment", {
+      p_title: "Test RLS — clé",
+      p_due_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+      p_exercise_ids: [exercise],
+      p_student_id: ids.salma,
+    });
+    assignment = id ?? "";
+  });
+
+  afterAll(async () => {
+    if (assignment) await tutor.rpc("delete_assignment", { p_id: assignment });
+    if (exercise) await tutor.from("exercises").delete().eq("id", exercise);
+  });
+
+  it("keeps an expected answer, so students can still hand it in", async () => {
+    expect(assignment).toBeTruthy();
+    expect((await save("")).error?.message).toBe("exercise_assigned_needs_answer");
+    // Changing the answer is still allowed.
+    expect((await save("5")).error).toBeNull();
+    const { data } = await tutor
+      .from("exercise_solutions")
+      .select("correct_numeric::text")
+      .eq("exercise_id", exercise)
+      .single();
+    expect(data?.correct_numeric).toBe("5");
+  });
+
+  it("has its hand-ins counted by the database, for the tutor only", async () => {
+    const counts = await tutor.from("assignment_hand_in_counts").select("assignment_id, students");
+    expect(counts.error).toBeNull();
+    const anon = await anonymousClient().from("assignment_hand_in_counts").select("students");
+    expect(anon.error).not.toBeNull();
+  });
+});
