@@ -1,0 +1,19 @@
+# What `vercel deploy` never uploads: secrets, local state, and what the build makes itself.
+.env
+.env.*
+!.env.example
+node_modules
+.next
+out
+build
+coverage
+test-results
+playwright-report
+playwright/.cache
+playwright/.auth
+*.tsbuildinfo
+next-env.d.ts
+supabase/.branches
+supabase/.temp
+.claude
+.vercel
