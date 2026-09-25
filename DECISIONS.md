@@ -198,6 +198,20 @@ Decided with the tutor. `/auth/confirm` no longer verifies a `token_hash` on GET
 **D-063 — The Free plan, for now.**
 The Free plan's 1 GB of storage holds roughly 2,500 photographed pages at about 400 KB each: some five months for eight students handing in fifteen pages a week. The tutor chose to stay on Free for now and move to Pro (about $25 a month for 100 GB, with no code change) in the coming months. The 40-page cap on pages not yet handed in (D-052) keeps a single account from filling the project early.
 
+**D-064 — The domain and the Pro plan wait for the end.**
+The owner chose to buy the domain and move to Pro only when the app is finished. Until then:
+
+- **Emails do not reach students.** Resend sends only from a verified domain, and Supabase's built-in mail server delivers only to the project's team (sign-up confirmations, sign-in links, password resets). The Resend key sits in `.env.local`, and an email it cannot send is caught. An invitation then gives the tutor its link to pass on herself (`src/app/prof/eleves/inviter/actions.ts`).
+- **Leaked-password protection stays off.** Supabase offers it on Pro only.
+- **The site is not deployed.** Vercel waits for the domain and for the owner's go-ahead.
+
+When the domain is bought, the work is:
+
+1. Verify the domain in Resend: its DNS records, then set `EMAIL_FROM` to an address on the domain.
+2. Point Supabase Auth's custom SMTP at `smtp.resend.com`, port 465, user `resend`, with the Resend key as password, and raise the hourly email limit.
+3. On Pro, turn on leaked-password protection.
+4. Deploy to Vercel, with the keys of `.env.local` copied into its environment, a fresh Resend key included, since the first one was pasted in a conversation.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
