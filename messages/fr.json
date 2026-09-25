@@ -138,7 +138,8 @@
       "label": "Mon espace",
       "home": "Accueil",
       "profile": "Profil",
-      "lessons": "Cours"
+      "lessons": "Cours",
+      "homework": "Devoirs"
     }
   },
   "session": {
@@ -538,6 +539,107 @@
       "empty": "Aucun cours publié pour vous pour l’instant.",
       "shared": "Partagé avec vous",
       "back": "Tous les cours"
+    },
+    "homework": {
+      "title": "Devoirs",
+      "toDo": "À faire",
+      "done": "Terminés",
+      "empty": "Aucun devoir pour l’instant.",
+      "due": "à rendre le {date}",
+      "late": "En retard",
+      "left": "{left, plural, =0 {Tout est fait} =1 {1 exercice à faire sur {total}} other {# exercices à faire sur {total}}}",
+      "back": "Tous les devoirs",
+      "instructions": "Consignes",
+      "exercises": "Exercices",
+      "work": {
+        "todo": "À faire",
+        "handedIn": "Rendu, en attente de correction",
+        "graded": "{grade}/20",
+        "revealed": "Corrigé consulté",
+        "doneElsewhere": "Déjà fait dans un autre devoir"
+      },
+      "exercise": {
+        "backToHomework": "Retour au devoir",
+        "position": "Exercice {index} sur {count}",
+        "previous": "Exercice précédent",
+        "next": "Exercice suivant",
+        "statement": "Énoncé",
+        "answer": "Votre réponse",
+        "paused": "Votre compte est en pause : vous pouvez relire vos devoirs, mais pas en rendre.",
+        "stopped": "Vous ne suivez plus les cours : vous pouvez relire votre travail, mais plus en rendre.",
+        "revealedNote": "Vous avez vu le corrigé : cet exercice n’est plus à rendre.",
+        "doneElsewhere": "Vous avez déjà fait cet exercice dans un autre devoir, ou vu son corrigé : il n’est plus à rendre ici.",
+        "solution": "Corrigé",
+        "feedback": "Commentaire de votre professeure",
+        "grade": "Note : {grade}/20"
+      },
+      "numeric": {
+        "label": "Le nombre que vous trouvez",
+        "hint": "Un nombre, avec une virgule ou un point : par exemple 4,8 ou -0,5.",
+        "submit": "Envoyer ma réponse",
+        "sending": "Envoi…",
+        "yours": "Votre réponse : {value}",
+        "expected": "Réponse attendue : {value}",
+        "right": "Bonne réponse.",
+        "wrong": "Ce n’est pas la bonne réponse."
+      },
+      "mcq": {
+        "unique": "Choisissez une réponse.",
+        "multiple": "Cochez toutes les bonnes réponses.",
+        "submit": "Envoyer ma réponse",
+        "sending": "Envoi…",
+        "yours": "Votre choix",
+        "right": "Bonne réponse",
+        "rightAnswers": "Les bonnes réponses sont marquées.",
+        "resultRight": "Bonne réponse.",
+        "resultWrong": "Ce n’est pas la bonne réponse."
+      },
+      "photos": {
+        "title": "Photos de votre copie",
+        "hint": "Une photo par page, bien à plat et lisible. 20 pages au plus.",
+        "take": "Prendre une photo",
+        "choose": "Choisir dans la galerie",
+        "page": "Page {number}",
+        "uploading": "Envoi de la page…",
+        "failed": "Cette page n’a pas pu être envoyée.",
+        "quota": "Trop de photos attendent d’être rendues dans vos devoirs. Rendez vos copies en cours, ou retirez des pages, puis réessayez.",
+        "unreadable": "Cette image ne peut pas être lue. Reprenez la photo.",
+        "tooLarge": "Cette photo est trop lourde, même réduite.",
+        "up": "Monter la page {number}",
+        "down": "Descendre la page {number}",
+        "remove": "Retirer la page {number}",
+        "empty": "Aucune page pour l’instant.",
+        "full": "20 pages au plus : retirez-en une pour en ajouter une autre.",
+        "handIn": "Rendre ma copie",
+        "handingIn": "Envoi…",
+        "handedIn": "Votre copie est rendue. Votre professeure va la corriger.",
+        "frozen": "Votre copie est rendue. Elle ne peut plus être modifiée : vous avez vu le corrigé de cet exercice, ou il a déjà été corrigé dans un autre devoir.",
+        "change": "Modifier ma copie",
+        "cancelChange": "Annuler les modifications",
+        "waiting": "Attendez la fin des envois avant de rendre votre copie.",
+        "removeFailed": "Retirez les pages qui n’ont pas pu être envoyées, puis ajoutez-les à nouveau."
+      },
+      "reveal": {
+        "title": "Voir le corrigé",
+        "warning": "Si vous voyez le corrigé maintenant, vous ne pourrez plus rendre cet exercice, ni ici ni dans un autre devoir.",
+        "start": "Voir le corrigé…",
+        "confirm": "Oui, voir le corrigé",
+        "cancel": "Annuler"
+      },
+      "errors": {
+        "gone": "Ce devoir n’est plus disponible.",
+        "paused": "Votre compte est en pause : vous ne pouvez pas rendre de devoir pour l’instant.",
+        "revealed": "Vous avez déjà vu le corrigé de cet exercice : vous ne pouvez plus le rendre.",
+        "doneElsewhere": "Cet exercice a déjà été corrigé dans un autre devoir.",
+        "notReady": "Cet exercice n’est pas encore prêt. Prévenez votre professeure.",
+        "number": "Ce nombre n’est pas lisible. Exemples : 4,8 ou -0,5 ou 3e8.",
+        "answerRequired": "Donnez une réponse avant d’envoyer.",
+        "pagesRequired": "Ajoutez au moins une photo de votre copie.",
+        "tooManyPages": "20 pages au plus par exercice.",
+        "pageLost": "Une page n’a pas été envoyée correctement. Retirez-la et ajoutez-la à nouveau.",
+        "alreadyCorrected": "Cet exercice est déjà corrigé.",
+        "unknown": "L’envoi a échoué. Vérifiez votre connexion et réessayez."
+      }
     }
   },
   "email": {

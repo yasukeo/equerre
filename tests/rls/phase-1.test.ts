@@ -274,6 +274,24 @@ describe("homework submissions", () => {
     expect(data?.file_paths).toEqual([handedIn]);
   });
 
+  it("is marked corrected by the tutor only with a grade", async () => {
+    // A correction without one read as « still waiting » while the grading refused a new list.
+    const { error } = await tutor
+      .from("submissions")
+      .update({ status: "corrige", corrected_at: new Date().toISOString() })
+      .eq("assignment_id", made.assignment)
+      .eq("exercise_id", made.upload);
+    expect(error?.message).toContain("submissions_corrected_has_grade");
+
+    const { data } = await tutor
+      .from("submissions")
+      .select("status")
+      .eq("assignment_id", made.assignment)
+      .eq("exercise_id", made.upload)
+      .single();
+    expect(data?.status).toBe("rendu");
+  });
+
   it("cannot overwrite or delete a page she has handed in", async () => {
     const overwrite = await salma.storage
       .from("submissions")
@@ -518,6 +536,52 @@ describe("pages waiting to be handed in", () => {
       contentType: "image/webp",
     });
     expect(error).not.toBeNull();
+  });
+});
+
+describe("a student's draft pages, as her exercise page reads them", () => {
+  // The exercise page lists her draft folder and signs each page for the browser (D-046):
+  // her own, and nobody else's.
+  let salma: Client;
+  let omar: Client;
+  const folder = `${ids.salma}/${crypto.randomUUID()}`;
+  const draft = `${folder}/${crypto.randomUUID()}.webp`;
+
+  beforeAll(async () => {
+    salma = await signedInAs("salma.alaoui@equerre.test");
+    omar = await signedInAs("omar.elidrissi@equerre.test");
+    const { error } = await salma.storage
+      .from("submissions")
+      .upload(draft, new Blob(["RIFFdraftWEBPVP8 "], { type: "image/webp" }), {
+        contentType: "image/webp",
+      });
+    if (error) throw new Error(`could not upload a test page: ${error.message}`);
+  });
+
+  afterAll(async () => {
+    await salma.storage.from("submissions").remove([draft]);
+  });
+
+  it("are listed and signed for her", async () => {
+    const { data: listed } = await salma.storage.from("submissions").list(folder);
+    expect(listed?.map((object) => object.name)).toEqual([draft.slice(folder.length + 1)]);
+
+    const { data: signed, error } = await salma.storage
+      .from("submissions")
+      .createSignedUrl(draft, 60);
+    expect(error).toBeNull();
+    expect(signed?.signedUrl).toBeTruthy();
+  });
+
+  it("are neither listed, signed nor read for another student", async () => {
+    const { data: listed } = await omar.storage.from("submissions").list(folder);
+    expect(listed ?? []).toEqual([]);
+
+    const { data: signed } = await omar.storage.from("submissions").createSignedUrl(draft, 60);
+    expect(signed).toBeNull();
+
+    const { data: read } = await omar.storage.from("submissions").download(draft);
+    expect(read).toBeNull();
   });
 });
 
