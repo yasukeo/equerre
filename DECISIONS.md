@@ -19,8 +19,8 @@ Picked **Équerre**: the most ownable, the most concrete object, and it anchors 
 **D-003 — Levels: all of them, as data.**
 The brief's "levels she teaches" was empty. Every level in §4.2 is seeded into a `levels` table rather than an enum, so she can add or retire a track without a migration. 1BAC SVT is kept separate from SE because the brief lists it.
 
-**D-004 — Tutor name and city are placeholders.**
-`siteConfig.tutorName = "Prénom Nom"`. No city is invented; public copy that needs one waits for phase 4.
+**D-004 — The tutor's name; the city is still a placeholder.**
+The tutor is Keltoum Gharbaoui (given on 2026-09-26). The name lives in `siteConfig.tutorName` and in the seed's tutor account. It shows in the app's header and on the share pictures (D-048). No city is invented; public copy that needs one waits for phase 4.
 
 ## Stack and tooling
 
@@ -258,6 +258,14 @@ Accepted as they are:
 - **The average counts two copies of one exercise.** They are two corrections, one in each homework.
 - **A paused student's home lists what is due.** She will hand it in when she is back, as `/eleve/devoirs` already shows her (D-060).
 
+**D-048 — Share pictures for the site and every public lesson.**
+A shared link shows a sheet of squared paper, 1200 × 630, drawn by `next/og` (`src/lib/og/share-image.tsx`). It carries the red margin of a French copybook, the title in Readex Pro, what it is (« 2e bac Sciences physiques · Limites et continuité »), and `Équerre` with the tutor's name. There is one for the whole site (`src/app/opengraph-image.tsx`) and one per public lesson, drawn at build time from the same cached reads as the lesson's page. The grid is DESIGN.md's carreau, doubled; the colours are its light palette, written out, since an image has no CSS variables and is shown inside someone else's app.
+
+`next/og` reads TrueType, not the woff2 that `next/font` serves to browsers. So Readex Pro 400 and 600 are kept in `assets/fonts` as static `.ttf` files from Google Fonts, about 92 KB each, downloaded with the owner's agreement, with the SIL Open Font License that must travel with them. `outputFileTracingIncludes` ships them with the functions, for a lesson published after the build, whose picture is drawn on the server.
+
+**D-049 — La note au stylo rouge.**
+DESIGN.md's signature: a grade the tutor wrote appears in Kalam 700, in the theme's red, on the corrected copy. A hand-drawn circle traces around it once, in 450 ms (`src/components/grade-mark.tsx`), and with reduced motion the circle is simply there. The home's list of grades uses the same hand without the circle, which stays with the moment she opens her copy. The notification that the brief names as the mark's third place comes in phase 3. A number or a choice graded by the database, and left as it was, keeps its right-or-wrong line instead: that grade was not written by her. Kalam is declared in the component, so only the pages that show a grade load it.
+
 ## Files and storage
 
 **D-050 — Lesson images are public; lesson files follow the lesson.**
@@ -294,14 +302,27 @@ The owner chose to buy the domain and move to Pro only when the app is finished.
 
 - **Emails do not reach students.** Resend sends only from a verified domain, and Supabase's built-in mail server delivers only to the project's team (sign-up confirmations, sign-in links, password resets). The Resend key sits in `.env.local`, and an email it cannot send is caught. An invitation then gives the tutor its link to pass on herself (`src/app/prof/eleves/inviter/actions.ts`).
 - **Leaked-password protection stays off.** Supabase offers it on Pro only.
-- **The site is not deployed.** Vercel waits for the domain and for the owner's go-ahead.
+- **The site runs at `equerre.vercel.app`, for the owner to try on a phone** (deployed on 2026-09-26 at the owner's request). Vercel holds only the three public variables. The secret key and the Resend key are for the owner to add in Vercel's settings, so inviting a student and sending mail do not work there yet. Its functions run in `dub1`, beside the Supabase project in `eu-west-1`. `.vercelignore` keeps `.env*` out of every upload, and deploys go through `npx vercel deploy --prod` from the repository, which has no remote yet.
 
 When the domain is bought, the work is:
 
 1. Verify the domain in Resend: its DNS records, then set `EMAIL_FROM` to an address on the domain.
 2. Point Supabase Auth's custom SMTP at `smtp.resend.com`, port 465, user `resend`, with the Resend key as password, and raise the hourly email limit.
 3. On Pro, turn on leaked-password protection.
-4. Deploy to Vercel, with the keys of `.env.local` copied into its environment, a fresh Resend key included, since the first one was pasted in a conversation.
+4. Point the domain at the Vercel project and set `NEXT_PUBLIC_SITE_URL` to it. Give Vercel the secret keys, and use a fresh Resend key, since the first one was pasted in a conversation. Add the domain to Supabase Auth's site URL and redirect list.
+
+**D-065 — Images stay in Supabase Storage; Cloudinary is not needed yet.**
+Asked about Cloudinary on 2026-09-26. What it would bring is already done another way:
+
+- **Photos are reduced before they leave the device.** Every photographed page and every lesson image is brought down to 2,000 px and re-encoded (WebP or JPEG) on the phone or the laptop (D-051, D-053), so what is stored is already light.
+- **Share pictures are drawn by `next/og`** at build time (D-048), with no service and no key.
+
+What it would cost:
+
+- **A third party holding minors' homework.** The photographed pages are children's work, kept in a private bucket that only the student and the tutor can read through Row Level Security (D-052). Cloudinary cannot apply those rules. Every page would have to be signed by our own server after our own checks, a second copy of the access rules to keep right.
+- **One more account and one more secret** to configure.
+
+Its free plan would still relieve the Free plan's 1 GB (D-063), and it could make thumbnails, which Supabase makes only on Pro. So it is worth another look if storage runs short before the move to Pro, or if lists of copies ever need thumbnails. Then only for public images (lesson figures, the blog), where there is nothing private to protect.
 
 ## Secret key usage
 

@@ -204,3 +204,17 @@
 @utility tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* La note au stylo rouge (DESIGN.md, signature): the circle around the grade is traced once,
+   in 450ms. With reduced motion the rule above ends it at once, so it is simply there. */
+.grade-circle path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: grade-circle 450ms ease-out 150ms forwards;
+}
+
+@keyframes grade-circle {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

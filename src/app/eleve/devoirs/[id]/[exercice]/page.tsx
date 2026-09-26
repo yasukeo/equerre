@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
 import { z } from "zod";
 import { AnnotatedPage, RemarkNumber } from "@/components/annotated-page";
+import { GradeMark } from "@/components/grade-mark";
 import { PageGrid } from "@/components/page-grid";
 import { WorkChip } from "@/components/work-status";
 import { requireViewer } from "@/lib/auth";
@@ -222,7 +223,7 @@ async function GradedAnswer({ data, grade }: { data: MyExercise; grade: number }
         {verdict ? (
           <Verdict right={right} text={right ? t("numeric.right") : t("numeric.wrong")} />
         ) : (
-          <p className="font-medium">{t("exercise.grade", { grade: gradeFormat.format(grade) })}</p>
+          <GradeMark grade={gradeFormat.format(grade)} label={t("exercise.gradeLabel")} circled />
         )}
         {expected ? (
           <p className="text-sm text-encre-douce">
@@ -243,7 +244,7 @@ async function GradedAnswer({ data, grade }: { data: MyExercise; grade: number }
         {verdict ? (
           <Verdict right={right} text={right ? t("mcq.resultRight") : t("mcq.resultWrong")} />
         ) : (
-          <p className="font-medium">{t("exercise.grade", { grade: gradeFormat.format(grade) })}</p>
+          <GradeMark grade={gradeFormat.format(grade)} label={t("exercise.gradeLabel")} circled />
         )}
         <ul className="grid gap-2">
           {exercise.choices.map((choice) => (
@@ -293,7 +294,7 @@ async function GradedAnswer({ data, grade }: { data: MyExercise; grade: number }
 
   return (
     <div className="grid gap-6">
-      <p className="font-medium">{t("exercise.grade", { grade: gradeFormat.format(grade) })}</p>
+      <GradeMark grade={gradeFormat.format(grade)} label={t("exercise.gradeLabel")} circled />
       {pages.map((page, index) => {
         const remarks = arranged.pages[index]?.remarks ?? [];
         const label = t("photos.page", { number: index + 1 });

@@ -205,7 +205,7 @@ $$;
 
 -- ─────────────────────────────────────────────────────────────── people
 
-select pg_temp.seed_user(1, 'prof@equerre.test', 'Prénom Nom', null);
+select pg_temp.seed_user(1, 'prof@equerre.test', 'Keltoum Gharbaoui', null);
 
 update public.profiles
 set role = 'tutor', level_code = null, phone = '+212 600 000 001'

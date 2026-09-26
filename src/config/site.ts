@@ -1,7 +1,7 @@
 export const siteConfig = {
   brand: "Équerre",
-  /** Placeholder until the tutor's real name is provided (DECISIONS.md, D-004). */
-  tutorName: "Prénom Nom",
+  /** The tutor, as she signs her lessons and her corrections (DECISIONS.md, D-004). */
+  tutorName: "Keltoum Gharbaoui",
   defaultLocale: "fr",
   locales: ["fr"],
   timeZone: "Africa/Casablanca",

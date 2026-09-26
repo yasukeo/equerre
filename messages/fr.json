@@ -2,6 +2,11 @@
   "meta": {
     "description": "Cours particuliers de mathématiques, du collège au bac : leçons, devoirs corrigés et séances au même endroit."
   },
+  "share": {
+    "eyebrow": "Cours particuliers de mathématiques",
+    "title": "Leçons, devoirs corrigés et séances, du collège au bac",
+    "lesson": "Leçon de mathématiques"
+  },
   "common": {
     "skipToContent": "Aller au contenu",
     "offline": "Pas de connexion. Ce que vous avez saisi est gardé, et l’envoi reprendra dès que le réseau revient.",
@@ -598,7 +603,7 @@
       "grades": "Mes notes",
       "average": "Moyenne : {average}/20, sur {count, plural, one {# exercice corrigé} other {# exercices corrigés}}",
       "noGrades": "Pas encore de note : elles apparaîtront ici.",
-      "gradeOn": "{grade}/20",
+      "gradeLabel": "Note",
       "newLessons": "Nouveaux cours",
       "noLessons": "Aucun cours publié pour votre niveau pour l’instant.",
       "publishedOn": "publié le {date}"
@@ -655,7 +660,7 @@
         "doneElsewhere": "Vous avez déjà fait cet exercice dans un autre devoir, ou vu son corrigé : il n’est plus à rendre ici.",
         "solution": "Corrigé",
         "feedback": "Commentaire de votre professeure",
-        "grade": "Note : {grade}/20",
+        "gradeLabel": "Note",
         "remarks": "Remarques de votre professeure",
         "remarksOn": "Remarques sur la page {number}",
         "remarksElsewhere": "Autres remarques",

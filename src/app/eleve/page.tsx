@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { Suspense } from "react";
+import { GradeMark } from "@/components/grade-mark";
 import { SessionStatusChip } from "@/components/session-status";
 import { buttonVariants } from "@/components/ui/button";
 import { requireViewer } from "@/lib/auth";
@@ -261,9 +262,11 @@ async function StudentHome() {
                     className="flex min-h-14 items-center justify-between gap-4 py-3 hover:bg-sunken"
                   >
                     <span className="min-w-0 font-medium">{entry.title}</span>
-                    <span className="shrink-0 font-semibold tabular">
-                      {t("gradeOn", { grade: gradeFormat.format(entry.grade) })}
-                    </span>
+                    <GradeMark
+                      grade={gradeFormat.format(entry.grade)}
+                      label={t("gradeLabel")}
+                      className="shrink-0"
+                    />
                   </Link>
                 </li>
               ))}
