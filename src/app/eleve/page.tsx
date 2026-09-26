@@ -7,6 +7,7 @@ import { SessionStatusChip } from "@/components/session-status";
 import { buttonVariants } from "@/components/ui/button";
 import { requireViewer } from "@/lib/auth";
 import { formatLocal } from "@/lib/dates";
+import { getMyGrades, listMyHomework } from "@/lib/homework/queries";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,8 @@ async function StudentHome() {
     getTranslations("session"),
   ]);
   const supabase = await createClient();
-  const nowIso = new Date().toISOString();
+  const now = new Date();
+  const nowIso = now.toISOString();
 
   // RLS narrows every query to this student: their sessions, their groups' sessions,
   // and only the lessons they're allowed to read.
@@ -39,33 +41,37 @@ async function StudentHome() {
   // them read other levels' public lessons, so filtering happens in the database, before
   // the limit — otherwise public lessons from other levels could fill the list.
   const lessonFields = "id, slug, title, published_at, chapters!inner(title, level_code)" as const;
-  const [sessionsResult, levelLessonsResult, sharedLessonsResult] = await Promise.all([
-    supabase
-      .from("sessions")
-      .select(
-        "id, starts_at, ends_at, status, mode, location, meeting_url, group:groups(name), session_type:session_types(name)",
-      )
-      .gte("ends_at", nowIso)
-      .in("status", ["en_attente", "planifiee"])
-      .order("starts_at")
-      .limit(4),
-    viewer.levelCode
-      ? supabase
-          .from("lessons")
-          .select(lessonFields)
-          .eq("status", "published")
-          .eq("chapters.level_code", viewer.levelCode)
-          .order("published_at", { ascending: false })
-          .limit(5)
-      : null,
-    supabase
-      .from("lessons")
-      .select(lessonFields)
-      .eq("status", "published")
-      .eq("visibility", "specific")
-      .order("published_at", { ascending: false })
-      .limit(5),
-  ]);
+  const [sessionsResult, levelLessonsResult, sharedLessonsResult, homework, grades, tHomework] =
+    await Promise.all([
+      supabase
+        .from("sessions")
+        .select(
+          "id, starts_at, ends_at, status, mode, location, meeting_url, group:groups(name), session_type:session_types(name)",
+        )
+        .gte("ends_at", nowIso)
+        .in("status", ["en_attente", "planifiee"])
+        .order("starts_at")
+        .limit(4),
+      viewer.levelCode
+        ? supabase
+            .from("lessons")
+            .select(lessonFields)
+            .eq("status", "published")
+            .eq("chapters.level_code", viewer.levelCode)
+            .order("published_at", { ascending: false })
+            .limit(5)
+        : null,
+      supabase
+        .from("lessons")
+        .select(lessonFields)
+        .eq("status", "published")
+        .eq("visibility", "specific")
+        .order("published_at", { ascending: false })
+        .limit(5),
+      listMyHomework(now),
+      getMyGrades(),
+      getTranslations("student.homework"),
+    ]);
 
   const [next, ...later] = sessionsResult.data ?? [];
   const lessons = [...(levelLessonsResult?.data ?? []), ...(sharedLessonsResult.data ?? [])]
@@ -73,6 +79,15 @@ async function StudentHome() {
     .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
     .slice(0, 5);
   const firstName = viewer.fullName.split(" ")[0] || viewer.fullName;
+  // Only an active or paused student has homework ahead of her (D-060); soonest due first.
+  const toHandIn =
+    viewer.status === "arrete"
+      ? []
+      : homework
+          .filter((entry) => entry.progress.left > 0)
+          .sort((a, b) => Date.parse(a.dueAt) - Date.parse(b.dueAt))
+          .slice(0, 3);
+  const gradeFormat = new Intl.NumberFormat("fr", { maximumFractionDigits: 2 });
 
   return (
     <div className="mx-auto grid max-w-2xl gap-8">
@@ -156,6 +171,46 @@ async function StudentHome() {
         </section>
       ) : null}
 
+      <section aria-labelledby="homework-due">
+        <h2 id="homework-due" className="text-lg font-medium">
+          {t("homework")}
+        </h2>
+        {toHandIn.length === 0 ? (
+          <p className="mt-3 text-encre-douce">{t("noHomework")}</p>
+        ) : (
+          <ul className="mt-3 divide-y divide-quadrillage border-y border-quadrillage" role="list">
+            {toHandIn.map((entry) => (
+              <li key={entry.id}>
+                <Link
+                  href={`/eleve/devoirs/${entry.id}`}
+                  className="grid min-h-16 content-center gap-0.5 py-3 hover:bg-sunken"
+                >
+                  <span className="flex flex-wrap items-center gap-2 font-medium">
+                    {entry.title}
+                    {entry.progress.late ? (
+                      <span className="rounded-sm border border-stylo-rouge/40 px-1.5 py-0.5 text-xs font-medium text-stylo-rouge">
+                        {tHomework("late")}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="text-sm text-encre-douce">
+                    {tHomework("due", { date: formatLocal(entry.dueAt, "EEEE d MMMM 'à' HH:mm") })}{" "}
+                    ·{" "}
+                    {tHomework("left", { left: entry.progress.left, total: entry.progress.total })}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Link
+          href="/eleve/devoirs"
+          className="mt-3 inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+        >
+          {t("allHomework")}
+        </Link>
+      </section>
+
       <section aria-labelledby="new-lessons">
         <h2 id="new-lessons" className="text-lg font-medium">
           {t("newLessons")}
@@ -181,6 +236,39 @@ async function StudentHome() {
               </li>
             ))}
           </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="my-grades">
+        <h2 id="my-grades" className="text-lg font-medium">
+          {t("grades")}
+        </h2>
+        {grades.average === null ? (
+          <p className="mt-3 text-encre-douce">{t("noGrades")}</p>
+        ) : (
+          <>
+            <p className="mt-2 text-encre-douce">
+              {t("average", { average: gradeFormat.format(grades.average), count: grades.count })}
+            </p>
+            <ul
+              className="mt-3 divide-y divide-quadrillage border-y border-quadrillage"
+              role="list"
+            >
+              {grades.recent.map((entry) => (
+                <li key={`${entry.assignmentId}/${entry.exerciseId}`}>
+                  <Link
+                    href={`/eleve/devoirs/${entry.assignmentId}/${entry.exerciseId}`}
+                    className="flex min-h-14 items-center justify-between gap-4 py-3 hover:bg-sunken"
+                  >
+                    <span className="min-w-0 font-medium">{entry.title}</span>
+                    <span className="shrink-0 font-semibold tabular">
+                      {t("gradeOn", { grade: gradeFormat.format(entry.grade) })}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </section>
     </div>

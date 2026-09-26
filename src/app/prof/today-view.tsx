@@ -1,9 +1,10 @@
-import { CalendarDays, Hourglass, UserPlus, Users } from "lucide-react";
+import { CalendarDays, ClipboardCheck, Hourglass, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { SessionStatusChip, type SessionStatus } from "@/components/session-status";
 import { buttonVariants } from "@/components/ui/button";
 import { requireViewer } from "@/lib/auth";
+import { countCorrectionQueue } from "@/lib/correction/queries";
 import { formatLocal, localDayBounds, localMinutesOfDay, localWeekBounds } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -43,39 +44,41 @@ export async function TodayView() {
   const day = localDayBounds(now);
   const week = localWeekBounds(now);
 
-  const [todayResult, nextResult, pendingResult, studentsResult, weekResult] = await Promise.all([
-    supabase
-      .from("sessions")
-      .select(SESSION_FIELDS)
-      .gte("starts_at", day.start.toISOString())
-      .lt("starts_at", day.end.toISOString())
-      .in("status", ["en_attente", "planifiee", "terminee", "absent"])
-      .order("starts_at"),
-    supabase
-      .from("sessions")
-      .select(SESSION_FIELDS)
-      .gte("starts_at", day.end.toISOString())
-      .eq("status", "planifiee")
-      .order("starts_at")
-      .limit(1)
-      .maybeSingle(),
-    supabase
-      .from("sessions")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "en_attente")
-      .gte("starts_at", now.toISOString()),
-    supabase
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("role", "student")
-      .eq("status", "actif"),
-    supabase
-      .from("sessions")
-      .select("id", { count: "exact", head: true })
-      .gte("starts_at", week.start.toISOString())
-      .lt("starts_at", week.end.toISOString())
-      .in("status", ["planifiee", "terminee", "absent"]),
-  ]);
+  const [todayResult, nextResult, pendingResult, studentsResult, weekResult, toCorrect] =
+    await Promise.all([
+      supabase
+        .from("sessions")
+        .select(SESSION_FIELDS)
+        .gte("starts_at", day.start.toISOString())
+        .lt("starts_at", day.end.toISOString())
+        .in("status", ["en_attente", "planifiee", "terminee", "absent"])
+        .order("starts_at"),
+      supabase
+        .from("sessions")
+        .select(SESSION_FIELDS)
+        .gte("starts_at", day.end.toISOString())
+        .eq("status", "planifiee")
+        .order("starts_at")
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "en_attente")
+        .gte("starts_at", now.toISOString()),
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "student")
+        .eq("status", "actif"),
+      supabase
+        .from("sessions")
+        .select("id", { count: "exact", head: true })
+        .gte("starts_at", week.start.toISOString())
+        .lt("starts_at", week.end.toISOString())
+        .in("status", ["planifiee", "terminee", "absent"]),
+      countCorrectionQueue(supabase),
+    ]);
 
   const sessions: DaySession[] = todayResult.data ?? [];
   const next: DaySession | null = nextResult.data;
@@ -120,6 +123,15 @@ export async function TodayView() {
           {t("todoHeading")}
         </h2>
         <ul className="mt-4 divide-y divide-quadrillage border-y border-quadrillage" role="list">
+          <li>
+            <Link
+              href="/prof/devoirs/corrections"
+              className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+            >
+              <ClipboardCheck aria-hidden="true" className="size-5 text-encre-douce" />
+              {t("toCorrect", { count: toCorrect })}
+            </Link>
+          </li>
           <li className="flex min-h-11 items-center gap-3 py-2.5">
             <Hourglass aria-hidden="true" className="size-5 text-encre-douce" />
             {t("pendingRequests", { count: pendingResult.count ?? 0 })}

@@ -35,8 +35,8 @@ export default async function AssignmentPage({ params }: PageProps<"/prof/devoir
 
 type Cell =
   | { kind: "none" }
-  | { kind: "handedIn" }
-  | { kind: "graded"; grade: number }
+  | { kind: "handedIn"; submissionId: string }
+  | { kind: "graded"; grade: number; submissionId: string }
   | { kind: "revealed" }
   // Graded, or its solution opened, in another homework: submit_exercise_answer refuses the
   // exercise here for good (exercise_done_elsewhere, solution_already_revealed).
@@ -70,7 +70,7 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
     supabase
       .from("submissions")
       .select(
-        "student_id, exercise_id, status, grade, student:profiles!submissions_student_id_fkey(id, full_name)",
+        "id, student_id, exercise_id, status, grade, student:profiles!submissions_student_id_fkey(id, full_name)",
       )
       .eq("assignment_id", id),
     supabase
@@ -129,8 +129,8 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
     cells.set(
       `${submission.student_id}/${submission.exercise_id}`,
       submission.status === "corrige" && submission.grade !== null
-        ? { kind: "graded", grade: submission.grade }
-        : { kind: "handedIn" },
+        ? { kind: "graded", grade: submission.grade, submissionId: submission.id }
+        : { kind: "handedIn", submissionId: submission.id },
     );
   }
   const hasWork = (submissions.data?.length ?? 0) + (reveals.data?.length ?? 0) > 0;
@@ -211,11 +211,20 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
                       return (
                         <td key={exercise.id} className="px-3 py-2 text-center whitespace-nowrap">
                           {cell.kind === "graded" ? (
-                            <span className="font-medium">
+                            // Opens the correction: to read it again, or change it.
+                            <Link
+                              href={`/prof/devoirs/corrections/${cell.submissionId}`}
+                              className="inline-flex min-h-11 items-center font-medium underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+                            >
                               {t("cell.graded", { grade: gradeFormat.format(cell.grade) })}
-                            </span>
+                            </Link>
                           ) : cell.kind === "handedIn" ? (
-                            <span className="text-stylo-bleu">{t("cell.handedIn")}</span>
+                            <Link
+                              href={`/prof/devoirs/corrections/${cell.submissionId}`}
+                              className="inline-flex min-h-11 items-center text-stylo-bleu underline decoration-stylo-bleu/40 underline-offset-4 hover:decoration-stylo-bleu"
+                            >
+                              {t("cell.handedIn")}
+                            </Link>
                           ) : cell.kind === "revealed" ? (
                             <span className="text-encre-douce">{t("cell.revealed")}</span>
                           ) : cell.kind === "doneElsewhere" ? (

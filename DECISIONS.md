@@ -216,6 +216,48 @@ Two limits are accepted:
 
 Drafts can still be left behind in three ways: a copy corrected while she was editing it, a homework the tutor deletes, and a tab closed mid-edit. The cap message tells her so. A sweep of the `submissions` bucket, like D-054's, is the remedy once it matters.
 
+**D-047 — The tutor corrects a copy.**
+`/prof/devoirs/corrections` is the queue: the photographed copies waiting for her, the longest-waiting first, with the student, the exercise, the homework, the number of pages, when it was handed in, and « En retard » when that was after the due date. It lives under « Devoirs » rather than as a sixth tab, which the phone's bottom bar cannot hold. Her home, the homework list and the « À corriger » cells of a homework's grid all lead to it.
+
+A copy opens at `/prof/devoirs/corrections/[id]`, with the pages on one side and a panel on the other: the grade, a word for the student, the statement and the worked solution folded away. The header says if the copy came late, and when the student opened the solution of that exercise, since the brief says a grade after a reveal means something different.
+
+**Remarks.** A click on a page places a numbered remark at that point. It is stored in `submission_comments.anchor` as the page's storage path and the point as a share of the page's width and height, so it stays on its page and its spot at any size. A button under each page adds a remark with no point: the keyboard's way in, since a click on an image is not. Remarks are numbered as they are read (`arrangeRemarks`): page by page in the copy's order, down each page, those with no point last. A remark whose page left the copy is kept at the end, never lost. Each remark is saved as soon as she writes it, and can be changed or deleted.
+
+**Grade and comment.** The grade is typed as she would write it — « 15 », « 15,5 », « 15,5/20 » — read by `readGrade`, and refused rather than rounded beyond two decimals, since `numeric(4,2)` would round in silence. « Marquer comme corrigée » writes the grade, the comment, `corrigé`, `corrected_at` and `corrected_by` in one update. That update is conditioned on the copy still being `rendu` and on the `submitted_at` she was looking at. A student who hands in a new list meanwhile makes the save refuse and the page reload: the grade goes to the pages it was given for. A corrected copy can be corrected again, since the student cannot change it any more (D-038). A number or a choice, already graded by the database, opens the same way, with her answer and the expected one, if the tutor wants to change the grade or add a word.
+
+**What the student sees.** Her remarks stay hidden until the copy is corrected. The policy on `submission_comments` first showed them to her as soon as they were written, a correction still in progress and without its grade, and it now requires `corrige` (`20260926151924`). Her corrected exercise then shows the grade, each page with its numbered marks, the remarks under their page, the tutor's comment and the solution. Her home gains « Devoirs à rendre », the three due soonest, and « Mes notes »: her average over every corrected exercise, and the last five grades. That is the progress view the brief's « done when » names.
+
+The marks are drawn in `--correction`, a red that is not redefined for the dark theme: they sit on the photographed paper, which is white in both themes.
+
+Telling the student that her copy is corrected belongs to the notifications of phase 3. Until then she finds it on her home and in her homework.
+
+An adversarial review by three reviewers — security, React and the phone, and the logic — found no way for a student to read remarks, a grade or a comment early, to read another student's, or to write any of them. It confirmed the defects below, all fixed:
+
+- **The version guard gave way as soon as she annotated.** Each remark reloads the page, and the form read the copy's version from the page, so a new hand-in during the correction slipped through: the grade landed on pages she had not seen. The form now keeps the version she is correcting. When a newer one arrives it says so, « L'élève a rendu une nouvelle version… », and saving is refused until she presses « J'ai relu la nouvelle version ». Saving a copy already corrected is held to its version too, and when a save changes nothing she is told why: the copy is gone, was handed in again, or was corrected in another tab.
+- **A grade she changes is hers.** Changing a grade the database gave clears `auto_graded` and moves `corrected_at`. The student's page shows right or wrong only for a grade the database gave and nobody changed. Otherwise it shows the grade, which the verdict used to contradict: « faux » above her 18/20.
+- **« Copie suivante » went back to the oldest copy.** From the second copy it led back to the first, so a skipped copy trapped her between two. It now follows the queue, and wraps around at the end.
+- **The remark being written.** A click on another page moves the mark and keeps the words, where it used to drop them. A save that comes back closes only the form that sent it. Deleting asks first. After an addition or a deletion, focus goes to the page's « Ajouter une remarque », or failing that to the page's title, never to the top of the document.
+- **Photographs downloaded again at every remark.** Signing a page gives it a new address each time; the first address of each page is now kept for the rest of the visit.
+- **Smaller fixes.**
+  - Marks near the edge of a page stay whole.
+  - The side panel scrolls on its own when the statement and the solution are both open.
+  - An error disappears with « Annuler ».
+  - A text just saved no longer flashes its old wording.
+  - An edit box opens on the latest text.
+  - Returning to a copy seen earlier no longer moves focus.
+  - The form around a new remark uses the theme's red, so it shows in the dark theme.
+  - The reveal line says the solution was opened after the copy was handed in, which the grading makes always true: the copy could not profit from it.
+  - A page named twice in a copy is drawn once.
+  - An exercise that no longer reaches the student is left out of her grades instead of breaking her home page.
+
+Accepted as they are:
+
+- **A remark's anchor.** It is checked against the copy's pages by the server action, not by the database. A hand-in landing between the check and the insert leaves the remark under « pages retirées », shown and not lost.
+- **Re-correcting a copy already corrected.** The student sees each change at once. That is a correction being amended, not one in progress.
+- **Handing in again after the due date.** The copy becomes late, and moves to the back of the queue. It is judged by the version the tutor corrects.
+- **The average counts two copies of one exercise.** They are two corrections, one in each homework.
+- **A paused student's home lists what is due.** She will hand it in when she is back, as `/eleve/devoirs` already shows her (D-060).
+
 ## Files and storage
 
 **D-050 — Lesson images are public; lesson files follow the lesson.**

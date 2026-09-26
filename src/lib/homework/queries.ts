@@ -7,8 +7,11 @@ import {
   type ChoiceMode,
 } from "@/lib/exercise/exercise";
 import { readStoredLesson, type StoredLesson } from "@/lib/lesson/document";
+import type { Remark } from "@/lib/correction/correction";
 import { isSubmissionPageName } from "@/lib/storage-paths";
+import { signPages, type Page } from "@/lib/submission-pages";
 import { createClient } from "@/lib/supabase/server";
+import { readAnswer, type SubmittedAnswer } from "./answer";
 import { progressOf, workOn, type ExerciseWork, type HomeworkProgress } from "./work";
 
 // A student's homework, read through her own session: the policies decide what reaches her
@@ -111,6 +114,50 @@ export async function listMyHomework(now: Date): Promise<HomeworkEntry[]> {
   }));
 }
 
+export type MyGrades = {
+  /** The mean of every corrected exercise, each out of 20; null before the first. */
+  average: number | null;
+  count: number;
+  recent: { assignmentId: string; exerciseId: string; title: string; grade: number }[];
+};
+
+/** Her grades, newest first, for her home page: what the brief calls her progress. */
+export async function getMyGrades(recent = 5): Promise<MyGrades> {
+  const supabase = await createClient();
+  const rows = await readAll((from, to) =>
+    supabase
+      .from("submissions")
+      .select("assignment_id, exercise_id, grade, corrected_at, exercise:exercises(title)")
+      .eq("status", "corrige")
+      .not("grade", "is", null)
+      .order("corrected_at", { ascending: false })
+      .order("id")
+      .range(from, to),
+  );
+  const graded = rows.flatMap((row) =>
+    // The exercise's row comes through her own access to it: one that no longer reaches her
+    // (a group she left) comes back empty, and is left out rather than break her home page.
+    row.grade === null || !(row.exercise as { title: string } | null)
+      ? []
+      : [
+          {
+            assignmentId: row.assignment_id,
+            exerciseId: row.exercise_id,
+            title: row.exercise.title,
+            grade: row.grade,
+          },
+        ],
+  );
+  return {
+    average:
+      graded.length === 0
+        ? null
+        : graded.reduce((sum, entry) => sum + entry.grade, 0) / graded.length,
+    count: graded.length,
+    recent: graded.slice(0, recent),
+  };
+}
+
 export type HomeworkDetails = {
   id: string;
   title: string;
@@ -166,29 +213,6 @@ export function draftReference(assignmentId: string, exerciseId: string): string
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-${variant}${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
 }
 
-export type Page = { path: string; url: string | null };
-
-/** What she answered, as submit_exercise_answer stored it, trusted only as far as it reads. */
-export type SubmittedAnswer = { raw: string | null; choiceIds: string[] };
-
-function readAnswer(value: unknown): SubmittedAnswer {
-  const answer = (typeof value === "object" && value !== null ? value : {}) as Record<
-    string,
-    unknown
-  >;
-  return {
-    raw:
-      typeof answer.raw === "string"
-        ? answer.raw
-        : typeof answer.value === "string"
-          ? answer.value
-          : null,
-    choiceIds: Array.isArray(answer.choiceIds)
-      ? answer.choiceIds.filter((id): id is string => typeof id === "string")
-      : [],
-  };
-}
-
 export type ExerciseSolution = {
   document: StoredLesson;
   correctNumeric: string | null;
@@ -214,6 +238,10 @@ export type MyExercise = {
     answer: SubmittedAnswer;
     pages: Page[];
     feedback: string | null;
+    /** The tutor's remarks on her pages: the policy shows them once the copy is corrected. */
+    remarks: Remark[];
+    /** Graded by the database and left as it was: the only case a right/wrong verdict fits. */
+    autoGraded: boolean;
   } | null;
   /** Pages uploaded but not handed in yet. */
   drafts: Page[];
@@ -221,15 +249,6 @@ export type MyExercise = {
   /** Present once the policies open it: after a correction, or once she asked for it. */
   solution: ExerciseSolution | null;
 };
-
-async function signed(supabase: Client, paths: string[]): Promise<Page[]> {
-  if (paths.length === 0) return [];
-  const { data } = await supabase.storage.from("submissions").createSignedUrls(paths, 3600);
-  return paths.map((path) => ({
-    path,
-    url: data?.find((entry) => entry.path === path)?.signedUrl ?? null,
-  }));
-}
 
 export async function getMyExercise(
   studentId: string,
@@ -261,7 +280,7 @@ export async function getMyExercise(
     myWork(supabase, [exerciseId]),
     supabase
       .from("submissions")
-      .select("answer, file_paths, feedback")
+      .select("id, answer, file_paths, feedback, auto_graded")
       .eq("assignment_id", assignmentId)
       .eq("exercise_id", exerciseId)
       .maybeSingle(),
@@ -282,13 +301,21 @@ export async function getMyExercise(
   const solution = read(solutionRead);
   if (!exercise) return null;
 
-  const handedIn = submission?.file_paths ?? [];
+  // A page named twice would be drawn, and its remarks numbered, twice.
+  const handedIn = [...new Set(submission?.file_paths ?? [])];
   const draftPaths = (folder ?? [])
     .map((object) => `${studentId}/${ref}/${object.name}`)
     .filter((path) => isSubmissionPageName(path) && !handedIn.includes(path));
-  const [pages, drafts] = await Promise.all([
-    signed(supabase, handedIn),
-    signed(supabase, draftPaths),
+  const [pages, drafts, remarks] = await Promise.all([
+    signPages(supabase, handedIn),
+    signPages(supabase, draftPaths),
+    submission
+      ? supabase
+          .from("submission_comments")
+          .select("id, body, anchor, created_at")
+          .eq("submission_id", submission.id)
+          .order("created_at")
+      : null,
   ]);
 
   return {
@@ -309,7 +336,18 @@ export async function getMyExercise(
     },
     work: workOn(assignmentId, exerciseId, work.submissions, work.reveals),
     submission: submission
-      ? { answer: readAnswer(submission.answer), pages, feedback: submission.feedback }
+      ? {
+          answer: readAnswer(submission.answer),
+          pages,
+          feedback: submission.feedback,
+          autoGraded: submission.auto_graded,
+          remarks: (read(remarks ?? { data: [], error: null }) ?? []).map((remark) => ({
+            id: remark.id,
+            body: remark.body,
+            anchor: remark.anchor,
+            createdAt: remark.created_at,
+          })),
+        }
       : null,
     drafts,
     draftReference: ref,

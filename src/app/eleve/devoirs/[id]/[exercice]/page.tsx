@@ -5,9 +5,11 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
 import { z } from "zod";
+import { AnnotatedPage, RemarkNumber } from "@/components/annotated-page";
 import { PageGrid } from "@/components/page-grid";
 import { WorkChip } from "@/components/work-status";
 import { requireViewer } from "@/lib/auth";
+import { arrangeRemarks, type NumberedRemark } from "@/lib/correction/correction";
 import { formatDecimal, parseDecimal } from "@/lib/decimal";
 import { getMyExercise, type MyExercise } from "@/lib/homework/queries";
 import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "@/lib/lesson/document";
@@ -207,6 +209,9 @@ async function GradedAnswer({ data, grade }: { data: MyExercise; grade: number }
   const t = await getTranslations("student.homework");
   const { exercise, submission, solution } = data;
   const right = grade === 20;
+  // Right or wrong comes from the database's grading. Once the tutor sets the grade herself,
+  // the grade says it, and a verdict could only contradict it (D-047).
+  const verdict = submission?.autoGraded ?? false;
 
   if (exercise.answerType === "numeric") {
     const given = submission?.answer.raw ?? "";
@@ -214,7 +219,11 @@ async function GradedAnswer({ data, grade }: { data: MyExercise; grade: number }
     return (
       <div className="grid gap-2">
         <p>{t("numeric.yours", { value: given })}</p>
-        <Verdict right={right} text={right ? t("numeric.right") : t("numeric.wrong")} />
+        {verdict ? (
+          <Verdict right={right} text={right ? t("numeric.right") : t("numeric.wrong")} />
+        ) : (
+          <p className="font-medium">{t("exercise.grade", { grade: gradeFormat.format(grade) })}</p>
+        )}
         {expected ? (
           <p className="text-sm text-encre-douce">
             {t("numeric.expected", {
@@ -231,7 +240,11 @@ async function GradedAnswer({ data, grade }: { data: MyExercise; grade: number }
     const correct = new Set(solution?.correctChoiceIds ?? []);
     return (
       <div className="grid gap-3">
-        <Verdict right={right} text={right ? t("mcq.resultRight") : t("mcq.resultWrong")} />
+        {verdict ? (
+          <Verdict right={right} text={right ? t("mcq.resultRight") : t("mcq.resultWrong")} />
+        ) : (
+          <p className="font-medium">{t("exercise.grade", { grade: gradeFormat.format(grade) })}</p>
+        )}
         <ul className="grid gap-2">
           {exercise.choices.map((choice) => (
             <li
@@ -257,10 +270,65 @@ async function GradedAnswer({ data, grade }: { data: MyExercise; grade: number }
     );
   }
 
+  // Her pages as the tutor marked them, each remark numbered on the page and beside it (D-047).
+  const pages = submission?.pages ?? [];
+  const arranged = arrangeRemarks(
+    pages.map((page) => page.path),
+    submission?.remarks ?? [],
+  );
+  const remarkList = (remarks: NumberedRemark[], label: string) =>
+    remarks.length === 0 ? null : (
+      <ol className="grid gap-2" aria-label={label}>
+        {remarks.map((remark) => (
+          <li
+            key={remark.id}
+            className="flex items-start gap-3 rounded-md border border-quadrillage bg-surface p-3"
+          >
+            <RemarkNumber number={remark.number} />
+            <p className="min-w-0 break-words whitespace-pre-line">{remark.body}</p>
+          </li>
+        ))}
+      </ol>
+    );
+
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-6">
       <p className="font-medium">{t("exercise.grade", { grade: gradeFormat.format(grade) })}</p>
-      <PageGrid pages={submission?.pages ?? []} label={(number) => t("photos.page", { number })} />
+      {pages.map((page, index) => {
+        const remarks = arranged.pages[index]?.remarks ?? [];
+        const label = t("photos.page", { number: index + 1 });
+        return (
+          <section key={page.path} aria-label={label} className="grid gap-3">
+            <h3 className="text-sm font-semibold">{label}</h3>
+            <AnnotatedPage
+              url={page.url}
+              alt={label}
+              openLabel={t("exercise.openPage")}
+              marks={remarks.flatMap((remark) =>
+                remark.anchor?.x != null && remark.anchor.y != null
+                  ? [
+                      {
+                        key: remark.id,
+                        label: String(remark.number),
+                        x: remark.anchor.x,
+                        y: remark.anchor.y,
+                      },
+                    ]
+                  : [],
+              )}
+            />
+            {remarkList(remarks, t("exercise.remarksOn", { number: index + 1 }))}
+          </section>
+        );
+      })}
+      {arranged.elsewhere.length > 0 ? (
+        <section aria-labelledby="remarks-elsewhere" className="grid gap-2">
+          <h3 id="remarks-elsewhere" className="text-sm font-semibold">
+            {t("exercise.remarksElsewhere")}
+          </h3>
+          {remarkList(arranged.elsewhere, t("exercise.remarksElsewhere"))}
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -1,6 +1,8 @@
+import { ClipboardCheck } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { requireViewer } from "@/lib/auth";
+import { countCorrectionQueue } from "@/lib/correction/queries";
 import { formatLocal } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,10 +14,11 @@ export async function AssignmentsList() {
   const t = await getTranslations("tutor.assignments");
   const supabase = await createClient();
 
-  const [{ data }, { data: counts }] = await Promise.all([
+  const [{ data }, { data: counts }, toCorrect] = await Promise.all([
     supabase.from("assignments").select(FIELDS),
     // Counted by the database: reading every submission would stop at PostgREST's max_rows.
     supabase.from("assignment_hand_in_counts").select("assignment_id, students"),
+    countCorrectionQueue(supabase),
   ]);
   const assignments = data ?? [];
   if (assignments.length === 0) {
@@ -74,6 +77,13 @@ export async function AssignmentsList() {
 
   return (
     <div className="grid gap-8">
+      <Link
+        href="/prof/devoirs/corrections"
+        className="flex min-h-11 items-center gap-2 justify-self-start font-medium underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+      >
+        <ClipboardCheck aria-hidden="true" className="size-5" />
+        {t("toCorrect", { count: toCorrect })}
+      </Link>
       {section("assignments-upcoming", t("upcoming"), upcoming)}
       {section("assignments-past", t("past"), past)}
     </div>

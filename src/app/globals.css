@@ -32,6 +32,9 @@
   --surligneur: #e6ee62;
   --lavis-bleu: #e8eefb;
   --lavis-rouge: #fcedea;
+  /* The tutor's red pen on a photographed page. The page is white paper in both themes, so
+     this one is never redefined for the dark theme; white on it is 5.9:1. */
+  --correction: #be2f26;
 
   color-scheme: light;
 }
@@ -116,6 +119,7 @@
   --color-surligneur: var(--surligneur);
   --color-lavis-bleu: var(--lavis-bleu);
   --color-lavis-rouge: var(--lavis-rouge);
+  --color-correction: var(--correction);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -585,6 +585,113 @@ describe("a student's draft pages, as her exercise page reads them", () => {
   });
 });
 
+describe("the tutor's remarks on a copy", () => {
+  // Saved one by one while she corrects, shown to the student with the grade (D-047).
+  let tutor: Client;
+  let salma: Client;
+  let omar: Client;
+  let assignment = "";
+  let submission = "";
+  let page = "";
+
+  beforeAll(async () => {
+    tutor = await signedInAs("prof@equerre.test");
+    salma = await signedInAs("salma.alaoui@equerre.test");
+    omar = await signedInAs("omar.elidrissi@equerre.test");
+
+    const { data: exercise } = await tutor
+      .from("exercises")
+      .select("id, solution:exercise_solutions!inner(exercise_id)")
+      .eq("answer_type", "upload")
+      .limit(1)
+      .single();
+    if (!exercise) throw new Error("no photographed exercise in the seed");
+
+    const { data: created } = await tutor
+      .from("assignments")
+      .insert({
+        title: "Test RLS — remarques",
+        due_at: new Date(Date.now() + 86_400_000).toISOString(),
+        student_id: ids.salma,
+        created_by: seedId("00000000", 1),
+      })
+      .select("id")
+      .single();
+    if (!created) throw new Error("could not create the homework");
+    assignment = created.id;
+    await tutor
+      .from("assignment_items")
+      .insert({ assignment_id: assignment, exercise_id: exercise.id, position: 0 });
+
+    page = `${ids.salma}/${crypto.randomUUID()}/${crypto.randomUUID()}.webp`;
+    await salma.storage
+      .from("submissions")
+      .upload(page, new Blob(["RIFFcopyWEBPVP8 "], { type: "image/webp" }), {
+        contentType: "image/webp",
+      });
+    const { data, error } = await salma.rpc("submit_exercise_answer", {
+      p_assignment_id: assignment,
+      p_exercise_id: exercise.id,
+      p_answer: { type: "upload" },
+      p_file_paths: [page],
+    });
+    if (error || !data) throw new Error(`could not hand the copy in: ${error?.message}`);
+    submission = data.id;
+  });
+
+  afterAll(async () => {
+    // Deleting the homework takes the copy and its remarks with it, and frees the page.
+    if (assignment) await tutor.from("assignments").delete().eq("id", assignment);
+    if (page) await salma.storage.from("submissions").remove([page]);
+  });
+
+  const remarksSeenBy = async (client: Client) => {
+    const { data } = await client
+      .from("submission_comments")
+      .select("body")
+      .eq("submission_id", submission);
+    return (data ?? []).map((row) => row.body);
+  };
+
+  it("are the tutor's alone to write", async () => {
+    const { error } = await salma.from("submission_comments").insert({
+      submission_id: submission,
+      author_id: ids.salma,
+      body: "Je me corrige moi-même",
+    });
+    expect(error).not.toBeNull();
+
+    const { error: tutorError } = await tutor.from("submission_comments").insert({
+      submission_id: submission,
+      author_id: seedId("00000000", 1),
+      body: "Attention au signe",
+      anchor: { path: page, x: 0.4, y: 0.2 },
+    });
+    expect(tutorError).toBeNull();
+  });
+
+  it("stay hidden from the student while the copy waits to be corrected", async () => {
+    expect(await remarksSeenBy(tutor)).toEqual(["Attention au signe"]);
+    expect(await remarksSeenBy(salma)).toEqual([]);
+  });
+
+  it("reach her with the grade, and nobody else", async () => {
+    const { error } = await tutor
+      .from("submissions")
+      .update({
+        status: "corrige",
+        grade: 14,
+        corrected_at: new Date().toISOString(),
+        corrected_by: seedId("00000000", 1),
+      })
+      .eq("id", submission);
+    expect(error).toBeNull();
+
+    expect(await remarksSeenBy(salma)).toEqual(["Attention au signe"]);
+    expect(await remarksSeenBy(omar)).toEqual([]);
+  });
+});
+
 describe("a student the tutor has paused or stopped", () => {
   // Nour is used by no other test, so a run that dies half-way cannot leave a student that
   // the rest of the suite depends on paused or stopped.
