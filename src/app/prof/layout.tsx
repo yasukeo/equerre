@@ -1,4 +1,4 @@
-import { BookOpen, ClipboardList, House, NotebookPen, UserPlus } from "lucide-react";
+import { BookOpen, ClipboardList, House, NotebookPen, Users } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/shell/app-shell";
@@ -35,8 +35,9 @@ export default async function TutorLayout({ children }: { children: ReactNode })
             </NavLink>
           </li>
           <li className="flex flex-1 md:block">
-            <NavLink href="/prof/eleves/inviter" icon={<UserPlus aria-hidden="true" />}>
-              {t("invite")}
+            {/* The invitation lives on the list of students, which it adds to. */}
+            <NavLink href="/prof/eleves" icon={<Users aria-hidden="true" />}>
+              {t("students")}
             </NavLink>
           </li>
         </>

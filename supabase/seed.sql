@@ -272,8 +272,10 @@ on conflict (id) do update set
   level_code = excluded.level_code,
   schedule_label = excluded.schedule_label;
 
-insert into public.group_members (group_id, student_id)
-select pg_temp.uid('10000000', g), pg_temp.uid('00000000', s)
+-- Members since before the seed's first sessions, three weeks back: what a group gave a
+-- student follows when she joined it (D-070).
+insert into public.group_members (group_id, student_id, joined_at)
+select pg_temp.uid('10000000', g), pg_temp.uid('00000000', s), now() - interval '60 days'
 from (values (1, 101), (1, 102), (1, 103), (2, 105), (2, 106), (3, 107), (3, 108)) as m (g, s)
 on conflict do nothing;
 
