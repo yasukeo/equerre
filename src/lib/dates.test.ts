@@ -43,6 +43,8 @@ describe("localDateTimeToUtc", () => {
   it("rejects malformed input instead of guessing", () => {
     expect(() => localDateTimeToUtc("15/09/2026", "18:00")).toThrow(RangeError);
     expect(() => localDateTimeToUtc(SEPTEMBER_2026, "24:00")).toThrow(RangeError);
+    expect(() => localDateTimeToUtc("2026-02-30", "18:00")).toThrow(RangeError);
+    expect(() => localDateTimeToUtc("2026-13-01", "18:00")).toThrow(RangeError);
   });
 });
 

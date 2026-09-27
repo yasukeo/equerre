@@ -1,4 +1,12 @@
-import { CalendarDays, ClipboardCheck, Hourglass, UserPlus, Users } from "lucide-react";
+import {
+  CalendarDays,
+  CalendarPlus,
+  ClipboardCheck,
+  Hourglass,
+  NotebookPen,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { SessionStatusChip, type SessionStatus } from "@/components/session-status";
@@ -44,7 +52,7 @@ export async function TodayView() {
   const day = localDayBounds(now);
   const week = localWeekBounds(now);
 
-  const [todayResult, nextResult, pendingResult, studentsResult, weekResult, toCorrect] =
+  const [todayResult, nextResult, pendingResult, studentsResult, weekResult, toCorrect, toClose] =
     await Promise.all([
       supabase
         .from("sessions")
@@ -78,6 +86,12 @@ export async function TodayView() {
         .lt("starts_at", week.end.toISOString())
         .in("status", ["planifiee", "terminee", "absent"]),
       countCorrectionQueue(supabase),
+      // Sessions that took place and that she has not said anything about yet.
+      supabase
+        .from("sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "planifiee")
+        .lt("starts_at", now.toISOString()),
     ]);
 
   const sessions: DaySession[] = todayResult.data ?? [];
@@ -132,22 +146,47 @@ export async function TodayView() {
               {t("toCorrect", { count: toCorrect })}
             </Link>
           </li>
-          <li className="flex min-h-11 items-center gap-3 py-2.5">
-            <Hourglass aria-hidden="true" className="size-5 text-encre-douce" />
-            {t("pendingRequests", { count: pendingResult.count ?? 0 })}
+          <li>
+            <Link
+              href="/prof/seances"
+              className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+            >
+              <Hourglass aria-hidden="true" className="size-5 text-encre-douce" />
+              {t("pendingRequests", { count: pendingResult.count ?? 0 })}
+            </Link>
           </li>
-          <li className="flex min-h-11 items-center gap-3 py-2.5">
-            <CalendarDays aria-hidden="true" className="size-5 text-encre-douce" />
-            {t("weekSessions", { count: weekResult.count ?? 0 })}
+          {(toClose.count ?? 0) > 0 ? (
+            <li>
+              <Link
+                href="/prof/seances"
+                className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+              >
+                <NotebookPen aria-hidden="true" className="size-5 text-encre-douce" />
+                {t("toClose", { count: toClose.count ?? 0 })}
+              </Link>
+            </li>
+          ) : null}
+          <li>
+            <Link
+              href="/prof/seances"
+              className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+            >
+              <CalendarDays aria-hidden="true" className="size-5 text-encre-douce" />
+              {t("weekSessions", { count: weekResult.count ?? 0 })}
+            </Link>
           </li>
           <li className="flex min-h-11 items-center gap-3 py-2.5">
             <Users aria-hidden="true" className="size-5 text-encre-douce" />
             {t("activeStudents", { count: studentsResult.count ?? 0 })}
           </li>
         </ul>
+        <Link href="/prof/seances/nouvelle" className={cn(buttonVariants(), "mt-6 w-full")}>
+          <CalendarPlus aria-hidden="true" />
+          {t("planAction")}
+        </Link>
         <Link
           href="/prof/eleves/inviter"
-          className={cn(buttonVariants({ variant: "outline" }), "mt-6 w-full")}
+          className={cn(buttonVariants({ variant: "outline" }), "mt-2 w-full")}
         >
           <UserPlus aria-hidden="true" />
           {t("inviteAction")}
@@ -224,9 +263,10 @@ function DayRuler({ sessions, label, statusLabel, modeLabel }: DayRulerProps) {
                   height: Math.max((end - start) * pxPerMinute - 4, MIN_ITEM_HEIGHT),
                 }}
               >
-                <div
+                <Link
+                  href={`/prof/seances/${session.id}`}
                   className={cn(
-                    "flex h-full flex-col justify-center gap-0.5 overflow-hidden rounded-md border border-s-[3px] border-quadrillage bg-surface ps-3 pe-2",
+                    "flex h-full flex-col justify-center gap-0.5 overflow-hidden rounded-md border border-s-[3px] border-quadrillage bg-surface ps-3 pe-2 hover:border-trait",
                     pending ? "border-dashed border-s-trait" : "border-s-encre",
                   )}
                 >
@@ -249,7 +289,7 @@ function DayRuler({ sessions, label, statusLabel, modeLabel }: DayRulerProps) {
                       />
                     ) : null}
                   </p>
-                </div>
+                </Link>
               </li>
             );
           })}

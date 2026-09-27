@@ -133,18 +133,20 @@
   "nav": {
     "tutor": {
       "label": "Espace professeure",
-      "today": "Aujourd’hui",
+      "today": "Accueil",
       "lessons": "Leçons",
       "exercises": "Exercices",
       "assignments": "Devoirs",
-      "students": "Élèves"
+      "students": "Élèves",
+      "sessions": "Séances"
     },
     "student": {
       "label": "Mon espace",
       "home": "Accueil",
       "profile": "Profil",
       "lessons": "Cours",
-      "homework": "Devoirs"
+      "homework": "Devoirs",
+      "sessions": "Séances"
     }
   },
   "session": {
@@ -162,7 +164,8 @@
       "chez_prof": "Chez la professeure"
     },
     "join": "Rejoindre la séance en ligne",
-    "timeRange": "de {start} à {end}"
+    "timeRange": "de {start} à {end}",
+    "newTab": "(nouvel onglet)"
   },
   "studentStatus": {
     "actif": "Suivi en cours",
@@ -176,13 +179,15 @@
       "rulerLabel": "Séances du {date}, dans l’ordre",
       "empty": "Aucune séance aujourd’hui.",
       "nextSession": "Prochaine séance : {when}, {who}.",
-      "noUpcoming": "Aucune séance planifiée. Les demandes des élèves apparaîtront ici.",
+      "noUpcoming": "Aucune séance planifiée. Les demandes des élèves apparaîtront dans vos séances.",
       "todoHeading": "À traiter",
       "pendingRequests": "{count, plural, =0 {Aucune demande de séance} one {# demande de séance} other {# demandes de séance}}",
       "activeStudents": "{count, plural, =0 {Aucun élève actif} one {# élève actif} other {# élèves actifs}}",
       "weekSessions": "{count, plural, =0 {Aucune séance cette semaine} one {# séance cette semaine} other {# séances cette semaine}}",
       "toCorrect": "{count, plural, =0 {Aucune copie à corriger} one {# copie à corriger} other {# copies à corriger}}",
-      "inviteAction": "Inviter un élève"
+      "inviteAction": "Inviter un élève",
+      "toClose": "{count, plural, one {# séance à clore} other {# séances à clore}}",
+      "planAction": "Planifier une séance"
     },
     "invite": {
       "title": "Inviter un élève",
@@ -701,7 +706,10 @@
         "noteTooLong": "5 000 caractères au plus.",
         "noteGone": "Cette note n’existe plus.",
         "unknown": "L’enregistrement a échoué. Vérifiez votre connexion et réessayez."
-      }
+      },
+      "autoConfirm": "Confirmer ses réservations d’office",
+      "autoConfirmHint": "Ses demandes de séance sont confirmées sans attendre votre réponse. Vous recevez un email à chaque réservation.",
+      "planSession": "Planifier une séance"
     },
     "groups": {
       "title": "Groupes",
@@ -754,13 +762,322 @@
         "alreadyMember": "Cet élève fait déjà partie du groupe.",
         "unknown": "L’enregistrement a échoué. Vérifiez votre connexion et réessayez."
       }
+    },
+    "sessions": {
+      "title": "Séances",
+      "plan": "Planifier une séance",
+      "availability": "Disponibilités",
+      "types": "Types de séance",
+      "requestsHeading": "{count, plural, =0 {Demandes des élèves} one {# demande à traiter} other {# demandes à traiter}}",
+      "confirm": "Confirmer",
+      "confirming": "Confirmation…",
+      "confirmLabel": "Confirmer la demande : {who}",
+      "decline": "Refuser",
+      "declineLabel": "Refuser la demande : {who}",
+      "declineReason": "Motif du refus (facultatif)",
+      "declineHint": "L’élève le lira dans l’email.",
+      "declineConfirm": "Refuser la demande",
+      "keepRequest": "Ne pas refuser",
+      "confirmed": "Séance confirmée. L’élève reçoit un email.",
+      "declined": "Demande refusée. L’élève reçoit un email.",
+      "toCloseHeading": "{count, plural, one {# séance à clore} other {# séances à clore}}",
+      "toCloseLead": "Elles ont eu lieu : dites comment elles se sont passées.",
+      "toCloseMore": "{count, plural, one {Voir # séance plus ancienne} other {Voir les # séances plus anciennes}}",
+      "close": "Clore",
+      "viewsLabel": "Affichage du calendrier",
+      "views": {
+        "semaine": "Semaine",
+        "mois": "Mois",
+        "liste": "Liste"
+      },
+      "previous": "Période précédente",
+      "next": "Période suivante",
+      "today": "Aujourd’hui",
+      "todayMark": "aujourd’hui",
+      "weekOf": "Semaine du {from} au {to}",
+      "listFrom": "Du {from} au {to}",
+      "weekdaysShort": {
+        "1": "lun.",
+        "2": "mar.",
+        "3": "mer.",
+        "4": "jeu.",
+        "5": "ven.",
+        "6": "sam.",
+        "7": "dim."
+      },
+      "free": "Libre",
+      "more": "+{count}",
+      "sessionCount": "{count, plural, one {# séance} other {# séances}}",
+      "emptyWeek": "Aucune séance cette semaine.",
+      "emptyList": "Aucune séance sur ces 30 jours.",
+      "exportAll": "Exporter les séances à venir (.ics)",
+      "errors": {
+        "gone": "Cette demande n’est plus en attente : elle a été retirée ou traitée entre-temps. La page est à jour.",
+        "overlapRequest": "Ce créneau chevauche une séance déjà confirmée. Refusez la demande, ou déplacez l’autre séance d’abord.",
+        "reasonTooLong": "Le motif fait plus de 500 caractères : raccourcissez-le.",
+        "unknown": "L’opération n’a pas abouti. Vérifiez votre connexion et réessayez."
+      },
+      "noRequests": "Aucune demande à traiter."
+    },
+    "session": {
+      "title": "Séance",
+      "back": "Séances",
+      "planned": "{count, plural, one {Séance planifiée.} other {# séances planifiées, une par semaine. Voici la première.}}",
+      "type": "Type",
+      "where": "Lieu",
+      "requestedHeading": "Demandée par l’élève",
+      "requestedNoNote": "Sans message",
+      "seriesHeading": "Chaque semaine",
+      "series": "{count, plural, =0 {C’est la dernière de la série.} one {Encore # séance après celle-ci.} other {Encore # séances après celle-ci.}}",
+      "declineReason": "Motif du refus",
+      "cancelReason": "Motif",
+      "cancelledBy": "Annulée par",
+      "byStudent": "l’élève",
+      "byYou": "vous",
+      "answerHeading": "Répondre à la demande",
+      "closeHeading": "Compte rendu",
+      "closedHeading": "Compte rendu enregistré",
+      "outcome": "La séance",
+      "outcomes": {
+        "terminee": "a eu lieu",
+        "absent": "n’a pas eu lieu : absence de l’élève"
+      },
+      "attendance": "Présences",
+      "presence": {
+        "present": "Présence",
+        "absent": "Absence",
+        "excuse": "Absence excusée"
+      },
+      "chapter": "Chapitre vu",
+      "noChapter": "Aucun chapitre en particulier",
+      "homework": "Devoirs donnés",
+      "homeworkHint": "L’élève les lit dans son espace.",
+      "recap": "Compte rendu pour l’élève",
+      "recapHint": "L’élève le lit dans son espace. Ce qui doit rester entre vous va dans les notes privées de sa fiche.",
+      "saveClose": "Enregistrer le compte rendu",
+      "closed": "Compte rendu enregistré.",
+      "changeHeading": "Modifier la séance",
+      "date": "Date",
+      "time": "Heure de début",
+      "mode": "Lieu de la séance",
+      "location": "Adresse ou précision (facultatif)",
+      "locationHint": "Par exemple : quartier Agdal, 3e étage.",
+      "meetingUrl": "Lien de la séance en ligne (facultatif)",
+      "meetingUrlHint": "Une adresse en https://, par exemple un lien Meet ou Jitsi.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "saved": "Séance modifiée.",
+      "moved": "Séance modifiée. L’élève reçoit un email.",
+      "calendarHeading": "Dans mon agenda",
+      "ics": "Télécharger (.ics)",
+      "google": "Ajouter à Google Agenda",
+      "cancelHeading": "Annuler la séance",
+      "cancel": "Annuler la séance",
+      "cancelConfirm": "Annuler cette séance ? L’élève, ou chaque élève du groupe, reçoit un email.",
+      "reasonLabel": "Motif (facultatif)",
+      "reasonHint": "Il figure dans l’email.",
+      "cancelFollowing": "{count, plural, one {Annuler aussi la séance suivante de la série} other {Annuler aussi les # séances suivantes de la série}}",
+      "followingCancelledEmail": "{count, plural, one {La séance suivante de la série est aussi annulée.} other {Les # séances suivantes de la série sont aussi annulées.}}",
+      "keep": "Garder la séance",
+      "cancelled": "{count, plural, =0 {Séance annulée.} one {Séance annulée, ainsi que la suivante.} other {Séance annulée, ainsi que les # suivantes.}}",
+      "errors": {
+        "gone": "Cette séance a changé entre-temps. La page est à jour : vérifiez avant de recommencer.",
+        "overlap": "Ce nouvel horaire chevauche une autre séance confirmée. Choisissez-en un autre.",
+        "date": "Choisissez une date.",
+        "time": "Choisissez une heure, par exemple 18:00.",
+        "mode": "Choisissez un lieu.",
+        "location": "200 caractères au maximum.",
+        "meetingUrl": "Saisissez une adresse complète en https://.",
+        "reasonTooLong": "Le motif fait plus de 500 caractères : raccourcissez-le.",
+        "closeStatus": "Dites si la séance a eu lieu.",
+        "chapter": "Ce chapitre n’existe plus. Choisissez-en un autre.",
+        "homework": "2 000 caractères au maximum.",
+        "recap": "2 000 caractères au maximum.",
+        "session_not_found": "Cette séance n’existe plus.",
+        "status_invalid": "Une séance de groupe se clôt avec les présences de chaque élève.",
+        "not_closable": "Cette séance a été annulée ou refusée : il n’y a rien à clore.",
+        "not_started": "La séance n’a pas encore commencé.",
+        "unknown": "L’enregistrement n’a pas abouti. Vérifiez votre connexion et réessayez.",
+        "inPast": "Cette heure est déjà passée : choisissez un moment à venir."
+      },
+      "answeredConfirmed": "Demande confirmée. L’élève reçoit un email.",
+      "answeredDeclined": "Demande refusée. L’élève reçoit un email."
+    },
+    "planSession": {
+      "title": "Planifier une séance",
+      "back": "Séances",
+      "lead": "Pour un élève ou un groupe, une fois ou chaque semaine. Les heures sont celles du Maroc.",
+      "for": "Pour",
+      "recipients": {
+        "student": "Un élève",
+        "group": "Un groupe"
+      },
+      "student": "Élève",
+      "studentHint": "Seuls les élèves dont le suivi est en cours sont proposés.",
+      "group": "Groupe",
+      "pick": "Choisir…",
+      "type": "Type de séance",
+      "typeOption": "{name} ({duration} min)",
+      "noType": "Aucun type actif : ajoutez-en un dans « Types de séance ».",
+      "date": "Date",
+      "time": "Heure de début",
+      "repeat": "Chaque semaine",
+      "repeatHint": "Même jour, même heure, jusqu’à 52 semaines. Chaque séance reste modifiable seule.",
+      "until": "Jusqu’au",
+      "mode": "Lieu de la séance",
+      "location": "Adresse ou précision (facultatif)",
+      "locationHint": "Par exemple : quartier Agdal, 3e étage.",
+      "meetingUrl": "Lien de la séance en ligne (facultatif)",
+      "meetingUrlHint": "Une adresse en https://, par exemple un lien Meet ou Jitsi.",
+      "submit": "{count, plural, one {Planifier la séance} other {Planifier les # séances}}",
+      "planning": "Planification…",
+      "seriesEmail": "{count, plural, one {Puis une autre la semaine suivante, à la même heure, le {until}.} other {Puis chaque semaine à la même heure, # fois encore, jusqu’au {until}.}}",
+      "errors": {
+        "recipient": "Choisissez pour qui est la séance.",
+        "student": "Choisissez un élève.",
+        "group": "Choisissez un groupe.",
+        "type": "Choisissez un type de séance.",
+        "date": "Choisissez une date.",
+        "time": "Choisissez une heure, par exemple 18:00.",
+        "until": "Choisissez une date de fin après la première séance.",
+        "tooMany": "Une série compte au plus {max} séances : rapprochez la date de fin.",
+        "mode": "Choisissez un lieu.",
+        "location": "200 caractères au maximum.",
+        "meetingUrl": "Saisissez une adresse complète en https://.",
+        "overlap": "{count, plural, one {Cette date chevauche une séance déjà confirmée : {dates}. Rien n’a été planifié.} other {Ces dates chevauchent des séances déjà confirmées : {dates}. Rien n’a été planifié.}}",
+        "recipient_invalid": "Cet élève n’a plus de suivi en cours, ou ce groupe n’existe plus.",
+        "type_invalid": "Ce type de séance ne convient pas : un type de groupe pour un groupe, un cours particulier pour un élève.",
+        "dates_invalid": "Les dates de la série ne sont pas valables.",
+        "unknown": "La planification n’a pas abouti. Vérifiez votre connexion et réessayez.",
+        "overlapRace": "Une autre séance vient d’être confirmée sur l’un de ces créneaux. Rien n’a été planifié : vérifiez vos séances et recommencez."
+      }
+    },
+    "availability": {
+      "title": "Disponibilités",
+      "back": "Séances",
+      "lead": "Les élèves réservent dans ces horaires, à l’heure du Maroc. Une séance déjà prévue ou une demande en attente garde son créneau.",
+      "weeklyHeading": "Chaque semaine",
+      "noWindows": "Aucun horaire : les élèves ne peuvent rien réserver pour l’instant.",
+      "days": {
+        "1": "Lundi",
+        "2": "Mardi",
+        "3": "Mercredi",
+        "4": "Jeudi",
+        "5": "Vendredi",
+        "6": "Samedi",
+        "7": "Dimanche"
+      },
+      "closedDay": "Pas de réservation",
+      "inactiveType": "Type retiré",
+      "allTypes": "Tous les cours particuliers",
+      "remove": "Retirer",
+      "removeWindowLabel": "Retirer l’horaire du {day}, {range}",
+      "addWindowHeading": "Ajouter un horaire",
+      "weekday": "Jour",
+      "from": "De",
+      "to": "À",
+      "forType": "Pour",
+      "addWindow": "Ajouter l’horaire",
+      "adding": "Ajout…",
+      "windowAdded": "Horaire ajouté.",
+      "windowRemoved": "Horaire retiré.",
+      "exceptionsHeading": "Congés et exceptions",
+      "noExceptions": "Aucune exception à venir.",
+      "dateRange": "du {from} au {to}",
+      "allDay": "Toute la journée",
+      "blocked": "Fermé",
+      "opening": "Ouverture en plus · {type}",
+      "removeExceptionLabel": "Retirer l’exception : {days}",
+      "addExceptionHeading": "Ajouter une exception",
+      "kind": "Que voulez-vous faire ?",
+      "kinds": {
+        "days": "Bloquer des jours",
+        "hours": "Bloquer des heures",
+        "opening": "Ouvrir un horaire en plus"
+      },
+      "kindHints": {
+        "days": "Congés, examens : aucune réservation ces jours-là.",
+        "hours": "Les mêmes heures bloquées chaque jour de la période.",
+        "opening": "Un horaire réservable en plus, un seul jour."
+      },
+      "startsOn": "Du",
+      "endsOn": "Au",
+      "on": "Le",
+      "note": "Note pour vous (facultatif)",
+      "noteHint": "Les élèves ne la voient pas.",
+      "add": {
+        "days": "Bloquer ces jours",
+        "hours": "Bloquer ces heures",
+        "opening": "Ouvrir cet horaire"
+      },
+      "blockAdded": "{count, plural, =0 {Période bloquée. Aucune séance à venir n’y était prévue.} one {Période bloquée. # séance ou demande à venir pendant cette période reste à annuler ou déplacer.} other {Période bloquée. # séances ou demandes à venir pendant cette période restent à annuler ou déplacer.}}",
+      "openingAdded": "Horaire ouvert.",
+      "exceptionRemoved": "Exception retirée.",
+      "rulesHeading": "Règles de réservation",
+      "minNotice": "Délai minimum (heures)",
+      "minNoticeHint": "Une demande doit porter sur une séance au moins ce nombre d’heures plus tard.",
+      "horizon": "Horizon de réservation (jours)",
+      "horizonHint": "Les élèves voient les horaires de ce nombre de jours à venir.",
+      "cancellationWindow": "Annulation par l’élève jusqu’à (heures avant)",
+      "cancellationWindowHint": "Plus près de la séance, l’élève doit vous prévenir directement.",
+      "saveRules": "Enregistrer les règles",
+      "saving": "Enregistrement…",
+      "rulesSaved": "Règles enregistrées.",
+      "errors": {
+        "weekday": "Choisissez un jour.",
+        "time": "Choisissez une heure, par exemple 17:00.",
+        "endAfterStart": "Choisissez une heure de fin après l’heure de début.",
+        "type": "Ce type de séance n’existe plus. Choisissez-en un autre.",
+        "kind": "Choisissez ce que vous voulez faire.",
+        "date": "Choisissez une date.",
+        "endsOn": "Choisissez une date de fin le même jour ou après la date de début, dans l’année qui suit.",
+        "past": "Cette période est déjà passée : choisissez des dates à venir.",
+        "note": "120 caractères au maximum.",
+        "hours": "Un nombre d’heures entre 0 et 168.",
+        "days": "Un nombre de jours entre 1 et 120.",
+        "gone": "Cet élément n’existe plus. La page est à jour.",
+        "unknown": "L’enregistrement n’a pas abouti. Vérifiez votre connexion et réessayez."
+      }
+    },
+    "sessionTypes": {
+      "title": "Types de séance",
+      "back": "Séances",
+      "lead": "La durée, le lieu et le prix de chaque séance. Les élèves réservent les cours particuliers proposés ; les séances de groupe se planifient depuis vos séances.",
+      "individual": "Cours particulier",
+      "group": "Séance de groupe",
+      "inactive": "Retiré",
+      "edit": "Modifier",
+      "summary": "{duration} min · {price} MAD",
+      "newHeading": "Ajouter un type",
+      "name": "Nom",
+      "duration": "Durée (minutes)",
+      "price": "Prix (MAD)",
+      "mode": "Lieu",
+      "isGroup": "Séance de groupe",
+      "isGroupHint": "Pour un groupe, et jamais réservable par un élève. Ne change plus une fois créé.",
+      "isActive": "Proposé",
+      "isActiveHint": "Décoché, le type n’est plus proposé ; les séances déjà prévues le gardent.",
+      "create": "Ajouter le type",
+      "creating": "Ajout…",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "created": "Type ajouté.",
+      "saved": "Type enregistré.",
+      "errors": {
+        "name": "Donnez-lui un nom, 80 caractères au maximum.",
+        "duration": "Une durée entre 15 et 480 minutes.",
+        "mode": "Choisissez un lieu.",
+        "price": "Un prix en dirhams, par exemple 150 ou 150,50.",
+        "gone": "Ce type n’existe plus. La page est à jour.",
+        "unknown": "L’enregistrement n’a pas abouti. Vérifiez votre connexion et réessayez."
+      }
     }
   },
   "student": {
     "home": {
       "greeting": "Bonjour {name}",
       "nextSession": "Prochaine séance",
-      "noNextSession": "Aucune séance prévue pour l’instant. Votre professeure vous proposera un créneau.",
+      "noNextSession": "Aucune séance prévue pour l’instant.",
       "upcoming": "Ensuite",
       "homework": "Devoirs à rendre",
       "noHomework": "Rien à rendre pour l’instant.",
@@ -771,7 +1088,9 @@
       "gradeLabel": "Note",
       "newLessons": "Nouveaux cours",
       "noLessons": "Aucun cours publié pour votre niveau pour l’instant.",
-      "publishedOn": "publié le {date}"
+      "publishedOn": "publié le {date}",
+      "sessionDetails": "Voir la séance",
+      "book": "Réserver une séance"
     },
     "profile": {
       "title": "Mon profil",
@@ -898,6 +1217,102 @@
         "alreadyCorrected": "Cet exercice est déjà corrigé.",
         "unknown": "L’envoi a échoué. Vérifiez votre connexion et réessayez."
       }
+    },
+    "sessions": {
+      "title": "Mes séances",
+      "book": "Réserver une séance",
+      "paused": "Votre suivi est en pause : les réservations reprendront avec lui.",
+      "upcoming": "À venir",
+      "noUpcoming": "Aucune séance à venir.",
+      "past": "Passées",
+      "noPast": "Aucune séance passée pour l’instant.",
+      "older": "{count, plural, one {# séance plus ancienne} other {# séances plus anciennes}}",
+      "unanswered": "Sans réponse",
+      "exportAll": "Ajouter toutes mes séances à venir à mon agenda (.ics)"
+    },
+    "session": {
+      "title": "Séance",
+      "back": "Mes séances",
+      "where": "Lieu",
+      "group": "Groupe",
+      "yourNote": "Votre message",
+      "requestSent": "Demande envoyée. Votre professeure vous répondra par email.",
+      "booked": "Séance réservée. Elle est confirmée.",
+      "withdrawn": "Demande retirée.",
+      "cancelled": "Séance annulée. Votre professeure est prévenue.",
+      "unanswered": "Sans réponse",
+      "waiting": "Votre professeure n’a pas encore répondu à cette demande.",
+      "declined": "Votre professeure n’a pas pu retenir cette demande.",
+      "cancelledByYou": "Vous avez annulé cette séance.",
+      "cancelledByTutor": "Votre professeure a annulé cette séance.",
+      "reason": "Motif : {reason}",
+      "recapHeading": "Compte rendu",
+      "chapter": "Chapitre vu : {title}",
+      "homework": "À faire :",
+      "calendarHeading": "Dans mon agenda",
+      "ics": "Télécharger pour mon agenda (.ics)",
+      "google": "Ajouter à Google Agenda",
+      "withdrawHeading": "Retirer ma demande",
+      "cancelHeading": "Annuler la séance",
+      "cancelUntil": "Vous pouvez annuler jusqu’à {hours, plural, one {# heure} other {# heures}} avant la séance, soit jusqu’au {deadline}.",
+      "tooLate": "À moins de {hours, plural, one {# heure} other {# heures}} de la séance, elle ne s’annule plus ici : prévenez directement votre professeure.",
+      "groupNoCancel": "C’est une séance de groupe : si vous ne pouvez pas venir, prévenez votre professeure.",
+      "withdraw": "Retirer ma demande",
+      "cancel": "Annuler la séance",
+      "withdrawConfirm": "Retirer cette demande ? Le créneau redevient libre pour les autres élèves.",
+      "cancelConfirm": "Annuler cette séance ? Votre professeure recevra un email.",
+      "reasonLabel": "Motif (facultatif)",
+      "reasonHint": "Votre professeure le lira.",
+      "keep": "Garder la séance",
+      "keepRequest": "Garder la demande",
+      "errors": {
+        "not_allowed": "Votre suivi n’est pas actif : prévenez directement votre professeure.",
+        "session_not_found": "Cette séance n’existe plus. Revenez à vos séances.",
+        "not_cancellable": "Cette séance ne peut plus être annulée : elle a commencé ou elle a changé entre-temps.",
+        "too_late": "Il est trop tard pour annuler ici : prévenez directement votre professeure.",
+        "reasonTooLong": "Le motif fait plus de 500 caractères : raccourcissez-le.",
+        "unknown": "L’annulation n’a pas abouti. Vérifiez votre connexion et réessayez."
+      },
+      "paused": "Votre suivi est en pause : pour cette séance, voyez directement avec votre professeure."
+    },
+    "booking": {
+      "title": "Réserver une séance",
+      "back": "Mes séances",
+      "lead": "Choisissez un type de séance, un jour, puis un horaire. Les heures sont celles du Maroc.",
+      "paused": "Votre suivi est en pause : les réservations reprendront avec lui.",
+      "noTypes": "Aucune séance n’est proposée à la réservation pour l’instant. Votre professeure vous proposera un créneau.",
+      "rules": "Réservez {notice, plural, =0 {quand vous voulez} one {au moins # heure à l’avance} other {au moins # heures à l’avance}}, et jusqu’à {horizon} jours à l’avance. {window, plural, =0 {Vous pouvez annuler jusqu’au début de la séance.} one {Vous pouvez annuler jusqu’à # heure avant la séance.} other {Vous pouvez annuler jusqu’à # heures avant la séance.}}",
+      "typeHeading": "Type de séance",
+      "typeDetails": "{duration} min · {mode} · {price} MAD",
+      "dayHeading": "Jour",
+      "slotCount": "{count, plural, one {# horaire} other {# horaires}}",
+      "closed": "Complet",
+      "noSlotsAtAll": "Aucun horaire libre dans les {days} prochains jours. Parlez-en à votre professeure pour trouver un moment.",
+      "slotHeading": "Horaire",
+      "summary": "{date}, de {start} à {end}",
+      "noteLabel": "Un mot pour votre professeure (facultatif)",
+      "noteHint": "Par exemple : revoir les suites avant le contrôle.",
+      "pendingHint": "Votre professeure confirme chaque demande. Vous recevrez sa réponse par email.",
+      "autoHint": "Votre séance sera confirmée tout de suite.",
+      "pickSlot": "Choisissez d’abord un horaire.",
+      "submitRequest": "Demander cette séance",
+      "submitBook": "Réserver la séance",
+      "sending": "Envoi…",
+      "errors": {
+        "pickSlot": "Choisissez un horaire.",
+        "noteTooLong": "Votre message fait plus de 300 caractères : raccourcissez-le.",
+        "not_allowed": "Votre suivi n’est pas actif : les réservations reprendront avec lui.",
+        "type_invalid": "Ce type de séance n’est plus proposé. Choisissez-en un autre.",
+        "too_soon": "Cet horaire est trop proche pour être réservé. Choisissez-en un plus tard.",
+        "too_far": "Cet horaire est trop loin pour être réservé maintenant. Choisissez un jour plus proche.",
+        "slot_closed": "Votre professeure n’est pas disponible à cet horaire. Choisissez-en un autre.",
+        "slot_taken": "Cet horaire vient d’être pris. Choisissez-en un autre.",
+        "too_many_requests": "Vous avez déjà 3 demandes en attente. Attendez la réponse de votre professeure avant d’en faire une autre.",
+        "unknown": "La réservation n’a pas abouti. Vérifiez votre connexion et réessayez.",
+        "too_many_bookings": "Vous avez déjà 6 séances à venir réservées par vous. Attendez que l’une soit passée, ou parlez-en à votre professeure.",
+        "too_many_today": "Vous avez fait beaucoup de demandes aujourd’hui. Réessayez demain, ou parlez-en à votre professeure."
+      },
+      "closedDay": "Fermé"
     }
   },
   "email": {
@@ -907,6 +1322,54 @@
       "body": "Votre professeure a créé votre compte {brand}. Choisissez votre mot de passe avec ce lien :",
       "button": "Choisir mon mot de passe",
       "expiry": "Si le lien a expiré, utilisez « Mot de passe oublié » sur la page de connexion."
+    },
+    "session": {
+      "greeting": "Bonjour {name},",
+      "note": "Son message : « {note} »",
+      "reason": "Motif : {reason}",
+      "meeting": "Lien de la séance en ligne : {url}",
+      "openTutor": "Voir la séance",
+      "openStudent": "Voir ma séance",
+      "requested": {
+        "subject": "Demande de séance : {who}, {date} à {start}",
+        "body": "{who} demande une séance le {date}, de {start} à {end}. Confirmez-la ou refusez-la depuis vos séances."
+      },
+      "booked": {
+        "subject": "Séance réservée : {who}, {date} à {start}",
+        "body": "{who} a réservé une séance le {date}, de {start} à {end}. Elle est confirmée d’office."
+      },
+      "confirmed": {
+        "subject": "Séance confirmée : {date} à {start}",
+        "body": "Votre séance du {date}, de {start} à {end}, est confirmée."
+      },
+      "declined": {
+        "subject": "Demande de séance non retenue : {date} à {start}",
+        "body": "Votre professeure n’a pas pu retenir votre demande pour le {date}, de {start} à {end}. Choisissez un autre horaire depuis vos séances."
+      },
+      "cancelledByStudent": {
+        "subject": "Séance annulée par {who} : {date} à {start}",
+        "body": "{who} a annulé la séance du {date}, de {start} à {end}. Le créneau est de nouveau libre."
+      },
+      "cancelledByTutor": {
+        "subject": "Séance annulée : {date} à {start}",
+        "body": "Votre séance du {date}, de {start} à {end}, est annulée."
+      },
+      "moved": {
+        "subject": "Séance modifiée : {date} à {start}",
+        "body": "Votre séance a changé : elle a lieu le {date}, de {start} à {end}."
+      },
+      "planned": {
+        "subject": "Nouvelle séance : {date} à {start}",
+        "body": "Votre professeure a planifié une séance le {date}, de {start} à {end}."
+      },
+      "reminder24h": {
+        "subject": "Rappel : séance {day, select, today {aujourd’hui} tomorrow {demain} other {le {date}}} à {start}",
+        "body": "Rappel : votre séance a lieu {day, select, today {aujourd’hui} tomorrow {demain} other {le {date}}}, de {start} à {end}."
+      },
+      "reminder2h": {
+        "subject": "Rappel : séance à {start}",
+        "body": "Votre séance commence bientôt : {day, select, today {aujourd’hui} tomorrow {demain} other {le {date}}}, de {start} à {end}."
+      }
     }
   },
   "lesson": {

@@ -21,7 +21,8 @@ export async function sendEmail(email: OutgoingEmail): Promise<{ delivered: bool
         `[email] RESEND_API_KEY is not set, so this email was not sent.\nTo: ${email.to}\nSubject: ${email.subject}\n\n${email.text}`,
       );
     } else {
-      console.info(`[email] RESEND_API_KEY is not set; "${email.subject}" was not sent.`);
+      // Subjects carry names and times: a deployed log says only that something was not sent.
+      console.info("[email] RESEND_API_KEY is not set; an email was not sent.");
     }
     return { delivered: false };
   }

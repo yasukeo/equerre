@@ -44,7 +44,7 @@ function NavLinkView({ href, icon, children, active }: NavLinkProps & { active: 
       aria-current={active ? "page" : undefined}
       className={cn(
         // Mobile: a column in the bottom bar. Desktop: a row in the rail.
-        "relative flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 px-2 text-xs text-encre-douce md:min-h-11 md:flex-none md:flex-row md:justify-start md:gap-3 md:rounded-md md:px-3 md:text-sm",
+        "relative flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 text-xs text-encre-douce md:min-h-11 md:flex-none md:flex-row md:justify-start md:gap-3 md:rounded-md md:px-3 md:text-sm",
         "hover:text-encre md:hover:bg-sunken",
         // Current page: ink text and a highlighter bar (top edge on mobile, start edge on desktop).
         "aria-[current=page]:font-semibold aria-[current=page]:text-encre",
@@ -53,7 +53,7 @@ function NavLinkView({ href, icon, children, active }: NavLinkProps & { active: 
       )}
     >
       <span className="[&_svg]:size-5">{icon}</span>
-      <span>{children}</span>
+      <span className="max-w-full truncate">{children}</span>
     </Link>
   );
 }

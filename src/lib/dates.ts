@@ -61,16 +61,21 @@ export function localDateTimeToUtc(date: string, time: string): Date {
     throw new RangeError(`Expected yyyy-MM-dd and HH:mm, received "${date}" and "${time}".`);
   }
 
+  const [year, month, day] = [Number(dateMatch[1]), Number(dateMatch[2]), Number(dateMatch[3])];
   const local = new TZDate(
-    Number(dateMatch[1]),
-    Number(dateMatch[2]) - 1,
-    Number(dateMatch[3]),
+    year,
+    month - 1,
+    day,
     Number(timeMatch[1]),
     Number(timeMatch[2]),
     0,
     0,
     APP_TIME_ZONE,
   );
+  // 30 February would roll over to 2 March: a date that does not exist is refused.
+  if (local.getFullYear() !== year || local.getMonth() !== month - 1 || local.getDate() !== day) {
+    throw new RangeError(`"${date}" is not a date.`);
+  }
   return new Date(local.getTime());
 }
 

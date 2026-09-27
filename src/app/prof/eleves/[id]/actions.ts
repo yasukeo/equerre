@@ -19,6 +19,7 @@ const studentSchema = z
     levelCode: z.union([z.literal(""), z.string().regex(/^[0-9A-Z-]{2,12}$/)]),
     status: z.enum(["actif", "en_pause", "arrete"]),
     objectives: z.string().trim().max(MAX_OBJECTIVES_LENGTH),
+    autoConfirm: z.enum(["true", "false"]),
   })
   .extend(contactFieldsSchema.shape);
 
@@ -35,6 +36,7 @@ export async function updateStudent(_previous: FormState, formData: FormData): P
     levelCode: textField(formData, "levelCode"),
     status: textField(formData, "status"),
     objectives: textField(formData, "objectives"),
+    autoConfirm: textField(formData, "autoConfirm") || "false",
     ...contactValues(formData),
   };
   if (!id.success) return { status: "error", message: t("errors.gone"), values };
@@ -84,10 +86,11 @@ export async function updateStudent(_previous: FormState, formData: FormData): P
   }
   if (updated.length === 0) return { status: "error", message: t("errors.gone"), values };
 
-  // Auto-confirmed bookings live here too, and come with the bookings (phase 2).
-  const { error: settingsError } = await supabase
-    .from("student_settings")
-    .upsert({ student_id: id.data, objectives: fields.objectives || null });
+  const { error: settingsError } = await supabase.from("student_settings").upsert({
+    student_id: id.data,
+    objectives: fields.objectives || null,
+    auto_confirm_bookings: fields.autoConfirm === "true",
+  });
   if (settingsError) return { status: "error", message: t("errors.unknown"), values };
 
   refresh();

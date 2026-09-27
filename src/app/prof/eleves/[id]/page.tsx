@@ -139,9 +139,19 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         <div className="grid min-w-0 gap-10">
           <section aria-labelledby="student-sessions" className="grid gap-4">
-            <h2 id="student-sessions" className="text-lg font-medium">
-              {t("sessionsHeading")}
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 id="student-sessions" className="text-lg font-medium">
+                {t("sessionsHeading")}
+              </h2>
+              {profile.status === "actif" ? (
+                <Link
+                  href={`/prof/seances/nouvelle?eleve=${profile.id}`}
+                  className="inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+                >
+                  {t("planSession")}
+                </Link>
+              ) : null}
+            </div>
             <SessionList
               heading={t("upcomingHeading")}
               empty={t("noUpcoming")}
@@ -252,6 +262,7 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
                   guardianName: profile.guardianName ?? "",
                   guardianPhone: profile.guardianPhone ?? "",
                   objectives: file.objectives,
+                  autoConfirm: file.autoConfirmBookings,
                 }}
               />
             </div>
@@ -358,13 +369,16 @@ async function SessionList({
           items={sessions.map((session) => (
             <li key={session.id} className="grid gap-1 bg-surface px-4 py-3">
               <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="font-medium first-letter:uppercase">
+                <Link
+                  href={`/prof/seances/${session.id}`}
+                  className="font-medium underline decoration-quadrillage underline-offset-4 first-letter:uppercase hover:decoration-encre"
+                >
                   {formatLocal(session.startsAt, "EEEE d MMMM")}
                   <span className="ms-2 font-normal text-encre-douce tabular">
                     {formatLocal(session.startsAt, "HH:mm")} –{" "}
                     {formatLocal(session.endsAt, "HH:mm")}
                   </span>
-                </span>
+                </Link>
                 {session.attendance ? (
                   <span className="text-sm">{t(`attendance.${session.attendance}`)}</span>
                 ) : (

@@ -192,6 +192,8 @@ export type StudentFile = {
     createdAt: string;
   };
   objectives: string;
+  /** Her requests are confirmed at once, without the tutor's answer (D-075). */
+  autoConfirmBookings: boolean;
   notes: { id: string; body: string; createdAt: string; updatedAt: string }[];
   /** The groups she is in today. */
   groups: { id: string; name: string; scheduleLabel: string | null; joinedAt: string }[];
@@ -223,7 +225,11 @@ export async function getStudentFile(id: string, now: Date): Promise<StudentFile
 
   const [settings, notes, membershipRows, attendanceRows, submissions, reveals, levels] =
     await Promise.all([
-      supabase.from("student_settings").select("objectives").eq("student_id", id).maybeSingle(),
+      supabase
+        .from("student_settings")
+        .select("objectives, auto_confirm_bookings")
+        .eq("student_id", id)
+        .maybeSingle(),
       readAll((from, to) =>
         supabase
           .from("student_notes")
@@ -415,6 +421,7 @@ export async function getStudentFile(id: string, now: Date): Promise<StudentFile
       createdAt: profile.created_at,
     },
     objectives: settingsRow?.objectives ?? "",
+    autoConfirmBookings: settingsRow?.auto_confirm_bookings ?? false,
     notes: notes.map((note) => ({
       id: note.id,
       body: note.body,

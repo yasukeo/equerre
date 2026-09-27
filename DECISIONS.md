@@ -387,6 +387,93 @@ An adversarial review by three reviewers — security, React and the phone, logi
   - An error came back after « Annuler ».
   - A plural and a few tap targets under 44 px.
 
+## Availability, bookings and sessions (phase 2)
+
+**D-073 — Hours, exceptions and booking rules.**
+`/prof/seances/disponibilites` holds the tutor's weekly hours, her exceptions and three rules (`20260927024059`).
+
+- **Weekly hours** (`availability`). A weekday and a range of Casablanca wall-clock time, for every individual type or for one (Saturday afternoons at the student's home). They are stored as local times and turned into instants date by date, so a Tuesday 18:00 range stays at 18:00 on both sides of Ramadan's change of offset. `src/lib/booking/slots.test.ts` checks both change-overs of 2027 and the Sunday the clocks move.
+- **Exceptions** (`availability_exceptions`). A blocked period (whole days, for holidays), the same hours blocked on each day of a range, or an opening that adds hours on one date, optionally for one type. Her note is hers: no policy opens the table to students. Blocking a period tells her how many sessions already planned in it are left to cancel or move. Nothing is cancelled for her.
+- **Rules** (`booking_settings`, one row). The notice a request needs (12 hours), how far ahead students see (28 days) and until when a student may cancel a confirmed session (24 hours before, the brief's default).
+
+A student never reads these tables, nor anyone else's sessions. `public.booking_calendar` gives an active student the rules, the hours, the exceptions without their notes, and the times already taken, with nothing about whose they are. The page turns them into slots on the half hour (`openSlots`), and marks each day free, full (« Complet ») or closed (« Fermé »).
+
+**D-074 — Session types, planning and the tutor's calendar.**
+`/prof/seances/types` sets each type's name, length, place and price in MAD. A type is individual or for a group once and for all, and one that sessions point to is withdrawn rather than deleted. `/prof/seances/nouvelle` plans a session for an active student or a group, once or every week until a date (52 at most). The dates are computed on the Casablanca calendar and converted one by one. `public.plan_sessions` writes the series and its sessions in one transaction. When a date overlaps a confirmed session it names every such date in local time, and writes nothing. Each occurrence is its own row, moved, cancelled or closed on its own. Cancelling one can take the rest of its series with it.
+
+`/prof/seances` opens on the requests to answer and the sessions to close, then a week, month or list view, one address per view and date. The home page links there, counts the sessions to close and offers « Planifier une séance ». A session's page answers a request, moves or cancels a planned session, and closes one that has started through `public.close_session`. Closing records the chapter covered, the homework and the recap the student reads. For a group, it also records each member of that day as present, absent or excused (D-070). A group session is never « absent » as a whole. Closing again corrects it.
+
+**D-075 — Requests, confirmation and cancellation.**
+An active student books from `/eleve/seances/reserver`: a type, a day, a time, and a word for the tutor if she likes. `public.request_session` (`security definer`) checks everything the page shows:
+
+- the notice and the horizon;
+- a slot inside her hours and outside every blocked period;
+- no overlap with a session that holds its time: planned, done, missed, or requested first. Requests are taken one at a time under an advisory lock, so two students cannot both get the last slot.
+- a start on the half-hour grid of her hours, as the page offers it;
+- at most three requests waiting at once, six self-booked sessions to come, and ten requests a day;
+- an individual type still offered.
+
+The request waits for the tutor (« En attente »), or is confirmed at once when her file says to trust her (`student_settings.auto_confirm_bookings`, set by the tutor only). Confirming a request that now overlaps a confirmed session fails on the exclusion constraint (D-027), and the page says to decline it or move the other one.
+
+Like `submit_exercise_answer`, the two functions are `security definer` on purpose, and signed-in accounts only may call them; the security advisor lists them for that reason. `public.cancel_my_session` lets her withdraw a request any time before it starts. It lets her cancel a confirmed individual session only while more than the window is left. The window is enforced there, and the page shows the deadline. A group's session stays the group's. A paused or stopped student neither books nor cancels (D-060). `tests/rls/bookings.test.ts` walks the brief's case through the API: a week blocked, a request inside it refused, the week after accepted. It also checks that another student can neither take that slot, see it nor cancel it, and every refusal.
+
+Checked in the browser as the seed accounts, on a phone-sized screen:
+
+1. The tutor blocked 5 to 11 October.
+2. Omar found those days closed and requested Tuesday 13 October at 18:00.
+3. The tutor confirmed it from her list.
+
+The two emails read « mardi 13 octobre à 18:00 », stored as 17:00 UTC. A weekly series across the 13th was refused with that date named; moved to 16:00, it made five Tuesdays at 16:00 local. A group session was closed with one member absent.
+
+**D-076 — Sessions in a calendar.**
+Every planned session downloads as an `.ics` file (`/agenda/[id]`), and all those to come in one file (`/agenda/a-venir`). Both routes read the session through the viewer's own session, so the policies decide what exists. Times are written in UTC and each calendar shows them in its own zone. There is also a Google Calendar link. A subscription feed (`webcal://`) would need a secret per person in the address, and waits until it is asked for.
+
+**D-077 — Emails about sessions.**
+`src/lib/sessions/notify.ts` writes each email with its time as Casablanca wall-clock time, in words (« mardi 13 octobre, de 18:00 à 19:30 »):
+
+- to the tutor: a request, a booking confirmed at once, a cancellation by a student;
+- to the student, or to each member of the group that day: a confirmation, a refusal with its reason, a session planned, moved or cancelled.
+
+An email that cannot go never undoes the action. The tutor's address comes through the secret key, because a student cannot read her profile. Until `RESEND_API_KEY` and `SUPABASE_SECRET_KEY` are set on Vercel (D-064), nothing is sent from the deployed site, and the actions work the same. In-app notifications come in phase 3.
+
+**D-078 — Reminders.**
+`POST /api/cron/rappels`, authenticated by `CRON_SECRET`, sends a reminder about 24 hours and about 2 hours before each planned session, to the student or to that day's members. It words the day from the Casablanca calendar (« aujourd’hui », « demain »). Each reminder is stamped before it is sent (`reminder_24h_sent_at`, `reminder_2h_sent_at`) by a conditional update. Two runs or a retry therefore never send it twice. If no email at all could leave, or anything failed on the way, the stamp is taken back for the next run.
+
+When a session is booked, confirmed, planned or moved, the database stamps each reminder already due as sent (`private.stamp_session_reminders`, `20260927160524`), because the email that goes with the change says as much. So a session moved to this afternoon gets its « moved » email and, later, its 2-hour reminder, not a « demain » on top. Without the email key the route claims nothing.
+
+Supabase Cron is to call it every 15 minutes (`pg_cron` + `pg_net`, with the secret in Vault). That is switched on with the other end-of-project settings (D-064), once email can leave at all.
+
+**D-079 — What the review of bookings changed.**
+Three reviewers (security, logic and time, screens and phone) found no way for a student to read the tutor's hours or notes, anyone else's session, or to book outside the rules. A probe offered every slot the page shows to the database's own check, across both Ramadan changes of 2026 and 2027: 354 of 354 were accepted. They confirmed these defects, all fixed:
+
+- **In the database** (`20260927160524`):
+  - `booking_calendar` let in a signed-in account with no student status, since `null or false` raises nothing; it now also gives a student only times to come.
+  - A start off the half-hour grid (17:15, or 17:00 and a microsecond) was accepted, and took two or three of the page's slots. The grid is now checked, to the second.
+  - A trusted student had no ceiling: six self-booked sessions to come at most. Ten requests a day at most, since each one emails the tutor.
+  - `cancel_my_session` returns what it cancelled. The page used a status read before the call, so a request confirmed meanwhile was cancelled without the tutor hearing of it.
+  - Closing a group session again no longer drops a line recorded for someone whose membership has since left the group's history.
+- **Time and state.**
+  - A date that does not exist (30 February) rolled over to 2 March; `localDateTimeToUtc` and the forms now refuse it, and an address cannot send the calendar to the year 9999.
+  - A request could still be offered for confirmation after it had started. A session under way could still be moved.
+  - Blocking a period counted sessions already held that week.
+  - A day blocked hour by hour, or emptied by the notice, read « Complet » rather than « Fermé ».
+  - A cancelled or declined session to come vanished from the student's list until its date; it stays under « À venir », marked so.
+  - A change of place or link sent no email.
+  - A calendar re-importing a moved or cancelled session kept the old one: the file now carries `SEQUENCE` and `STATUS`.
+  - A bare carriage return in a name could start a property of its own in that file.
+  - Deployed logs printed email subjects, which now carry names; they say only that an email was not sent.
+- **The screens.**
+  - The day strip widened the whole booking page on a phone instead of scrolling.
+  - Today's mark in the month view was chalk on highlighter in the dark theme.
+  - An answer given on a session's page lost the focus and said nothing; it now returns with the answer at the top, and the list says what was done under its heading.
+  - « La page est à jour » was said of pages that were not; they are now drawn again.
+  - A paused student read « trop tard » for a session days away.
+  - Sessions to close past the first five could not be reached.
+  - Day chips were named differently from what they show.
+  - Several sentences did not say how to fix what they reported.
+  - « Aujourd’hui » in the tutor's navigation became « Accueil », as DESIGN.md has it, so that six items fit a phone's bottom bar.
+- **Open concerns.** A paused student's pending requests keep their slots until the tutor answers them. An email Resend accepted but reported as failed would be sent again on the next run.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
@@ -395,6 +482,7 @@ Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus
 | ---------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Tutor "add a student" action (phase 0/1) | `auth.admin.createUser`, `auth.admin.getUserById`, `auth.admin.generateLink`             | Creating another person's account, checking whether it was ever used, and issuing its set-password link are admin operations by definition.            |
 | `/api/cron/*` route handlers (phase 2)   | Read upcoming sessions and stamp `reminder_*_sent_at` for everyone                       | A cron job has no signed-in user, so no RLS identity.                                                                                                  |
+| Session emails to the tutor (D-077)      | Read the tutor's email address when a student requests, books or cancels                 | A student may not read the tutor's profile, and the address should not travel through her session.                                                     |
 | `pnpm storage:sweep` (D-054)             | Read every lesson, exercise and solution; delete the lesson files none of them refers to | A script has no session. It must read drafts and worked solutions, which only the tutor may, and a reference it cannot read is a file it would delete. |
 
 The seed script does not use it (D-028).

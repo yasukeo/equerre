@@ -720,6 +720,20 @@ on conflict (id) do update set
   price_mad = excluded.price_mad,
   is_group = excluded.is_group;
 
+-- ─────────────────────────────────────────────────────────────── availability
+-- Weekday evenings for every individual type, and Saturday afternoons at the student's home.
+-- Group sessions and booked lessons inside these hours are taken, not free.
+
+delete from public.availability;
+insert into public.availability (weekday, start_time, end_time, session_type_id)
+values
+  (1, '17:00', '21:00', null),
+  (2, '17:00', '21:00', null),
+  (3, '17:00', '21:00', null),
+  (4, '17:00', '21:00', null),
+  (5, '17:00', '21:00', null),
+  (6, '14:00', '18:00', pg_temp.uid('50000000', 3));
+
 -- ─────────────────────────────────────────────────────────────── sessions
 -- 8 weekly slots over 5 weeks (3 past, this one, next) = 40 sessions, in Casablanca wall-clock
 -- time. Postgres converts each local time to UTC with the zone's rules, Ramadan included.

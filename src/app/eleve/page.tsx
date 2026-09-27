@@ -138,6 +138,24 @@ async function StudentHome() {
         ) : (
           <p className="mt-2">{t("noNextSession")}</p>
         )}
+        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1">
+          {next ? (
+            <Link
+              href={`/eleve/seances/${next.id}`}
+              className="inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+            >
+              {t("sessionDetails")}
+            </Link>
+          ) : null}
+          {viewer.status === "actif" ? (
+            <Link
+              href="/eleve/seances/reserver"
+              className="inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+            >
+              {t("book")}
+            </Link>
+          ) : null}
+        </div>
       </section>
 
       {later.length > 0 ? (
@@ -147,25 +165,29 @@ async function StudentHome() {
           </h2>
           <ul className="mt-3 divide-y divide-quadrillage border-y border-quadrillage" role="list">
             {later.map((session) => (
-              <li
-                key={session.id}
-                className="grid min-h-16 grid-cols-[1fr_auto] items-start gap-x-4 py-3"
-              >
-                <div>
-                  <p className="font-medium first-letter:uppercase">
-                    {formatLocal(session.starts_at, "EEEE d MMMM")}
-                    <span className="ms-2 font-normal text-encre-douce tabular">
-                      {formatLocal(session.starts_at, "HH:mm")}
-                    </span>
-                  </p>
-                  <p className="text-sm text-encre-douce">
-                    {[session.session_type?.name, session.group?.name].filter(Boolean).join(" · ")}
-                  </p>
-                </div>
-                <SessionStatusChip
-                  status={session.status}
-                  label={tSession(`status.${session.status}`)}
-                />
+              <li key={session.id}>
+                <Link
+                  href={`/eleve/seances/${session.id}`}
+                  className="grid min-h-16 grid-cols-[1fr_auto] items-start gap-x-4 py-3 hover:bg-sunken"
+                >
+                  <div>
+                    <p className="font-medium first-letter:uppercase">
+                      {formatLocal(session.starts_at, "EEEE d MMMM")}
+                      <span className="ms-2 font-normal text-encre-douce tabular">
+                        {formatLocal(session.starts_at, "HH:mm")}
+                      </span>
+                    </p>
+                    <p className="text-sm text-encre-douce">
+                      {[session.session_type?.name, session.group?.name]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  </div>
+                  <SessionStatusChip
+                    status={session.status}
+                    label={tSession(`status.${session.status}`)}
+                  />
+                </Link>
               </li>
             ))}
           </ul>

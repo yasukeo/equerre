@@ -105,6 +105,109 @@ export type Database = {
           },
         ]
       }
+      availability: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          session_type_id: string | null
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          session_type_id?: string | null
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          session_type_id?: string | null
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_session_type_id_fkey"
+            columns: ["session_type_id"]
+            isOneToOne: false
+            referencedRelation: "session_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      availability_exceptions: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          ends_on: string
+          id: string
+          is_blocked: boolean
+          note: string | null
+          session_type_id: string | null
+          start_time: string | null
+          starts_on: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          ends_on: string
+          id?: string
+          is_blocked?: boolean
+          note?: string | null
+          session_type_id?: string | null
+          start_time?: string | null
+          starts_on: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          ends_on?: string
+          id?: string
+          is_blocked?: boolean
+          note?: string | null
+          session_type_id?: string | null
+          start_time?: string | null
+          starts_on?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_exceptions_session_type_id_fkey"
+            columns: ["session_type_id"]
+            isOneToOne: false
+            referencedRelation: "session_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_settings: {
+        Row: {
+          cancellation_window_hours: number
+          horizon_days: number
+          id: boolean
+          min_notice_hours: number
+          updated_at: string
+        }
+        Insert: {
+          cancellation_window_hours?: number
+          horizon_days?: number
+          id?: boolean
+          min_notice_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          cancellation_window_hours?: number
+          horizon_days?: number
+          id?: boolean
+          min_notice_hours?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chapters: {
         Row: {
           created_at: string
@@ -662,6 +765,7 @@ export type Database = {
           recap: string | null
           reminder_24h_sent_at: string | null
           reminder_2h_sent_at: string | null
+          request_note: string | null
           requested_by: string | null
           series_id: string | null
           session_type_id: string
@@ -686,6 +790,7 @@ export type Database = {
           recap?: string | null
           reminder_24h_sent_at?: string | null
           reminder_2h_sent_at?: string | null
+          request_note?: string | null
           requested_by?: string | null
           series_id?: string | null
           session_type_id: string
@@ -710,6 +815,7 @@ export type Database = {
           recap?: string | null
           reminder_24h_sent_at?: string | null
           reminder_2h_sent_at?: string | null
+          request_note?: string | null
           requested_by?: string | null
           series_id?: string | null
           session_type_id?: string
@@ -992,6 +1098,25 @@ export type Database = {
       }
     }
     Functions: {
+      booking_calendar: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
+      }
+      cancel_my_session: {
+        Args: { p_reason?: string; p_session_id: string }
+        Returns: Database["public"]["Enums"]["session_status"]
+      }
+      close_session: {
+        Args: {
+          p_attendance?: Json
+          p_covered_chapter_id?: string
+          p_homework?: string
+          p_recap?: string
+          p_session_id: string
+          p_status: Database["public"]["Enums"]["session_status"]
+        }
+        Returns: undefined
+      }
       create_assignment: {
         Args: {
           p_due_at: string
@@ -1005,6 +1130,26 @@ export type Database = {
       }
       delete_assignment: { Args: { p_id: string }; Returns: undefined }
       invite_code_is_valid: { Args: { p_code: string }; Returns: boolean }
+      plan_sessions: {
+        Args: {
+          p_group_id?: string
+          p_location?: string
+          p_meeting_url?: string
+          p_mode?: Database["public"]["Enums"]["session_mode"]
+          p_session_type_id: string
+          p_starts_at: string[]
+          p_student_id?: string
+        }
+        Returns: string
+      }
+      request_session: {
+        Args: {
+          p_note?: string
+          p_session_type_id: string
+          p_starts_at: string
+        }
+        Returns: string
+      }
       save_exercise: {
         Args: {
           p_answer_type: Database["public"]["Enums"]["answer_type"]

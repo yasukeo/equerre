@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { localDateKeyInDays, localDateTimeToUtc } from "@/lib/dates";
 import type { Json } from "@/types/database";
 import { anonymousClient, seedId, signedInAs, type Client } from "./clients";
 
@@ -717,7 +718,8 @@ describe("a student the tutor has paused or stopped", () => {
       .limit(1)
       .single();
     if (!type) throw new Error("no individual session type in the seed");
-    const startsAt = new Date(Date.now() + 2 * 86_400_000);
+    // At 03:00 two days from now, a time no real session holds: confirmed sessions never overlap.
+    const startsAt = localDateTimeToUtc(localDateKeyInDays(new Date(), 2), "03:00");
     const { data: session, error: sessionError } = await tutor
       .from("sessions")
       .insert({

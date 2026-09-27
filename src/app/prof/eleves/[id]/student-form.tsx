@@ -22,6 +22,7 @@ type Values = {
   guardianName: string;
   guardianPhone: string;
   objectives: string;
+  autoConfirm: boolean;
 };
 
 /** Her file as the tutor keeps it: identity, level, standing, contacts, objectives. */
@@ -48,8 +49,9 @@ export function StudentForm({
     },
     initialFormState,
   );
-  const set = (key: keyof Values) => (event: { target: { value: string } }) =>
-    setValues((current) => ({ ...current, [key]: event.target.value }));
+  const set =
+    (key: Exclude<keyof Values, "autoConfirm">) => (event: { target: { value: string } }) =>
+      setValues((current) => ({ ...current, [key]: event.target.value }));
 
   return (
     <form
@@ -59,7 +61,7 @@ export function StudentForm({
         event.preventDefault();
         const formData = new FormData();
         formData.set("id", id);
-        for (const [key, value] of Object.entries(values)) formData.set(key, value);
+        for (const [key, value] of Object.entries(values)) formData.set(key, String(value));
         startTransition(() => action(formData));
       }}
     >
@@ -144,6 +146,20 @@ export function StudentForm({
         onChange={set("objectives")}
         error={fieldError(state, "objectives")}
       />
+      <label className="flex min-h-11 items-start gap-3">
+        <input
+          type="checkbox"
+          checked={values.autoConfirm}
+          onChange={(event) =>
+            setValues((current) => ({ ...current, autoConfirm: event.target.checked }))
+          }
+          className="mt-1 size-5 accent-encre"
+        />
+        <span className="grid gap-0.5">
+          <span>{t("autoConfirm")}</span>
+          <span className="text-sm text-encre-douce">{t("autoConfirmHint")}</span>
+        </span>
+      </label>
       <FormMessage state={state} />
       <Button type="submit" disabled={pending} className="justify-self-start">
         {pending ? t("saving") : t("save")}
