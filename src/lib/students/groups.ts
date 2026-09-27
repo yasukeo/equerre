@@ -24,7 +24,7 @@ export async function listGroups(): Promise<{ groups: GroupRow[]; levels: LevelO
   const [groups, levels] = await Promise.all([
     supabase
       .from("groups")
-      .select("id, name, schedule_label, level:levels(label), members:group_members(count)")
+      .select("id, name, schedule_label, level:levels(label), members:group_members(left_at)")
       .order("name"),
     supabase.from("levels").select("code, label").order("position"),
   ]);
@@ -34,7 +34,7 @@ export async function listGroups(): Promise<{ groups: GroupRow[]; levels: LevelO
       name: group.name,
       levelLabel: group.level?.label ?? null,
       scheduleLabel: group.schedule_label,
-      members: group.members[0]?.count ?? 0,
+      members: group.members.filter((member) => member.left_at === null).length,
     })),
     levels: must(levels) ?? [],
   };
@@ -65,7 +65,7 @@ export async function getGroup(id: string): Promise<GroupFile | null> {
     await supabase
       .from("groups")
       .select(
-        "id, name, level_code, schedule_label, members:group_members(joined_at, student:profiles(id, full_name, status, level:levels(label)))",
+        "id, name, level_code, schedule_label, members:group_members(joined_at, left_at, student:profiles(id, full_name, status, level:levels(label)))",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -89,7 +89,9 @@ export async function getGroup(id: string): Promise<GroupFile | null> {
     });
   }
 
+  // Members today; those who left keep their past in the group (D-070).
   const members = group.members
+    .filter((member) => member.left_at === null)
     .map((member) => ({
       id: member.student.id,
       name: member.student.full_name,

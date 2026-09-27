@@ -324,6 +324,69 @@ What it would cost:
 
 Its free plan would still relieve the Free plan's 1 GB (D-063), and it could make thumbnails, which Supabase makes only on Pro. So it is worth another look if storage runs short before the move to Pro, or if lists of copies ever need thumbnails. Then only for public images (lesson figures, the blog), where there is nothing private to protect.
 
+## Students and groups (phase 2)
+
+**D-070 — A group membership is a period.**
+What reached a student through a group followed only her membership on the day. That did no harm while nobody could move a student between groups; once the tutor can, it cuts both ways. A student who left a group lost its homework, the graded copies included, and its past sessions. A newcomer got the group's old homework, overdue.
+
+A membership now runs from `joined_at` to `left_at` (`20260926165943`, then `20260927003341`). Removing a student stamps `left_at` instead of deleting the row. Adding her back clears it, so a removal made by mistake undoes itself, history and all.
+
+- **Homework.** A group's homework reaches a member if it fell due while she was in the group. Homework she handed in or opened a solution in stays hers whenever she left (`private.assignment_reaches_me`). The grading function goes through the same test. She can finish what reached her, but cannot hand in what fell due before she arrived or after she left.
+- **Sessions.** A group's session reaches her if it starts while she is in the group (`private.group_session_reaches_me`, used by the sessions policy). A leaver keeps the group's past sessions whether or not attendance was taken.
+- **The present.** Everything that reads « her groups today » reads `left_at is null`: her profile, the groups policy, recipients of new homework, member counts, the group's page. The tutor's grid counts the members of the day the homework fell due.
+- **Deletion.** Deleting a group used to take its sessions and its homework with it, in cascade, the copies handed in included. `assignments.group_id` and `sessions.group_id` are now `on delete restrict`. A group with a history can be renamed or emptied, not deleted, and the screen says so.
+
+The seed's memberships dated from seeding day, while its group sessions go back three weeks. They are now dated 60 days back, in `seed.sql` and in the project's data, so the seeded students keep their past sessions. `tests/rls/phase-2.test.ts` checks the newcomer, the leaver who keeps the group's past, the student added back, and the refused deletion, through the API. Both migrations were rehearsed first in rolled-back transactions.
+
+**D-071 — The student's file.**
+`/prof/eleves` lists every student. Each row gives:
+
+- her level;
+- her standing, when her follow-up is not « en cours »;
+- her groups;
+- her next session;
+- her average.
+
+The list filters by name (accents ignored), level and standing, active and paused by default, and to those with no session to come. The filters live in the address, so a filtered list is a link she can keep. A level the address names but the database does not know lists everyone. The remaining hours balance of the brief comes with payments, in phase 4.
+
+`/prof/eleves/[id]` is the file:
+
+- **At the top.** Level, standing, and « Appeler l'élève » / « Appeler {parent} » as `tel:` links. On a phone, the contacts sit under the history.
+- **Figures.** Her average over every corrected exercise, and her attendance. Attendance counts sessions she was expected at (`src/lib/students/stats.ts`, tested). One of her own is present when `terminée`, absent when `absent`. A group's is read from the attendance the tutor took, at a session that took place. Sessions cancelled, refused or still to come count for nothing, and neither does an excused absence.
+- **History.** Her sessions to come and past, with the chapter covered and the recap, and her homework with where she stands on each exercise. Both follow D-070 and D-060, so the tutor sees what the student sees:
+  - « À venir » holds sessions planned or requested and not yet over — the same rule as the list's « prochaine séance ».
+  - A paused or stopped student is expected at no group session to come, so none is listed for her.
+  - A stopped student keeps only the homework she worked on.
+
+  The eight most recent are shown and the rest fold away. Everything is read by her id and her groups' ids, never by lists of sessions or homework, so no address outgrows its limit as the years pass.
+
+- **Private notes.** They live in `student_notes`, which no policy opens to a student (the brief's reason: RLS works by row). They are written, changed and deleted from the file, the latest first.
+- **The file itself.** A form folded under « Fiche »: name, level (which may stay open, as a class code allows), standing (with what each leaves her, D-060), phone, school, parent, and objectives, which the student can read (`student_settings`). Her email is shown, not edited: it belongs to her sign-in. The « confirm her bookings at once » setting waits for the bookings.
+
+The standings read « Suivi en cours », « En pause », « Suivi arrêté », and an absence reads « Absence »: words that fit a girl as well as a boy. « Élèves » replaces « Inviter un élève » in the tutor's navigation. The invitation moves to the list, and stays on her home page.
+
+**D-072 — Groups.**
+`/prof/eleves/groupes` lists the groups with their level (or « Plusieurs niveaux »), their hours and their size, and creates one. A group's page:
+
+- changes its name, level and hours;
+- lists its members with the date each joined;
+- adds any student who is not stopped — the action checks it, not only the list;
+- removes a member after asking, saying what she keeps and that adding her back restores it (D-070);
+- offers deletion only while the group has neither homework nor sessions, and otherwise explains why not. The deletion warning adds that invitation codes leading to the group stay valid, without a group.
+
+An adversarial review by three reviewers — security, React and the phone, logic — found no way for a student into homework, exercises, solutions, sessions or groups she was not given. It confirmed the defects the text above now answers:
+
+- **Leaving lost the past.** The first rule kept a leaver's past sessions only through attendance, which nothing writes yet. Removing then adding back reset her date and hid the group's overdue homework. This is why membership became a period.
+- **Addresses outgrowing their limit.** The file read her sessions and homework by lists of ids that grow with the years.
+- **Figures and consistency.** The list and the file disagreed on « prochaine séance »; a paused student was shown group sessions she will not see; attendance at a session later cancelled still counted; a student without a level could not be saved.
+- **The screens.**
+  - A filter select kept its old value when Next showed the list again.
+  - Slow answers pulled focus away from what she had moved on to (`src/lib/focus.ts` now hands focus on only if it was lost).
+  - The add-member select emptied before its answer.
+  - Deletion confirmations had no focus handling.
+  - An error came back after « Annuler ».
+  - A plural and a few tap targets under 44 px.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.

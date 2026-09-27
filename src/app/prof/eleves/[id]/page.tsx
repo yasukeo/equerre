@@ -1,3 +1,4 @@
+import { Phone as PhoneIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -71,6 +72,22 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
             {t("since", { date: formatLocal(profile.createdAt, "d MMMM yyyy") })}
           </span>
         </p>
+        {/* On a phone the contacts sit below the history: the numbers she calls come first. */}
+        {profile.phone || profile.guardianPhone ? (
+          <p className="flex flex-wrap gap-x-5 gap-y-1">
+            {profile.phone ? <CallLink number={profile.phone} label={t("callStudent")} /> : null}
+            {profile.guardianPhone ? (
+              <CallLink
+                number={profile.guardianPhone}
+                label={
+                  profile.guardianName
+                    ? t("callGuardianNamed", { name: profile.guardianName })
+                    : t("callGuardian")
+                }
+              />
+            ) : null}
+          </p>
+        ) : null}
       </header>
 
       <dl className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage sm:grid-cols-3">
@@ -129,6 +146,7 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
               heading={t("upcomingHeading")}
               empty={t("noUpcoming")}
               sessions={file.upcoming}
+              ahead
             />
             <SessionList heading={t("pastHeading")} empty={t("noPast")} sessions={file.past} />
           </section>
@@ -168,7 +186,7 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
-                    <ul className="flex flex-wrap gap-1.5" aria-label={homework.title}>
+                    <ul className="flex flex-wrap gap-1.5" aria-label={homework.title} role="list">
                       {homework.exercises.map((exercise) => (
                         <li key={exercise.id} title={exercise.title}>
                           <span className="sr-only">{exercise.title} : </span>
@@ -178,7 +196,7 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
                     </ul>
                   </li>
                 ))}
-                more={t("allHomework", { count: file.homework.length })}
+                more={(count) => t("olderHomework", { count })}
               />
             )}
           </section>
@@ -220,7 +238,7 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
           <NotesPanel studentId={profile.id} notes={file.notes} />
 
           <details className="rounded-md border border-quadrillage p-4">
-            <summary className="cursor-pointer font-medium">{t("profileHeading")}</summary>
+            <summary className="cursor-pointer py-2.5 font-medium">{t("profileHeading")}</summary>
             <div className="mt-4">
               <StudentForm
                 id={profile.id}
@@ -271,6 +289,18 @@ function Contact({
   );
 }
 
+function CallLink({ number, label }: { number: string; label: string }) {
+  return (
+    <a
+      href={`tel:${number.replace(/\s+/g, "")}`}
+      className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium underline underline-offset-4"
+    >
+      <PhoneIcon aria-hidden="true" className="size-4" />
+      {label}
+    </a>
+  );
+}
+
 function Phone({ number }: { number: string }) {
   return (
     <a href={`tel:${number.replace(/\s+/g, "")}`} className="tabular underline underline-offset-4">
@@ -280,7 +310,7 @@ function Phone({ number }: { number: string }) {
 }
 
 /** The first few, then the rest folded away. */
-function Recent({ items, more }: { items: ReactNode[]; more: string }) {
+function Recent({ items, more }: { items: ReactNode[]; more: (hidden: number) => string }) {
   const list = "grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage";
   return (
     <div className="grid gap-2">
@@ -289,8 +319,8 @@ function Recent({ items, more }: { items: ReactNode[]; more: string }) {
       </ul>
       {items.length > RECENT ? (
         <details className="grid gap-2">
-          <summary className="cursor-pointer text-sm underline decoration-trait underline-offset-4">
-            {more}
+          <summary className="cursor-pointer py-3 text-sm underline decoration-trait underline-offset-4">
+            {more(items.length - RECENT)}
           </summary>
           <ul className={`${list} mt-2`} role="list">
             {items.slice(RECENT)}
@@ -305,7 +335,10 @@ async function SessionList({
   heading,
   empty,
   sessions,
+  ahead = false,
 }: {
+  /** Sessions to come, soonest first: what folds away is further ahead, not older. */
+  ahead?: boolean;
   heading: string;
   empty: string;
   sessions: StudentSession[];
@@ -321,7 +354,7 @@ async function SessionList({
         <p className="text-sm text-encre-douce">{empty}</p>
       ) : (
         <Recent
-          more={t("allSessions", { count: sessions.length })}
+          more={(count) => (ahead ? t("laterSessions", { count }) : t("olderSessions", { count }))}
           items={sessions.map((session) => (
             <li key={session.id} className="grid gap-1 bg-surface px-4 py-3">
               <p className="flex flex-wrap items-center gap-x-3 gap-y-1">

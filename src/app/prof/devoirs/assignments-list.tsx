@@ -7,7 +7,7 @@ import { formatLocal } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 
 const FIELDS =
-  "id, title, due_at, student:profiles!assignments_student_id_fkey(full_name), group:groups(name, members:group_members(count)), items:assignment_items(count)" as const;
+  "id, title, due_at, student:profiles!assignments_student_id_fkey(full_name), group:groups(name, members:group_members(joined_at, left_at)), items:assignment_items(count)" as const;
 
 export async function AssignmentsList() {
   await requireViewer("tutor");
@@ -50,7 +50,15 @@ export async function AssignmentsList() {
             const recipient = assignment.student
               ? assignment.student.full_name
               : t("group", { name: assignment.group?.name ?? "" });
-            const total = assignment.student ? 1 : (assignment.group?.members[0]?.count ?? 0);
+            // The group's members when it fell due (D-070).
+            const due = Date.parse(assignment.due_at);
+            const total = assignment.student
+              ? 1
+              : (assignment.group?.members.filter(
+                  (member) =>
+                    Date.parse(member.joined_at) <= due &&
+                    (member.left_at === null || due <= Date.parse(member.left_at)),
+                ).length ?? 0);
             const done = handedIn.get(assignment.id) ?? 0;
             return (
               <li key={assignment.id} className="grid gap-1 bg-surface px-4 py-3">

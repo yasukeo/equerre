@@ -709,7 +709,7 @@ select pg_temp.seed_exercise(30, 9, 'Inéquation', 2, 'upload',
 
 insert into public.session_types (id, name, duration_min, mode, price_mad, is_group)
 values
-  (pg_temp.uid('50000000', 1), 'Cours particulier chez le professeur', 90, 'chez_prof', 200, false),
+  (pg_temp.uid('50000000', 1), 'Cours particulier chez la professeure', 90, 'chez_prof', 200, false),
   (pg_temp.uid('50000000', 2), 'Cours particulier en ligne', 60, 'en_ligne', 150, false),
   (pg_temp.uid('50000000', 3), 'Cours particulier à domicile', 90, 'domicile', 250, false),
   (pg_temp.uid('50000000', 4), 'Séance de groupe', 120, 'chez_prof', 100, true)
@@ -779,7 +779,7 @@ select
   end)::public.session_status,
   mode,
   case mode
-    when 'chez_prof' then 'Chez le professeur'
+    when 'chez_prof' then 'Chez la professeure'
     when 'domicile' then 'Au domicile de l''élève'
   end,
   case when mode = 'en_ligne' then 'https://meet.jit.si/equerre-' || coalesce(student_n, group_n) end,

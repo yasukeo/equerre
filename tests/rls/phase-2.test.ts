@@ -89,7 +89,13 @@ describe("what a group gives a student, over time", () => {
       .select("student_id")
       .eq("group_id", ids.group)
       .eq("student_id", ids.omar);
-    if (omarJoinedAt && (omarStill ?? []).length === 0) {
+    if ((omarStill ?? []).length > 0) {
+      await tutor
+        .from("group_members")
+        .update({ left_at: null })
+        .eq("group_id", ids.group)
+        .eq("student_id", ids.omar);
+    } else if (omarJoinedAt) {
       await tutor
         .from("group_members")
         .insert({ group_id: ids.group, student_id: ids.omar, joined_at: omarJoinedAt });
@@ -123,7 +129,7 @@ describe("what a group gives a student, over time", () => {
     expect(late?.message).toBe("not_assigned");
   });
 
-  it("stays with a student who leaves the group, for what she worked on", async () => {
+  it("keeps, for a student who leaves, what the group gave her while she was in it", async () => {
     // A member long before it fell due, Omar may still hand it in.
     const { error } = await omar.rpc("submit_exercise_answer", {
       p_assignment_id: past,
@@ -132,8 +138,18 @@ describe("what a group gives a student, over time", () => {
       p_file_paths: [],
     });
     expect(error).toBeNull();
+    const { count: sessionsBefore } = await omar
+      .from("sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("group_id", ids.group)
+      .lt("starts_at", new Date().toISOString());
 
-    await tutor.from("group_members").delete().eq("group_id", ids.group).eq("student_id", ids.omar);
+    // Leaving stamps the day she left, as the tutor's screen does (D-070).
+    await tutor
+      .from("group_members")
+      .update({ left_at: new Date().toISOString() })
+      .eq("group_id", ids.group)
+      .eq("student_id", ids.omar);
 
     expect(await sees(omar, past)).toBe(true);
     expect(await sees(omar, open)).toBe(false);
@@ -143,6 +159,32 @@ describe("what a group gives a student, over time", () => {
       .eq("assignment_id", past)
       .single();
     expect(graded?.grade).toBe(20);
+
+    // The group's past sessions stay hers, attendance taken or not.
+    const { count: sessionsAfter } = await omar
+      .from("sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("group_id", ids.group)
+      .lt("starts_at", new Date().toISOString());
+    expect(sessionsAfter).toBe(sessionsBefore);
+    expect(sessionsAfter ?? 0).toBeGreaterThan(0);
+  });
+
+  it("gives everything back to a student added to the group again", async () => {
+    await tutor
+      .from("group_members")
+      .update({ left_at: null })
+      .eq("group_id", ids.group)
+      .eq("student_id", ids.omar);
+
+    expect(await sees(omar, open)).toBe(true);
+    const { data } = await tutor
+      .from("group_members")
+      .select("joined_at")
+      .eq("group_id", ids.group)
+      .eq("student_id", ids.omar)
+      .single();
+    expect(data?.joined_at).toBe(omarJoinedAt);
   });
 
   it("cannot be deleted while it has homework, which would take the work with it", async () => {

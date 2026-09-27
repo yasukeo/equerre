@@ -11,7 +11,8 @@ export type RecipientOptions = {
 export async function listRecipients(): Promise<RecipientOptions> {
   const supabase = await createClient();
   const [groups, students] = await Promise.all([
-    supabase.from("groups").select("id, name, level_code, members:group_members(count)"),
+    // Members today: those who left keep what fell due before, not what is given now (D-070).
+    supabase.from("groups").select("id, name, level_code, members:group_members(left_at)"),
     supabase
       .from("profiles")
       .select("id, full_name, level_code, level:levels(label, position)")
@@ -25,7 +26,7 @@ export async function listRecipients(): Promise<RecipientOptions> {
         id: group.id,
         name: group.name,
         levelCode: group.level_code,
-        members: group.members[0]?.count ?? 0,
+        members: group.members.filter((member) => member.left_at === null).length,
       }))
       .sort((a, b) => a.name.localeCompare(b.name, "fr")),
     students: [...(students.data ?? [])]

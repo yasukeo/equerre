@@ -15,7 +15,8 @@ import { createClient } from "@/lib/supabase/server";
 const studentSchema = z
   .object({
     fullName: z.string().trim().min(2).max(120),
-    levelCode: z.string().regex(/^[0-9A-Z-]{2,12}$/),
+    // A class code may leave the level open: such a student is saved without one.
+    levelCode: z.union([z.literal(""), z.string().regex(/^[0-9A-Z-]{2,12}$/)]),
     status: z.enum(["actif", "en_pause", "arrete"]),
     objectives: z.string().trim().max(MAX_OBJECTIVES_LENGTH),
   })
@@ -63,7 +64,7 @@ export async function updateStudent(_previous: FormState, formData: FormData): P
     .from("profiles")
     .update({
       full_name: fields.fullName,
-      level_code: fields.levelCode,
+      level_code: fields.levelCode || null,
       status: fields.status,
       phone: fields.phone || null,
       school: fields.school || null,
@@ -106,6 +107,13 @@ export async function addNote(_previous: FormState, formData: FormData): Promise
   }
 
   const supabase = await createClient();
+  const { data: student } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", studentId.data)
+    .eq("role", "student")
+    .maybeSingle();
+  if (!student) return { status: "error", message: t("errors.gone"), values };
   const { error } = await supabase
     .from("student_notes")
     .insert({ student_id: studentId.data, body });

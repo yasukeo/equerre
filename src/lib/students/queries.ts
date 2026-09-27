@@ -2,12 +2,18 @@ import "server-only";
 import { progressOf, workOn, type ExerciseWork, type HomeworkProgress } from "@/lib/homework/work";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
-import { attendanceOf, averageOf, nextSessionOf, type Presence } from "./stats";
+import {
+  attendanceOf,
+  averageOf,
+  inGroupAt,
+  nextSessionOf,
+  type Membership,
+  type Presence,
+} from "./stats";
 
 // The tutor's view of her students (DECISIONS.md, D-071), read through her own session: the
 // policies give her every row, and nothing here is cached.
 
-type Client = Awaited<ReturnType<typeof createClient>>;
 export type StudentStatus = Database["public"]["Enums"]["student_status"];
 type SessionStatus = Database["public"]["Enums"]["session_status"];
 type AttendanceStatus = Database["public"]["Enums"]["attendance_status"];
@@ -35,17 +41,16 @@ function must<Result extends { data: unknown; error: unknown }>(
   return result.data ?? null;
 }
 
-async function upcomingSessions(supabase: Client, now: Date) {
-  return readAll((from, to) =>
-    supabase
-      .from("sessions")
-      .select("starts_at, student_id, group_id")
-      .eq("status", "planifiee")
-      .gte("starts_at", now.toISOString())
-      .order("starts_at")
-      .order("id")
-      .range(from, to),
-  );
+/** Sessions still to come, or under way: a request waiting for her answer counts too. */
+const UPCOMING: SessionStatus[] = ["planifiee", "en_attente"];
+
+function isUpcoming(session: { status: SessionStatus; endsAt: string }, now: Date): boolean {
+  return UPCOMING.includes(session.status) && Date.parse(session.endsAt) >= now.getTime();
+}
+
+/** A paused or stopped student is expected at no group session to come (D-060). */
+function expectedAtGroups(status: StudentStatus): boolean {
+  return status === "actif";
 }
 
 export type StudentRow = {
@@ -77,15 +82,26 @@ export async function listStudents(now: Date): Promise<{
         .order("id")
         .range(from, to),
     ),
+    // The groups she is in today.
     readAll((from, to) =>
       supabase
         .from("group_members")
-        .select("group_id, student_id, joined_at, group:groups(id, name)")
+        .select("group_id, student_id, joined_at, left_at, group:groups(id, name)")
+        .is("left_at", null)
         .order("group_id")
         .order("student_id")
         .range(from, to),
     ),
-    upcomingSessions(supabase, now),
+    readAll((from, to) =>
+      supabase
+        .from("sessions")
+        .select("starts_at, student_id, group_id")
+        .in("status", UPCOMING)
+        .gte("ends_at", now.toISOString())
+        .order("starts_at")
+        .order("id")
+        .range(from, to),
+    ),
     readAll((from, to) =>
       supabase
         .from("submissions")
@@ -103,10 +119,11 @@ export async function listStudents(now: Date): Promise<{
     if (row.grade === null) continue;
     gradesOf.set(row.student_id, [...(gradesOf.get(row.student_id) ?? []), row.grade]);
   }
-  const membershipRows = memberships.map((row) => ({
+  const membershipRows: Membership[] = memberships.map((row) => ({
     groupId: row.group_id,
     studentId: row.student_id,
     joinedAt: row.joined_at,
+    leftAt: row.left_at,
   }));
   const upcomingRows = upcoming.map((row) => ({
     startsAt: row.starts_at,
@@ -125,7 +142,9 @@ export async function listStudents(now: Date): Promise<{
         .filter((row) => row.student_id === profile.id)
         .map((row) => ({ id: row.group.id, name: row.group.name }))
         .sort((a, b) => a.name.localeCompare(b.name, "fr")),
-      nextSession: nextSessionOf(profile.id, upcomingRows, membershipRows),
+      nextSession: nextSessionOf(profile.id, upcomingRows, membershipRows, {
+        groups: expectedAtGroups(profile.status),
+      }),
       average: averageOf(gradesOf.get(profile.id) ?? []),
     })),
     levels: must(levels) ?? [],
@@ -145,7 +164,7 @@ export type StudentSession = {
   chapter: string | null;
   recap: string | null;
   homework: string | null;
-  /** For a group's session: the attendance the tutor took for her, if any. */
+  /** For a group's session that took place: the attendance the tutor took for her, if any. */
   attendance: AttendanceStatus | null;
 };
 
@@ -174,6 +193,7 @@ export type StudentFile = {
   };
   objectives: string;
   notes: { id: string; body: string; createdAt: string; updatedAt: string }[];
+  /** The groups she is in today. */
   groups: { id: string; name: string; scheduleLabel: string | null; joinedAt: string }[];
   upcoming: StudentSession[];
   past: StudentSession[];
@@ -185,7 +205,7 @@ export type StudentFile = {
 };
 
 const SESSION_FIELDS =
-  "id, starts_at, ends_at, status, mode, recap, homework, group_id, group:groups(name), session_type:session_types(name), chapter:chapters(title)" as const;
+  "id, starts_at, ends_at, status, mode, recap, homework, student_id, group_id, group:groups(name), session_type:session_types(name), chapter:chapters(title)" as const;
 
 export async function getStudentFile(id: string, now: Date): Promise<StudentFile | null> {
   const supabase = await createClient();
@@ -201,7 +221,7 @@ export async function getStudentFile(id: string, now: Date): Promise<StudentFile
   );
   if (!profile) return null;
 
-  const [settings, notes, memberships, attendanceRows, submissions, reveals, levels] =
+  const [settings, notes, membershipRows, attendanceRows, submissions, reveals, levels] =
     await Promise.all([
       supabase.from("student_settings").select("objectives").eq("student_id", id).maybeSingle(),
       readAll((from, to) =>
@@ -213,9 +233,10 @@ export async function getStudentFile(id: string, now: Date): Promise<StudentFile
           .order("id")
           .range(from, to),
       ),
+      // Every period she spent in a group, those she has left included (D-070).
       supabase
         .from("group_members")
-        .select("joined_at, group:groups(id, name, schedule_label)")
+        .select("joined_at, left_at, group:groups(id, name, schedule_label)")
         .eq("student_id", id),
       readAll((from, to) =>
         supabase
@@ -246,58 +267,44 @@ export async function getStudentFile(id: string, now: Date): Promise<StudentFile
       supabase.from("levels").select("code, label").order("position"),
     ]);
 
-  const groups = (must(memberships) ?? [])
-    .map((row) => ({
-      id: row.group.id,
-      name: row.group.name,
-      scheduleLabel: row.group.schedule_label,
+  const periods = (must(membershipRows) ?? []).map((row) => ({
+    group: row.group,
+    membership: {
+      groupId: row.group.id,
+      studentId: id,
       joinedAt: row.joined_at,
+      leftAt: row.left_at,
+    } satisfies Membership,
+  }));
+  const groups = periods
+    .filter((period) => period.membership.leftAt === null)
+    .map((period) => ({
+      id: period.group.id,
+      name: period.group.name,
+      scheduleLabel: period.group.schedule_label,
+      joinedAt: period.membership.joinedAt,
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "fr"));
-  const groupIds = groups.map((group) => group.id);
-  const attendedIds = attendanceRows.map((row) => row.session_id);
-  const workedOn = [...new Set([...submissions, ...reveals].map((row) => row.assignment_id))];
+  // Every group she was ever in: a short list, whatever her history, so it fits any address.
+  const everGroupIds = [...new Set(periods.map((period) => period.group.id))];
+  const inGroupWhen = (groupId: string, at: string) =>
+    periods.some((period) => period.group.id === groupId && inGroupAt(period.membership, at));
 
-  // Her sessions as the database lets her see them (D-070): her own; her groups' since she
-  // joined; and any other group's session the tutor took her attendance at.
-  const [own, ofGroups, attended, assignments] = await Promise.all([
-    readAll((from, to) =>
-      supabase
-        .from("sessions")
-        .select(SESSION_FIELDS)
-        .eq("student_id", id)
-        .order("starts_at")
-        .order("id")
-        .range(from, to),
-    ),
-    groupIds.length === 0
-      ? []
-      : readAll((from, to) =>
-          supabase
-            .from("sessions")
-            .select(SESSION_FIELDS)
-            .in("group_id", groupIds)
-            .order("starts_at")
-            .order("id")
-            .range(from, to),
-        ),
-    attendedIds.length === 0
-      ? []
-      : readAll((from, to) =>
-          supabase
-            .from("sessions")
-            .select(SESSION_FIELDS)
-            .in("id", attendedIds)
-            .order("starts_at")
-            .order("id")
-            .range(from, to),
-        ),
-    // Her homework, by the same rule: her own, her groups' still due when she joined, and
-    // any she worked on.
+  const [sessionRows, assignments] = await Promise.all([
     readAll((from, to) => {
       const filters = [`student_id.eq.${id}`];
-      if (groupIds.length > 0) filters.push(`group_id.in.(${groupIds.join(",")})`);
-      if (workedOn.length > 0) filters.push(`id.in.(${workedOn.join(",")})`);
+      if (everGroupIds.length > 0) filters.push(`group_id.in.(${everGroupIds.join(",")})`);
+      return supabase
+        .from("sessions")
+        .select(SESSION_FIELDS)
+        .or(filters.join(","))
+        .order("starts_at")
+        .order("id")
+        .range(from, to);
+    }),
+    readAll((from, to) => {
+      const filters = [`student_id.eq.${id}`];
+      if (everGroupIds.length > 0) filters.push(`group_id.in.(${everGroupIds.join(",")})`);
       return supabase
         .from("assignments")
         .select(
@@ -310,19 +317,20 @@ export async function getStudentFile(id: string, now: Date): Promise<StudentFile
     }),
   ]);
 
-  const joinedAt = new Map(groups.map((group) => [group.id, Date.parse(group.joinedAt)]));
   const attendanceOfSession = new Map(attendanceRows.map((row) => [row.session_id, row.status]));
-  const sessions = new Map<string, StudentSession>();
-  for (const row of [...own, ...ofGroups, ...attended]) {
-    const joined = row.group_id ? joinedAt.get(row.group_id) : undefined;
-    const hers =
-      row.group_id === null ||
-      attendanceOfSession.has(row.id) ||
-      (joined !== undefined && joined <= Date.parse(row.starts_at));
-    if (!hers) continue;
-    sessions.set(row.id, {
+  const groupsExpected = expectedAtGroups(profile.status);
+
+  // Her sessions as the database lets her see them (D-070): her own, and her groups' that
+  // started while she was in them.
+  const sessions: StudentSession[] = sessionRows
+    .filter(
+      (row) =>
+        row.student_id === id ||
+        (row.group_id !== null && inGroupWhen(row.group_id, row.starts_at)),
+    )
+    .map((row) => ({
       id: row.id,
-      own: row.group_id === null,
+      own: row.student_id === id,
       startsAt: row.starts_at,
       endsAt: row.ends_at,
       status: row.status,
@@ -332,19 +340,14 @@ export async function getStudentFile(id: string, now: Date): Promise<StudentFile
       chapter: row.chapter?.title ?? null,
       recap: row.recap,
       homework: row.homework,
-      attendance: attendanceOfSession.get(row.id) ?? null,
-    });
-  }
-  const ordered = [...sessions.values()].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-  const upcoming = ordered.filter(
-    (session) =>
-      Date.parse(session.endsAt) >= now.getTime() &&
-      (session.status === "planifiee" || session.status === "en_attente"),
+      // Attendance means something only at a session that took place.
+      attendance: row.status === "terminee" ? (attendanceOfSession.get(row.id) ?? null) : null,
+    }));
+  const upcoming = sessions.filter(
+    (session) => isUpcoming(session, now) && (session.own || groupsExpected),
   );
-  const past = ordered
-    .filter(
-      (session) => !upcoming.includes(session) && Date.parse(session.startsAt) < now.getTime(),
-    )
+  const past = sessions
+    .filter((session) => !isUpcoming(session, now) && Date.parse(session.startsAt) < now.getTime())
     .reverse();
 
   const presences: Presence[] = past.flatMap((session): Presence[] =>
@@ -355,13 +358,17 @@ export async function getStudentFile(id: string, now: Date): Promise<StudentFile
         : [],
   );
 
-  const workedSet = new Set(workedOn);
+  // Her homework, by the same rule: her own, her groups' that fell due while she was in them,
+  // and any she worked on. A stopped student keeps only the last (D-060).
+  const workedOn = new Set([...submissions, ...reveals].map((row) => row.assignment_id));
+  const stopped = profile.status === "arrete";
   const homework = assignments
-    .filter(
-      (assignment) =>
-        assignment.group_id === null ||
-        workedSet.has(assignment.id) ||
-        (joinedAt.get(assignment.group_id) ?? Infinity) <= Date.parse(assignment.due_at),
+    .filter((assignment) =>
+      stopped
+        ? workedOn.has(assignment.id)
+        : assignment.group_id === null ||
+          workedOn.has(assignment.id) ||
+          inGroupWhen(assignment.group_id, assignment.due_at),
     )
     .map((assignment) => {
       const exercises = [...assignment.items]

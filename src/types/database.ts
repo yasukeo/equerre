@@ -277,16 +277,19 @@ export type Database = {
         Row: {
           group_id: string
           joined_at: string
+          left_at: string | null
           student_id: string
         }
         Insert: {
           group_id: string
           joined_at?: string
+          left_at?: string | null
           student_id: string
         }
         Update: {
           group_id?: string
           joined_at?: string
+          left_at?: string | null
           student_id?: string
         }
         Relationships: [

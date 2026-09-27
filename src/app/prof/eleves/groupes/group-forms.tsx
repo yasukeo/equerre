@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field, SelectField } from "@/components/ui/field";
 import { FormMessage } from "@/components/ui/form-message";
 import { formatLocal } from "@/lib/dates";
+import { handFocus } from "@/lib/focus";
 import { fieldError, initialFormState, type FormState } from "@/lib/form-state";
 import { MAX_GROUP_NAME_LENGTH, MAX_SCHEDULE_LABEL_LENGTH } from "@/lib/students/limits";
 import { addMember, createGroup, deleteGroup, removeMember, updateGroup } from "./actions";
@@ -135,7 +136,7 @@ export function MemberList({ groupId, members }: { groupId: string; members: Mem
               key={member.id}
               groupId={groupId}
               member={member}
-              onRemoved={() => heading.current?.focus()}
+              onRemoved={(from) => handFocus(heading.current, from)}
             />
           ))}
         </ul>
@@ -151,26 +152,29 @@ function MemberItem({
 }: {
   groupId: string;
   member: Member;
-  onRemoved: () => void;
+  onRemoved: (from: HTMLElement | null) => void;
 }) {
   const t = useTranslations("tutor.groups");
   const [confirming, setConfirming] = useState(false);
+  const item = useRef<HTMLLIElement>(null);
   // Once removed, the page drops this row: the focus goes to the list's heading.
-  const [state, action, pending] = useGroupAction(removeMember, t("errors.unknown"), onRemoved);
+  const [state, action, pending] = useGroupAction(removeMember, t("errors.unknown"), () =>
+    onRemoved(item.current),
+  );
   const confirmButton = useRef<HTMLButtonElement>(null);
   const removeButton = useRef<HTMLButtonElement>(null);
   const moved = useRef(false);
   useEffect(() => {
     if (!moved.current) return;
     moved.current = false;
-    (confirming ? confirmButton.current : removeButton.current)?.focus();
+    handFocus(confirming ? confirmButton.current : removeButton.current, item.current);
   }, [confirming]);
   const toggle = (next: boolean) => {
     moved.current = true;
     setConfirming(next);
   };
   return (
-    <li className="grid gap-2 bg-surface px-4 py-3">
+    <li ref={item} className="grid gap-2 bg-surface px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="grid gap-0.5">
           <Link
@@ -224,7 +228,7 @@ function MemberItem({
           </div>
         </div>
       ) : null}
-      {state.status === "error" ? (
+      {confirming && state.status === "error" ? (
         <p role="alert" className="text-sm text-stylo-rouge">
           {state.message}
         </p>
@@ -243,19 +247,43 @@ export function AddMember({
 }) {
   const t = useTranslations("tutor.groups");
   const [studentId, setStudentId] = useState("");
-  const [state, action, pending] = useGroupAction(addMember, t("errors.unknown"));
+  // Cleared once she is in, not before: a refusal leaves the choice to try again.
+  const [state, action, pending] = useGroupAction(addMember, t("errors.unknown"), () =>
+    setStudentId(""),
+  );
+  // The last student added takes the form away with its button; focus goes to what says so.
+  const allIn = useRef<HTMLParagraphElement>(null);
+  const form = useRef<HTMLFormElement>(null);
+  const wasOpen = useRef(candidates.length > 0);
+  useEffect(() => {
+    if (wasOpen.current && candidates.length === 0) handFocus(allIn.current, form.current);
+    wasOpen.current = candidates.length > 0;
+  }, [candidates.length]);
+
+  // A confirmation belongs to the student just added: choosing the next one puts it away.
+  const message =
+    state.status === "error" || (state.status === "success" && studentId === "")
+      ? state
+      : initialFormState;
 
   if (candidates.length === 0) {
-    return <p className="text-sm text-encre-douce">{t("allIn")}</p>;
+    return (
+      <div className="grid gap-2">
+        <FormMessage state={message} />
+        <p ref={allIn} tabIndex={-1} className="text-sm text-encre-douce">
+          {t("allIn")}
+        </p>
+      </div>
+    );
   }
   return (
     <form
+      ref={form}
       className="grid gap-3"
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
         send(action, { groupId, studentId });
-        setStudentId("");
       }}
     >
       <SelectField
@@ -272,7 +300,7 @@ export function AddMember({
           </option>
         ))}
       </SelectField>
-      <FormMessage state={state} />
+      <FormMessage state={message} />
       <Button type="submit" disabled={pending} className="justify-self-start">
         {pending ? t("adding") : t("add")}
       </Button>
@@ -285,9 +313,23 @@ export function DeleteGroup({ id, hasHistory }: { id: string; hasHistory: boolea
   const t = useTranslations("tutor.groups");
   const [confirming, setConfirming] = useState(false);
   const [state, action, pending] = useGroupAction(deleteGroup, t("errors.unknown"));
+  // The button pressed gives way to the other: focus follows it.
+  const box = useRef<HTMLDivElement>(null);
+  const confirmButton = useRef<HTMLButtonElement>(null);
+  const startButton = useRef<HTMLButtonElement>(null);
+  const moved = useRef(false);
+  useEffect(() => {
+    if (!moved.current) return;
+    moved.current = false;
+    handFocus(confirming ? confirmButton.current : startButton.current, box.current);
+  }, [confirming]);
+  const toggle = (next: boolean) => {
+    moved.current = true;
+    setConfirming(next);
+  };
 
   return (
-    <div className="grid gap-3">
+    <div ref={box} className="grid gap-3">
       <p className="text-sm text-encre-douce">
         {hasHistory ? t("errors.hasHistory") : t("deleteHint")}
       </p>
@@ -295,6 +337,7 @@ export function DeleteGroup({ id, hasHistory }: { id: string; hasHistory: boolea
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm">{t("deleteConfirm")}</span>
           <Button
+            ref={confirmButton}
             type="button"
             variant="outline"
             disabled={pending}
@@ -302,21 +345,17 @@ export function DeleteGroup({ id, hasHistory }: { id: string; hasHistory: boolea
           >
             {t("delete")}
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={pending}
-            onClick={() => setConfirming(false)}
-          >
+          <Button type="button" variant="ghost" disabled={pending} onClick={() => toggle(false)}>
             {t("keep")}
           </Button>
         </div>
       ) : (
         <Button
+          ref={startButton}
           type="button"
           variant="outline"
           className="justify-self-start"
-          onClick={() => setConfirming(true)}
+          onClick={() => toggle(true)}
         >
           {t("delete")}
         </Button>

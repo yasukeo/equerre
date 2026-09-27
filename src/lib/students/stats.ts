@@ -55,30 +55,46 @@ export type UpcomingSession = {
   groupId: string | null;
 };
 
-export type Membership = { groupId: string; studentId: string; joinedAt: string };
+export type Membership = {
+  groupId: string;
+  studentId: string;
+  joinedAt: string;
+  /** Null while she is in the group. */
+  leftAt: string | null;
+};
+
+/** Whether a membership covers a moment: from the day she joined to the day she left (D-070). */
+export function inGroupAt(membership: Membership, at: string): boolean {
+  const moment = Date.parse(at);
+  return (
+    Date.parse(membership.joinedAt) <= moment &&
+    (membership.leftAt === null || moment < Date.parse(membership.leftAt))
+  );
+}
 
 /**
- * Her next session: one of her own, or one of a group she belonged to by then — the rule the
- * database applies to what she can see (D-070).
+ * Her next session: one of her own, or one of a group she is in by then — the rule the
+ * database applies to what she can see (D-070). A paused or stopped student is expected at no
+ * group session (D-060), so those are left out for her.
  */
 export function nextSessionOf(
   studentId: string,
   upcoming: readonly UpcomingSession[],
   memberships: readonly Membership[],
+  { groups = true }: { groups?: boolean } = {},
 ): string | null {
-  const joined = new Map(
-    memberships
-      .filter((membership) => membership.studentId === studentId)
-      .map((membership) => [membership.groupId, Date.parse(membership.joinedAt)]),
-  );
+  const hers = memberships.filter((membership) => membership.studentId === studentId);
   let next: string | null = null;
   for (const session of upcoming) {
-    const hers =
+    const expected =
       session.studentId === studentId ||
-      (session.groupId !== null &&
-        joined.has(session.groupId) &&
-        (joined.get(session.groupId) ?? Infinity) <= Date.parse(session.startsAt));
-    if (hers && (next === null || Date.parse(session.startsAt) < Date.parse(next))) {
+      (groups &&
+        session.groupId !== null &&
+        hers.some(
+          (membership) =>
+            membership.groupId === session.groupId && inGroupAt(membership, session.startsAt),
+        ));
+    if (expected && (next === null || Date.parse(session.startsAt) < Date.parse(next))) {
       next = session.startsAt;
     }
   }

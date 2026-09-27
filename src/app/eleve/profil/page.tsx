@@ -36,7 +36,9 @@ async function ProfileDetails() {
     supabase
       .from("group_members")
       .select("group:groups(name, schedule_label)")
-      .eq("student_id", viewer.id),
+      .eq("student_id", viewer.id)
+      // The groups she is in today; those she left keep her past, not her profile (D-070).
+      .is("left_at", null),
   ]);
 
   const profile = profileResult.data;

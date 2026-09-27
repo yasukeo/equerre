@@ -64,9 +64,15 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
     assignment.group_id
       ? supabase
           .from("group_members")
-          .select("student:profiles(id, full_name)")
+          .select("joined_at, left_at, student:profiles(id, full_name)")
           .eq("group_id", assignment.group_id)
-      : Promise.resolve({ data: [] as { student: { id: string; full_name: string } | null }[] }),
+      : Promise.resolve({
+          data: [] as {
+            joined_at: string;
+            left_at: string | null;
+            student: { id: string; full_name: string } | null;
+          }[],
+        }),
     supabase
       .from("submissions")
       .select(
@@ -83,15 +89,17 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
     .sort((a, b) => a.position - b.position)
     .flatMap((item) => (item.exercise ? [item.exercise] : []));
 
-  // Everyone the homework reaches, and anyone who answered it even if they have since left the
-  // group: their work is still here.
+  // Everyone the homework reaches — the group's members when it fell due (D-070) — and anyone
+  // who answered it: their work is still here.
+  const due = Date.parse(assignment.due_at);
+  const reached = (members.data ?? []).filter(
+    (member) =>
+      Date.parse(member.joined_at) <= due &&
+      (member.left_at === null || due <= Date.parse(member.left_at)),
+  );
   const students = new Map<string, string>();
   if (assignment.student) students.set(assignment.student.id, assignment.student.full_name);
-  for (const row of [
-    ...(members.data ?? []),
-    ...(submissions.data ?? []),
-    ...(reveals.data ?? []),
-  ]) {
+  for (const row of [...reached, ...(submissions.data ?? []), ...(reveals.data ?? [])]) {
     if (row.student) students.set(row.student.id, row.student.full_name);
   }
   const rows = [...students].sort((a, b) => a[1].localeCompare(b[1], "fr"));

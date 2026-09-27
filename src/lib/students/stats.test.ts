@@ -36,7 +36,9 @@ describe("averageOf", () => {
 describe("nextSessionOf", () => {
   const SALMA = "salma";
   const G = "group";
-  const memberships = [{ groupId: G, studentId: SALMA, joinedAt: "2026-10-01T00:00:00Z" }];
+  const memberships = [
+    { groupId: G, studentId: SALMA, joinedAt: "2026-10-01T00:00:00Z", leftAt: null },
+  ];
 
   it("takes the soonest of her own and her groups' sessions", () => {
     expect(
@@ -63,5 +65,25 @@ describe("nextSessionOf", () => {
         memberships,
       ),
     ).toBeNull();
+  });
+
+  it("ignores a group's sessions after she left it", () => {
+    expect(
+      nextSessionOf(
+        SALMA,
+        [{ startsAt: "2026-10-20T17:00:00Z", studentId: null, groupId: G }],
+        [{ ...memberships[0]!, leftAt: "2026-10-15T00:00:00Z" }],
+      ),
+    ).toBeNull();
+  });
+
+  it("leaves group sessions out for a student who is not expected at them", () => {
+    const upcoming = [
+      { startsAt: "2026-10-06T17:00:00Z", studentId: null, groupId: G },
+      { startsAt: "2026-10-09T17:00:00Z", studentId: SALMA, groupId: null },
+    ];
+    expect(nextSessionOf(SALMA, upcoming, memberships, { groups: false })).toBe(
+      "2026-10-09T17:00:00Z",
+    );
   });
 });

@@ -63,7 +63,10 @@ async function Students({
 
   // The filters travel in the address, so a filtered list can be kept and shared as a link.
   const query = one(params.q).trim();
-  const level = one(params.niveau);
+  // An address with a level that does not exist lists everyone rather than no one.
+  const level = levels.some((option) => option.code === one(params.niveau))
+    ? one(params.niveau)
+    : "";
   const status: StatusFilter = STATUS_FILTERS.includes(one(params.statut) as StatusFilter)
     ? (one(params.statut) as StatusFilter)
     : "current";
@@ -90,10 +93,13 @@ async function Students({
   return (
     <div className="grid gap-4">
       <form
+        // Drawn afresh for each set of filters: Next keeps the page between visits, and a select
+        // keeps what it showed, whatever its default now says.
+        key={[query, level, status, withoutSession].join("|")}
         method="get"
         role="search"
         aria-label={t("filters")}
-        className="grid gap-3 rounded-md border border-quadrillage bg-surface p-4 sm:grid-cols-2 lg:grid-cols-[1fr_12rem_12rem]"
+        className="grid gap-3 rounded-md border border-quadrillage bg-surface p-4 sm:grid-cols-2 lg:grid-cols-[1fr_12rem_14rem]"
       >
         <div className="grid gap-1.5">
           <Label htmlFor="filter-q">{t("search")}</Label>
@@ -136,7 +142,7 @@ async function Students({
           </button>
           <Link
             href="/prof/eleves"
-            className="text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+            className="inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
           >
             {t("reset")}
           </Link>
@@ -144,12 +150,10 @@ async function Students({
       </form>
 
       <p aria-live="polite" className="text-sm text-encre-douce">
-        {t("count", { count: shown.length })}
+        {shown.length === 0 ? t("empty") : t("count", { count: shown.length })}
       </p>
 
-      {shown.length === 0 ? (
-        <p className="text-encre-douce">{t("empty")}</p>
-      ) : (
+      {shown.length === 0 ? null : (
         <ul
           className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage"
           role="list"

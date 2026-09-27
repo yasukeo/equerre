@@ -39,7 +39,7 @@ async function readGroup(formData: FormData) {
         fieldErrors: fieldErrorsFor(parsed.error, {
           name: t("errors.name"),
           levelCode: t("errors.level"),
-          scheduleLabel: tForms("tooLong"),
+          scheduleLabel: t("errors.scheduleLabel"),
         }),
         values,
       } satisfies FormState,
@@ -71,6 +71,8 @@ export async function createGroup(_previous: FormState, formData: FormData): Pro
       values: read.values,
     };
   }
+  // The list she may come back to shows the new group.
+  refresh();
   redirect(`/prof/eleves/groupes/${data.id}`);
 }
 
@@ -117,6 +119,7 @@ export async function deleteGroup(_previous: FormState, formData: FormData): Pro
       message: error.code === "23503" ? t("errors.hasHistory") : t("errors.unknown"),
     };
   }
+  refresh();
   redirect("/prof/eleves/groupes");
 }
 
@@ -129,9 +132,37 @@ export async function addMember(_previous: FormState, formData: FormData): Promi
   if (!studentId.success) return { status: "error", message: t("errors.pickStudent") };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  // A student, and one whose lessons go on: a stopped one takes part in nothing (D-060).
+  const { data: student } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", studentId.data)
+    .eq("role", "student")
+    .neq("status", "arrete")
+    .maybeSingle();
+  if (!student) return { status: "error", message: t("errors.pickStudent") };
+
+  const { data: membership } = await supabase
     .from("group_members")
-    .insert({ group_id: groupId.data, student_id: studentId.data });
+    .select("left_at")
+    .eq("group_id", groupId.data)
+    .eq("student_id", studentId.data)
+    .maybeSingle();
+  if (membership && membership.left_at === null) {
+    return { status: "error", message: t("errors.alreadyMember") };
+  }
+
+  // Back in a group she left: the period goes on as if she had never gone, so a removal made
+  // by mistake undoes itself (D-070).
+  const { error } = membership
+    ? await supabase
+        .from("group_members")
+        .update({ left_at: null })
+        .eq("group_id", groupId.data)
+        .eq("student_id", studentId.data)
+    : await supabase
+        .from("group_members")
+        .insert({ group_id: groupId.data, student_id: studentId.data });
   if (error) {
     return {
       status: "error",
@@ -139,7 +170,7 @@ export async function addMember(_previous: FormState, formData: FormData): Promi
     };
   }
   refresh();
-  return { status: "success", message: t("added") };
+  return { status: "success", message: membership ? t("readded") : t("added") };
 }
 
 export async function removeMember(_previous: FormState, formData: FormData): Promise<FormState> {
@@ -150,11 +181,13 @@ export async function removeMember(_previous: FormState, formData: FormData): Pr
   if (!groupId.success || !studentId.success) return { status: "error", message: t("errors.gone") };
 
   const supabase = await createClient();
+  // She leaves on this day; what the group gave her until now stays hers (D-070).
   const { error } = await supabase
     .from("group_members")
-    .delete()
+    .update({ left_at: new Date().toISOString() })
     .eq("group_id", groupId.data)
-    .eq("student_id", studentId.data);
+    .eq("student_id", studentId.data)
+    .is("left_at", null);
   if (error) return { status: "error", message: t("errors.unknown") };
   refresh();
   return { status: "success", message: t("removed") };

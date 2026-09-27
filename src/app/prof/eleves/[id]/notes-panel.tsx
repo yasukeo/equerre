@@ -7,6 +7,7 @@ import { startTransition, useActionState, useEffect, useRef, useState } from "re
 import { Button } from "@/components/ui/button";
 import { Label, Textarea } from "@/components/ui/input";
 import { formatLocal } from "@/lib/dates";
+import { handFocus } from "@/lib/focus";
 import { initialFormState, type FormState } from "@/lib/form-state";
 import { MAX_NOTE_LENGTH } from "@/lib/students/limits";
 import { addNote, deleteNote, updateNote } from "./actions";
@@ -45,7 +46,7 @@ export function NotesPanel({ studentId, notes }: { studentId: string; notes: Not
   const [state, action, pending] = useNoteAction(addNote, t("errors.unknown"), () => setBody(""));
   // A note that goes takes focus with it: it is handed to the new-note box.
   const field = useRef<HTMLTextAreaElement>(null);
-  const refocus = () => field.current?.focus();
+  const refocus = (from: HTMLElement | null) => handFocus(field.current, from);
 
   return (
     <section aria-labelledby="student-notes" className="grid gap-3">
@@ -87,7 +88,7 @@ export function NotesPanel({ studentId, notes }: { studentId: string; notes: Not
       {notes.length === 0 ? (
         <p className="text-sm text-encre-douce">{t("noNotes")}</p>
       ) : (
-        <ol className="grid gap-2">
+        <ol className="grid gap-2" role="list">
           {notes.map((note) => (
             <NoteItem key={note.id} note={note} onRemoved={refocus} />
           ))}
@@ -97,7 +98,13 @@ export function NotesPanel({ studentId, notes }: { studentId: string; notes: Not
   );
 }
 
-function NoteItem({ note, onRemoved }: { note: Note; onRemoved: () => void }) {
+function NoteItem({
+  note,
+  onRemoved,
+}: {
+  note: Note;
+  onRemoved: (from: HTMLElement | null) => void;
+}) {
   const t = useTranslations("tutor.student");
   const [mode, setMode] = useState<"read" | "edit" | "confirmDelete">("read");
   const editing = mode === "edit";
@@ -108,12 +115,21 @@ function NoteItem({ note, onRemoved }: { note: Note; onRemoved: () => void }) {
     setKnown(note.body);
     if (!editing) setBody(note.body);
   }
+  const item = useRef<HTMLLIElement>(null);
   const [saved, save, saving] = useNoteAction(updateNote, t("errors.unknown"), () =>
     toggle("read"),
   );
-  const [removed, remove, removing] = useNoteAction(deleteNote, t("errors.unknown"), onRemoved);
+  const [removed, remove, removing] = useNoteAction(deleteNote, t("errors.unknown"), () =>
+    onRemoved(item.current),
+  );
+  // An error belongs to the attempt that caused it: « Annuler » or « Garder » puts it away.
+  const [shown, setShown] = useState<"save" | "delete" | null>(null);
   const error =
-    editing && saved.status === "error" ? saved : removed.status === "error" ? removed : null;
+    shown === "save" && saved.status === "error"
+      ? saved
+      : shown === "delete" && removed.status === "error"
+        ? removed
+        : null;
 
   // Focus follows the buttons that give way to a form and back; reset once used.
   const moved = useRef(false);
@@ -123,21 +139,24 @@ function NoteItem({ note, onRemoved }: { note: Note; onRemoved: () => void }) {
   useEffect(() => {
     if (!moved.current) return;
     moved.current = false;
-    (mode === "edit"
-      ? field.current
-      : mode === "confirmDelete"
-        ? confirmButton.current
-        : editButton.current
-    )?.focus();
+    handFocus(
+      mode === "edit"
+        ? field.current
+        : mode === "confirmDelete"
+          ? confirmButton.current
+          : editButton.current,
+      item.current,
+    );
   }, [mode]);
   function toggle(next: "read" | "edit" | "confirmDelete") {
     moved.current = true;
+    setShown(null);
     setMode(next);
   }
 
   const written = date(note.createdAt);
   return (
-    <li className="grid gap-2 rounded-md border border-quadrillage bg-surface p-3">
+    <li ref={item} className="grid gap-2 rounded-md border border-quadrillage bg-surface p-3">
       <p className="text-xs text-encre-douce">
         {written}
         {note.updatedAt !== note.createdAt
@@ -150,6 +169,7 @@ function NoteItem({ note, onRemoved }: { note: Note; onRemoved: () => void }) {
           noValidate
           onSubmit={(event) => {
             event.preventDefault();
+            setShown("save");
             send(save, { id: note.id, body });
           }}
         >
@@ -193,7 +213,10 @@ function NoteItem({ note, onRemoved }: { note: Note; onRemoved: () => void }) {
                 size="sm"
                 variant="outline"
                 disabled={removing}
-                onClick={() => send(remove, { id: note.id })}
+                onClick={() => {
+                  setShown("delete");
+                  send(remove, { id: note.id });
+                }}
               >
                 {t("delete")}
               </Button>
