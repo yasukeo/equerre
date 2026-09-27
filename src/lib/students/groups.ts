@@ -54,8 +54,10 @@ export type GroupFile = {
   }[];
   /** Students who could join: every student not in it, stopped ones excepted (D-060). */
   candidates: { id: string; name: string; levelLabel: string | null }[];
-  /** Homework or sessions hold on to the group: it can be renamed or emptied, not deleted. */
+  /** Homework, sessions or messages hold on to the group: renamed or emptied, not deleted. */
   hasHistory: boolean;
+  /** The group's conversation (D-080). */
+  conversationId: string | null;
   levels: LevelOption[];
 };
 
@@ -72,7 +74,7 @@ export async function getGroup(id: string): Promise<GroupFile | null> {
   );
   if (!group) return null;
 
-  const [students, assignments, sessions, levels] = await Promise.all([
+  const [students, assignments, sessions, levels, conversation] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, full_name, status, level:levels(label)")
@@ -82,6 +84,7 @@ export async function getGroup(id: string): Promise<GroupFile | null> {
     supabase.from("assignments").select("id", { count: "exact", head: true }).eq("group_id", id),
     supabase.from("sessions").select("id", { count: "exact", head: true }).eq("group_id", id),
     supabase.from("levels").select("code, label").order("position"),
+    supabase.from("conversations").select("id, last_message_at").eq("group_id", id).maybeSingle(),
   ]);
   if (assignments.error || sessions.error) {
     throw new Error("Could not read the group's history", {
@@ -115,7 +118,10 @@ export async function getGroup(id: string): Promise<GroupFile | null> {
         name: student.full_name,
         levelLabel: student.level?.label ?? null,
       })),
-    hasHistory: (assignments.count ?? 0) + (sessions.count ?? 0) > 0,
+    hasHistory:
+      (assignments.count ?? 0) + (sessions.count ?? 0) > 0 ||
+      Boolean(conversation.data?.last_message_at),
+    conversationId: conversation.data?.id ?? null,
     levels: must(levels) ?? [],
   };
 }

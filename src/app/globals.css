@@ -218,3 +218,14 @@
     stroke-dashoffset: 0;
   }
 }
+
+/* A formula in a message (D-083): it scrolls sideways inside its bubble rather than widening
+   the page, and nothing it draws can reach past its own box onto the rest of the thread. */
+.chat-math {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  vertical-align: middle;
+  contain: paint;
+}

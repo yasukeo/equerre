@@ -11,6 +11,8 @@ type NavLinkProps = {
   children: ReactNode;
   /** Match only this exact path, not its children (for section homes). */
   exact?: boolean;
+  /** Other places it stands for, as « Plus » does on a phone for pages the bar cannot hold. */
+  also?: string[];
 };
 
 /**
@@ -31,13 +33,19 @@ export function NavLink(props: NavLinkProps) {
 
 function CurrentNavLink(props: NavLinkProps) {
   const pathname = usePathname();
+  const under = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const active = props.exact
     ? pathname === props.href
-    : pathname === props.href || pathname.startsWith(`${props.href}/`);
+    : under(props.href) || (props.also ?? []).some(under);
   return <NavLinkView {...props} active={active} />;
 }
 
-function NavLinkView({ href, icon, children, active }: NavLinkProps & { active: boolean }) {
+function NavLinkView({
+  href,
+  icon,
+  children,
+  active,
+}: Omit<NavLinkProps, "also"> & { active: boolean }) {
   return (
     <Link
       href={href}

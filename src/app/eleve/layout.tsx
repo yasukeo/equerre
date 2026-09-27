@@ -1,10 +1,16 @@
-import { BookOpen, CalendarDays, ClipboardList, House, UserRound } from "lucide-react";
+import {
+  BookOpen,
+  CalendarDays,
+  ClipboardList,
+  House,
+  MessageCircle,
+  UserRound,
+} from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/shell/app-shell";
 import { NavLink } from "@/components/shell/nav-link";
 
-// Messages joins the bottom bar when its phase ships.
 export default async function StudentLayout({ children }: { children: ReactNode }) {
   const t = await getTranslations("nav.student");
 
@@ -32,6 +38,11 @@ export default async function StudentLayout({ children }: { children: ReactNode 
           <li className="flex min-w-0 flex-1 md:block">
             <NavLink href="/eleve/seances" icon={<CalendarDays aria-hidden="true" />}>
               {t("sessions")}
+            </NavLink>
+          </li>
+          <li className="flex min-w-0 flex-1 md:block">
+            <NavLink href="/eleve/messages" icon={<MessageCircle aria-hidden="true" />}>
+              {t("messages")}
             </NavLink>
           </li>
           <li className="flex min-w-0 flex-1 md:block">

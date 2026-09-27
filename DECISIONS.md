@@ -474,6 +474,60 @@ Three reviewers (security, logic and time, screens and phone) found no way for a
   - « Aujourd’hui » in the tutor's navigation became « Accueil », as DESIGN.md has it, so that six items fit a phone's bottom bar.
 - **Open concerns.** A paused student's pending requests keep their slots until the tutor answers them. An email Resend accepted but reported as failed would be sent again on the next run.
 
+## Chat and notifications (phase 3)
+
+**D-080 — Conversations, and who reads them.**
+Every student has one conversation with the tutor, and every group has one (`20260927202233`). Triggers create them with the student or the group, so no page ever creates one when it is opened, and a link to a conversation always has somewhere to go. `private.conversation_access` says from when a person reads a conversation, or that she does not:
+
+- the tutor reads them all;
+- a student reads her own while her follow-up is active or paused (D-060); a stopped student reads none, and nobody can write to her;
+- a group's current member reads its conversation from the day she joined (D-070). What was said before she came, about other students, is not hers, and leaving the group closes it to her.
+
+The conversations, messages and read marks policies, the storage policies of attached files and Realtime all go through that one function, so the three ways in agree. A message keeps its author's name as it was when sent: in a group, students cannot read one another's profiles, and a name is all the thread needs. Read marks of a group are the tutor's to see; a student sees her own, and the tutor's on her own conversation, which is what « Lu » shows. `tests/rls/chat.test.ts` checks this through the API: a third student reads and writes nothing in someone else's conversation, a newcomer does not read the group's past, a leaver reads nothing more, a stopped student is closed both ways, and a file is given only with the message that holds it.
+
+A group whose conversation holds messages has a history, like its homework and sessions: it can be emptied or renamed, not deleted, and an empty one is deleted with its conversation.
+
+**D-081 — Sending, on a weak connection.**
+A message's id is made on the phone (`crypto.randomUUID`) and kept by the database. `public.send_message` returns the first answer again when the same id comes back from the same person, so a retry after a dropped connection never makes two messages. Before it leaves, a message goes into an outbox kept on the device (`localStorage`, per person and per conversation, and in memory when the device refuses to keep it), and shows at once. The outbox is sent in order by one tab at a time (Web Locks), when the page opens, when it is shown again, when the network returns, every 15 seconds while the line fails, and on « Réessayer ». Each send gives up after 20 seconds, and a message that reached the server anyway is found again by its id. The browser calls `send_message` and `mark_conversation_read` itself, with her session, rather than through server actions: the database checks everything, and Next runs server actions one after another, so a send would wait behind a slow read mark. A refusal that will not change (the conversation closed, a file gone, a text too long) takes the message out of the outbox, puts its text back in the field, and says so, with « Supprimer ». Checked in the browser: a message sent with the network cut stayed in the outbox through a reload, left once the page was back, and was stored once.
+
+`send_message` also checks what a table cannot:
+
+- The text is 4,000 characters at most. A message holds five files at most.
+- Twenty messages a minute and two hundred an hour, counted in `private.rate_limits` (the brief's rate-limit table). The table lives in the `private` schema, which no role can read, rather than in `public` with policies that would all say no.
+- Each file is in the sender's own folder of that conversation (`<conversation>/<sender>/<id>.<ext>`, D-052), exists in storage, and is held by no other message. Its type and size are read from storage, not from the page.
+
+Photos are drawn again on the phone before they leave, as homework pages are (D-051); a PDF goes as it is, up to 10 MB. Files live in the private `message-files` bucket and are shown through signed addresses valid for an hour. A sender may leave at most twenty files that no message holds, and removes those she gives up. Formulas between dollars are drawn by KaTeX, with its `trust` option off (D-040), and the rest of the text by React.
+
+Messages arrive live through Supabase Realtime (`postgres_changes`), which applies the messages policy to each subscriber. When the channel opens again after a break, what was said meanwhile is fetched. The thread marks the conversation read while it is on screen. The inbox and the home pages count what is unread from `public.my_inbox`, a `security invoker` function, so the policies decide every row. Checked with two sessions: a message sent by the tutor through the API appeared in Salma's open thread without a reload, with « Lu » under her last message.
+
+**D-082 — Six places on a phone.**
+With « Messages », the tutor has seven places. The phone's bottom bar keeps the five she uses away from her desk: « Accueil », « Séances », « Messages », « Élèves » and « Devoirs ». « Plus » (`/prof/plus`) leads to lessons, exercises, availability, session types, groups and the invitation. The desktop rail shows every place and no « Plus ». The student's bar has six places, « Messages » included.
+
+**D-083 — What the review of the chat changed.**
+Three reviewers (security, logic and reliability, screens) found no way into a conversation, its files or its read marks from outside. They confirmed these defects, all fixed (`20260927205242`):
+
+- **In the database.**
+  - A sender could delete a file she had attached once she lost sight of its message, then write other content under its name if she came back. The "held" check read messages with her own rights; it now uses the function's, and a held name is never written again.
+  - A student added back to a group read what was said while she was away. The chat now reads a group from `group_members.chat_from`, reset when she comes back. The homework and sessions of her first period stay hers (D-070).
+  - The read mark was the moment she opened the page, and Realtime told the other side each time. It is now the newest message of the others on her screen, and moves only forward. Sending no longer marks as read what arrived meanwhile.
+  - Files had no weight limit: 60 MB a day for a student, 300 for the tutor, and sends of one person are serialized. Files given up count against her for a day only, and the scheduled job removes them.
+  - Realtime published deletions, whose keys reach every subscriber whatever the policies: only inserts and updates are published. A message of line breaks alone is empty. Two sends of one id at once agree.
+- **Formulas.** A few thousand nested braces made KaTeX overflow its stack, which `throwOnError` does not catch: one message would have broken its conversation for everyone, for good. A formula in a message is now bounded (300 characters, 12 levels, small sizes and expansions). Past the bounds, or on any error, it stays as typed. It is drawn inside its own box, so it cannot paint over the thread. `renderMath` catches everything too.
+- **The thread.**
+  - A second message sent while the first was on its way was neither shown nor sent. Offline, only the first queued message showed.
+  - A device refusing storage lost what was sent.
+  - A reconnection fetched only from her own last reply, 50 messages at most.
+  - Group conversations showed « Lu » from any member.
+  - Signed addresses expired after an hour. A failed one was asked for again in a loop.
+  - The thread did not open on the latest message.
+  - Sending closed the phone's keyboard. Nothing was announced to a screen reader.
+  - A long word or formula widened the page.
+  - Every conversation had the same title, so moving between them was not announced.
+  - Drafts stayed on a shared phone after signing out; signing out now clears them.
+  - Counts shown on a page she came back to were those of before.
+  - « Plus » was not marked on the pages it stands for.
+- **Open concerns.** A signed address can be made to last long by someone who may read the file. The phone's on-screen keyboard and the sticky composer are to be checked on a real Android phone.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
@@ -482,6 +536,7 @@ Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus
 | ---------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Tutor "add a student" action (phase 0/1) | `auth.admin.createUser`, `auth.admin.getUserById`, `auth.admin.generateLink`             | Creating another person's account, checking whether it was ever used, and issuing its set-password link are admin operations by definition.            |
 | `/api/cron/*` route handlers (phase 2)   | Read upcoming sessions and stamp `reminder_*_sent_at` for everyone                       | A cron job has no signed-in user, so no RLS identity.                                                                                                  |
+| `/api/cron/rappels`, file sweep (D-083)  | Remove message files no message holds, a day after upload                                | A job has no session, and the files belong to others.                                                                                                  |
 | Session emails to the tutor (D-077)      | Read the tutor's email address when a student requests, books or cancels                 | A student may not read the tutor's profile, and the address should not travel through her session.                                                     |
 | `pnpm storage:sweep` (D-054)             | Read every lesson, exercise and solution; delete the lesson files none of them refers to | A script has no session. It must read drafts and worked solutions, which only the tutor may, and a reference it cannot read is a file it would delete. |
 

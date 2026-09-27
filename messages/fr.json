@@ -138,7 +138,17 @@
       "exercises": "Exercices",
       "assignments": "Devoirs",
       "students": "Élèves",
-      "sessions": "Séances"
+      "sessions": "Séances",
+      "messages": "Messages",
+      "more": "Plus",
+      "places": {
+        "lessons": "Leçons",
+        "exercises": "Exercices",
+        "availability": "Disponibilités",
+        "sessionTypes": "Types de séance",
+        "groups": "Groupes",
+        "invite": "Inviter un élève"
+      }
     },
     "student": {
       "label": "Mon espace",
@@ -146,7 +156,8 @@
       "profile": "Profil",
       "lessons": "Cours",
       "homework": "Devoirs",
-      "sessions": "Séances"
+      "sessions": "Séances",
+      "messages": "Messages"
     }
   },
   "session": {
@@ -187,7 +198,8 @@
       "toCorrect": "{count, plural, =0 {Aucune copie à corriger} one {# copie à corriger} other {# copies à corriger}}",
       "inviteAction": "Inviter un élève",
       "toClose": "{count, plural, one {# séance à clore} other {# séances à clore}}",
-      "planAction": "Planifier une séance"
+      "planAction": "Planifier une séance",
+      "unreadMessages": "{count, plural, =0 {Aucun message non lu} one {# message non lu} other {# messages non lus}}"
     },
     "invite": {
       "title": "Inviter un élève",
@@ -709,7 +721,8 @@
       },
       "autoConfirm": "Confirmer ses réservations d’office",
       "autoConfirmHint": "Ses demandes de séance sont confirmées sans attendre votre réponse. Vous recevez un email à chaque réservation.",
-      "planSession": "Planifier une séance"
+      "planSession": "Planifier une séance",
+      "write": "Écrire à l’élève"
     },
     "groups": {
       "title": "Groupes",
@@ -757,11 +770,12 @@
         "name": "Entre 1 et 80 caractères.",
         "scheduleLabel": "80 caractères au plus.",
         "level": "Choisissez un niveau dans la liste.",
-        "hasHistory": "Ce groupe a déjà des devoirs ou des séances : le supprimer effacerait le travail de ses élèves. Vous pouvez le renommer ou le vider.",
+        "hasHistory": "Ce groupe a déjà des devoirs, des séances ou des messages : le supprimer effacerait le travail de ses élèves. Vous pouvez le renommer ou le vider.",
         "pickStudent": "Choisissez un élève.",
         "alreadyMember": "Cet élève fait déjà partie du groupe.",
         "unknown": "L’enregistrement a échoué. Vérifiez votre connexion et réessayez."
-      }
+      },
+      "write": "Écrire au groupe"
     },
     "sessions": {
       "title": "Séances",
@@ -1090,7 +1104,8 @@
       "noLessons": "Aucun cours publié pour votre niveau pour l’instant.",
       "publishedOn": "publié le {date}",
       "sessionDetails": "Voir la séance",
-      "book": "Réserver une séance"
+      "book": "Réserver une séance",
+      "unreadMessages": "{count, plural, one {# nouveau message} other {# nouveaux messages}}"
     },
     "profile": {
       "title": "Mon profil",
@@ -1458,5 +1473,64 @@
         "upload": "L’envoi a échoué. Vérifiez la connexion puis réessayez."
       }
     }
+  },
+  "chat": {
+    "title": "Messages",
+    "back": "Messages",
+    "writeTo": "Écrire à",
+    "pick": "Choisir un élève ou un groupe…",
+    "students": "Élèves",
+    "groups": "Groupes",
+    "open": "Ouvrir la conversation",
+    "noneYet": "Aucune conversation pour l’instant. Choisissez un élève ou un groupe pour écrire.",
+    "stopped": "Votre suivi est arrêté : la messagerie n’est plus ouverte.",
+    "noMessage": "Pas encore de message",
+    "filesOnly": "{count, plural, one {Une pièce jointe} other {# pièces jointes}}",
+    "you": "Vous",
+    "unread": "{count, plural, one {# message non lu} other {# messages non lus}}",
+    "profile": "Fiche",
+    "profileOf": "Fiche de {name}",
+    "studentFile": "Voir sa fiche",
+    "groupPage": "Voir le groupe",
+    "stoppedTutor": "Suivi arrêté : la conversation est fermée. L’élève ne la lit plus, et vous ne pouvez plus y écrire.",
+    "empty": "Aucun message pour l’instant. Écrivez le premier.",
+    "older": "Afficher les messages plus anciens",
+    "loading": "Chargement…",
+    "listLabel": "Messages de la conversation",
+    "sending": "Envoi…",
+    "read": "Lu",
+    "retry": "Réessayer",
+    "drop": "Supprimer",
+    "failures": {
+      "not_allowed": "Non envoyé : vous ne pouvez plus écrire dans cette conversation.",
+      "id_taken": "Non envoyé. Votre texte est revenu dans le champ : envoyez-le de nouveau.",
+      "recipient_inactive": "Non envoyé : le suivi de cet élève est arrêté.",
+      "body_too_long": "Non envoyé : le message dépasse 4 000 caractères. Votre texte est revenu dans le champ : raccourcissez-le.",
+      "attachments_invalid": "Non envoyé : une pièce jointe n’est plus disponible. Votre texte est revenu dans le champ : ajoutez de nouveau le fichier.",
+      "empty": "Non envoyé : le message est vide.",
+      "rate_limited": "Pas encore parti : trop de messages d’un coup. Nouvel essai automatique dans un instant.",
+      "unknown": "Pas encore parti : la connexion ne répond pas. Nouvel essai automatique toutes les 15 secondes, ou touchez « Réessayer ».",
+      "too_heavy_today": "Non envoyé : les pièces jointes d’aujourd’hui dépassent la limite. Envoyez le texte seul, ou réessayez demain. Votre texte est revenu dans le champ."
+    },
+    "fieldLabel": "Votre message",
+    "placeholder": "Votre message…",
+    "hint": "Formules entre dollars, par exemple $x^2 + 1$.",
+    "send": "Envoyer",
+    "files": {
+      "add": "Joindre une photo ou un PDF",
+      "remove": "Retirer {name}",
+      "uploading": "Envoi…",
+      "tooLarge": "Plus de 10 Mo : choisissez un fichier plus léger.",
+      "type": "Format refusé : joignez une photo (JPEG, PNG, WebP) ou un PDF.",
+      "unreadable": "Photo illisible : essayez-en une autre.",
+      "refused": "Envoi refusé : retirez les fichiers en attente, ou réessayez plus tard.",
+      "failed": "Échec de l’envoi : vérifiez la connexion, retirez-le et ajoutez-le de nouveau.",
+      "tooMany": "{max} fichiers au plus par message : les autres n’ont pas été ajoutés."
+    },
+    "titleWith": "Messages · {name}",
+    "emptyClosed": "Aucun message dans cette conversation.",
+    "arrived": "Nouveau message de {name}.",
+    "queued": "En attente d’envoi.",
+    "hintKeys": "Ctrl + Entrée pour envoyer."
   }
 }

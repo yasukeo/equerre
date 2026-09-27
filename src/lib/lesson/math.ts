@@ -5,6 +5,16 @@
 import katex from "katex";
 
 export function renderMath(latex: string, displayMode: boolean): string {
+  try {
+    return renderOrThrow(latex, displayMode);
+  } catch {
+    // Past KaTeX's own error handling (a stack overflow on deep nesting): the formula stays
+    // as it was written, escaped, rather than taking the page down.
+    return `<code>${latex.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</code>`;
+  }
+}
+
+function renderOrThrow(latex: string, displayMode: boolean): string {
   return katex.renderToString(latex, {
     displayMode,
     // A mistyped formula shows in red where it stands; it does not take the page down.

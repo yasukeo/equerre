@@ -822,6 +822,42 @@ join public.group_members as gm on gm.group_id = s.group_id
 where s.status = 'terminee'
 on conflict do nothing;
 
+-- ─────────────────────────────────────────────────────────────── messages
+-- Each student and each group has its conversation from the start (the chat migration's
+-- triggers). A few words in Salma's and in the first group's, written a few days ago.
+
+delete from public.messages
+where conversation_id in (
+  select c.id from public.conversations c
+  where c.student_id = pg_temp.uid('00000000', 101) or c.group_id = pg_temp.uid('10000000', 1)
+);
+
+insert into public.messages (id, conversation_id, sender_id, sender_name, body, created_at)
+select
+  pg_temp.uid('60000000', m.n),
+  c.id,
+  pg_temp.uid('00000000', m.sender_n),
+  p.full_name,
+  m.body,
+  now() - m.ago
+from (
+  values
+    (1, 101, null::integer, 'Bonjour Madame, je bloque sur l''exercice 3 : pourquoi $u_{n+1} - u_n > 0$ suffit-il ?', interval '3 days 2 hours'),
+    (2, 1, null, 'Bonjour Salma. Parce que la suite est alors croissante : chaque terme dépasse le précédent. Relisez la définition du cours, puis refaites la question 2.', interval '3 days 1 hour'),
+    (3, 101, null, 'D''accord, merci ! Je vous envoie ma nouvelle rédaction ce soir.', interval '3 days'),
+    (4, 1, 1, 'Pour mardi : série 3, exercices 1 à 4. Apportez vos calculatrices.', interval '2 days 5 hours'),
+    (5, 102, 1, 'Madame, l''exercice 4 est aussi sur les limites ?', interval '2 days 4 hours'),
+    (6, 1, 1, 'Oui Omar, avec $\lim_{n \to +\infty} q^n = 0$ pour $|q| < 1$.', interval '2 days 3 hours')
+) as m (n, sender_n, group_n, body, ago)
+join public.conversations c
+  on (m.group_n is null and c.student_id = pg_temp.uid('00000000', 101))
+  or (m.group_n is not null and c.group_id = pg_temp.uid('10000000', m.group_n))
+join public.profiles p on p.id = pg_temp.uid('00000000', m.sender_n);
+
+update public.conversations c
+set last_message_at = (select max(m.created_at) from public.messages m where m.conversation_id = c.id)
+where c.student_id = pg_temp.uid('00000000', 101) or c.group_id = pg_temp.uid('10000000', 1);
+
 -- ─────────────────────────────────────────────────────────────── clean up
 
 drop function pg_temp.seed_exercise(integer, integer, text, integer, public.answer_type, jsonb, jsonb, text[], numeric, numeric, jsonb, text[], public.choice_mode);

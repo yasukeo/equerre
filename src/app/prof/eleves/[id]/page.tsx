@@ -72,6 +72,14 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
             {t("since", { date: formatLocal(profile.createdAt, "d MMMM yyyy") })}
           </span>
         </p>
+        {file.conversationId && profile.status !== "arrete" ? (
+          <Link
+            href={`/prof/messages/${file.conversationId}`}
+            className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+          >
+            {t("write")}
+          </Link>
+        ) : null}
         {/* On a phone the contacts sit below the history: the numbers she calls come first. */}
         {profile.phone || profile.guardianPhone ? (
           <p className="flex flex-wrap gap-x-5 gap-y-1">

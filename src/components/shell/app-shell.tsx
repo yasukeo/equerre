@@ -1,12 +1,10 @@
-import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
-import { signOut } from "@/app/(auth)/actions";
 import { BrandMark } from "@/components/brand-mark";
-import { Button } from "@/components/ui/button";
 import { getViewer } from "@/lib/auth";
 import { OfflineBanner } from "./offline-banner";
+import { SignOutForm } from "./sign-out-form";
 
 type AppShellProps = {
   homeHref: string;
@@ -73,12 +71,7 @@ async function ViewerMenu({ signOutLabel }: { signOutLabel: string }) {
   return (
     <div className="flex items-center gap-2">
       <span className="hidden text-sm text-encre-douce sm:inline">{viewer.fullName}</span>
-      <form action={signOut}>
-        <Button type="submit" variant="ghost" size="sm">
-          <LogOut aria-hidden="true" />
-          {signOutLabel}
-        </Button>
-      </form>
+      <SignOutForm label={signOutLabel} />
     </div>
   );
 }

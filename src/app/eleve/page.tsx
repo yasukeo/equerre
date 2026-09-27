@@ -1,4 +1,4 @@
-import { MapPin, Video } from "lucide-react";
+import { MapPin, MessageCircle, Video } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
@@ -7,6 +7,8 @@ import { GradeMark } from "@/components/grade-mark";
 import { SessionStatusChip } from "@/components/session-status";
 import { buttonVariants } from "@/components/ui/button";
 import { requireViewer } from "@/lib/auth";
+import { RefreshOnReturn } from "@/components/chat/inbox-live";
+import { countUnread } from "@/lib/chat/queries";
 import { formatLocal } from "@/lib/dates";
 import { getMyGrades, listMyHomework } from "@/lib/homework/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -42,37 +44,45 @@ async function StudentHome() {
   // them read other levels' public lessons, so filtering happens in the database, before
   // the limit — otherwise public lessons from other levels could fill the list.
   const lessonFields = "id, slug, title, published_at, chapters!inner(title, level_code)" as const;
-  const [sessionsResult, levelLessonsResult, sharedLessonsResult, homework, grades, tHomework] =
-    await Promise.all([
-      supabase
-        .from("sessions")
-        .select(
-          "id, starts_at, ends_at, status, mode, location, meeting_url, group:groups(name), session_type:session_types(name)",
-        )
-        .gte("ends_at", nowIso)
-        .in("status", ["en_attente", "planifiee"])
-        .order("starts_at")
-        .limit(4),
-      viewer.levelCode
-        ? supabase
-            .from("lessons")
-            .select(lessonFields)
-            .eq("status", "published")
-            .eq("chapters.level_code", viewer.levelCode)
-            .order("published_at", { ascending: false })
-            .limit(5)
-        : null,
-      supabase
-        .from("lessons")
-        .select(lessonFields)
-        .eq("status", "published")
-        .eq("visibility", "specific")
-        .order("published_at", { ascending: false })
-        .limit(5),
-      listMyHomework(now),
-      getMyGrades(),
-      getTranslations("student.homework"),
-    ]);
+  const [
+    sessionsResult,
+    levelLessonsResult,
+    sharedLessonsResult,
+    homework,
+    grades,
+    tHomework,
+    unread,
+  ] = await Promise.all([
+    supabase
+      .from("sessions")
+      .select(
+        "id, starts_at, ends_at, status, mode, location, meeting_url, group:groups(name), session_type:session_types(name)",
+      )
+      .gte("ends_at", nowIso)
+      .in("status", ["en_attente", "planifiee"])
+      .order("starts_at")
+      .limit(4),
+    viewer.levelCode
+      ? supabase
+          .from("lessons")
+          .select(lessonFields)
+          .eq("status", "published")
+          .eq("chapters.level_code", viewer.levelCode)
+          .order("published_at", { ascending: false })
+          .limit(5)
+      : null,
+    supabase
+      .from("lessons")
+      .select(lessonFields)
+      .eq("status", "published")
+      .eq("visibility", "specific")
+      .order("published_at", { ascending: false })
+      .limit(5),
+    listMyHomework(now),
+    getMyGrades(),
+    getTranslations("student.homework"),
+    countUnread(),
+  ]);
 
   const [next, ...later] = sessionsResult.data ?? [];
   const lessons = [...(levelLessonsResult?.data ?? []), ...(sharedLessonsResult.data ?? [])]
@@ -92,7 +102,18 @@ async function StudentHome() {
 
   return (
     <div className="mx-auto grid max-w-2xl gap-8">
+      <RefreshOnReturn />
       <h1 className="text-2xl font-semibold">{t("greeting", { name: firstName })}</h1>
+
+      {unread > 0 ? (
+        <Link
+          href="/eleve/messages"
+          className="flex min-h-14 items-center gap-3 rounded-md border border-trait bg-surface px-4 py-3 font-medium hover:bg-sunken"
+        >
+          <MessageCircle aria-hidden="true" className="size-5" />
+          {t("unreadMessages", { count: unread })}
+        </Link>
+      ) : null}
 
       <section
         aria-labelledby="next-session"

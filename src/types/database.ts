@@ -249,6 +249,78 @@ export type Database = {
           },
         ]
       }
+      conversation_reads: {
+        Row: {
+          conversation_id: string
+          last_read_at: string
+          profile_id: string
+        }
+        Insert: {
+          conversation_id: string
+          last_read_at: string
+          profile_id: string
+        }
+        Update: {
+          conversation_id?: string
+          last_read_at?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_reads_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_reads_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          group_id: string | null
+          id: string
+          last_message_at: string | null
+          student_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          group_id?: string | null
+          id?: string
+          last_message_at?: string | null
+          student_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          group_id?: string | null
+          id?: string
+          last_message_at?: string | null
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: true
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_reveals: {
         Row: {
           assignment_id: string
@@ -378,18 +450,21 @@ export type Database = {
       }
       group_members: {
         Row: {
+          chat_from: string
           group_id: string
           joined_at: string
           left_at: string | null
           student_id: string
         }
         Insert: {
+          chat_from?: string
           group_id: string
           joined_at?: string
           left_at?: string | null
           student_id: string
         }
         Update: {
+          chat_from?: string
           group_id?: string
           joined_at?: string
           left_at?: string | null
@@ -598,6 +673,51 @@ export type Database = {
           position?: number
         }
         Relationships: []
+      }
+      messages: {
+        Row: {
+          attachments: Json
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_name: string
+        }
+        Insert: {
+          attachments?: Json
+          body?: string
+          conversation_id: string
+          created_at?: string
+          id: string
+          sender_id: string
+          sender_name: string
+        }
+        Update: {
+          attachments?: Json
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          sender_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1130,6 +1250,27 @@ export type Database = {
       }
       delete_assignment: { Args: { p_id: string }; Returns: undefined }
       invite_code_is_valid: { Args: { p_code: string }; Returns: boolean }
+      mark_conversation_read: {
+        Args: { p_conversation_id: string; p_up_to: string }
+        Returns: undefined
+      }
+      my_inbox: {
+        Args: never
+        Returns: {
+          conversation_id: string
+          group_id: string
+          group_name: string
+          last_body: string
+          last_files: number
+          last_message_at: string
+          last_sender_id: string
+          last_sender_name: string
+          student_id: string
+          student_name: string
+          student_status: Database["public"]["Enums"]["student_status"]
+          unread: number
+        }[]
+      }
       plan_sessions: {
         Args: {
           p_group_id?: string
@@ -1169,6 +1310,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      send_message: {
+        Args: {
+          p_attachments?: string[]
+          p_body?: string
+          p_conversation_id: string
+          p_id: string
+        }
+        Returns: string
+      }
+      stale_message_files: { Args: { p_limit?: number }; Returns: string[] }
       submit_exercise_answer: {
         Args: {
           p_answer?: Json

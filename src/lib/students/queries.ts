@@ -194,6 +194,8 @@ export type StudentFile = {
   objectives: string;
   /** Her requests are confirmed at once, without the tutor's answer (D-075). */
   autoConfirmBookings: boolean;
+  /** Her conversation with the tutor (D-080). */
+  conversationId: string | null;
   notes: { id: string; body: string; createdAt: string; updatedAt: string }[];
   /** The groups she is in today. */
   groups: { id: string; name: string; scheduleLabel: string | null; joinedAt: string }[];
@@ -223,55 +225,64 @@ export async function getStudentFile(id: string, now: Date): Promise<StudentFile
   );
   if (!profile) return null;
 
-  const [settings, notes, membershipRows, attendanceRows, submissions, reveals, levels] =
-    await Promise.all([
+  const [
+    settings,
+    notes,
+    membershipRows,
+    attendanceRows,
+    submissions,
+    reveals,
+    levels,
+    conversation,
+  ] = await Promise.all([
+    supabase
+      .from("student_settings")
+      .select("objectives, auto_confirm_bookings")
+      .eq("student_id", id)
+      .maybeSingle(),
+    readAll((from, to) =>
       supabase
-        .from("student_settings")
-        .select("objectives, auto_confirm_bookings")
+        .from("student_notes")
+        .select("id, body, created_at, updated_at")
         .eq("student_id", id)
-        .maybeSingle(),
-      readAll((from, to) =>
-        supabase
-          .from("student_notes")
-          .select("id, body, created_at, updated_at")
-          .eq("student_id", id)
-          .order("created_at", { ascending: false })
-          .order("id")
-          .range(from, to),
-      ),
-      // Every period she spent in a group, those she has left included (D-070).
+        .order("created_at", { ascending: false })
+        .order("id")
+        .range(from, to),
+    ),
+    // Every period she spent in a group, those she has left included (D-070).
+    supabase
+      .from("group_members")
+      .select("joined_at, left_at, group:groups(id, name, schedule_label)")
+      .eq("student_id", id),
+    readAll((from, to) =>
       supabase
-        .from("group_members")
-        .select("joined_at, left_at, group:groups(id, name, schedule_label)")
-        .eq("student_id", id),
-      readAll((from, to) =>
-        supabase
-          .from("session_attendance")
-          .select("session_id, status")
-          .eq("student_id", id)
-          .order("session_id")
-          .range(from, to),
-      ),
-      readAll((from, to) =>
-        supabase
-          .from("submissions")
-          .select("assignment_id, exercise_id, status, grade")
-          .eq("student_id", id)
-          .order("assignment_id")
-          .order("exercise_id")
-          .range(from, to),
-      ),
-      readAll((from, to) =>
-        supabase
-          .from("exercise_reveals")
-          .select("assignment_id, exercise_id")
-          .eq("student_id", id)
-          .order("assignment_id")
-          .order("exercise_id")
-          .range(from, to),
-      ),
-      supabase.from("levels").select("code, label").order("position"),
-    ]);
+        .from("session_attendance")
+        .select("session_id, status")
+        .eq("student_id", id)
+        .order("session_id")
+        .range(from, to),
+    ),
+    readAll((from, to) =>
+      supabase
+        .from("submissions")
+        .select("assignment_id, exercise_id, status, grade")
+        .eq("student_id", id)
+        .order("assignment_id")
+        .order("exercise_id")
+        .range(from, to),
+    ),
+    readAll((from, to) =>
+      supabase
+        .from("exercise_reveals")
+        .select("assignment_id, exercise_id")
+        .eq("student_id", id)
+        .order("assignment_id")
+        .order("exercise_id")
+        .range(from, to),
+    ),
+    supabase.from("levels").select("code, label").order("position"),
+    supabase.from("conversations").select("id").eq("student_id", id).maybeSingle(),
+  ]);
 
   const periods = (must(membershipRows) ?? []).map((row) => ({
     group: row.group,
@@ -422,6 +433,7 @@ export async function getStudentFile(id: string, now: Date): Promise<StudentFile
     },
     objectives: settingsRow?.objectives ?? "",
     autoConfirmBookings: settingsRow?.auto_confirm_bookings ?? false,
+    conversationId: conversation.data?.id ?? null,
     notes: notes.map((note) => ({
       id: note.id,
       body: note.body,

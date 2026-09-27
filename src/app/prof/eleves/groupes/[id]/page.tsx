@@ -53,6 +53,14 @@ async function Group({ params }: { params: Promise<{ id: string }> }) {
             .filter(Boolean)
             .join(" · ")}
         </p>
+        {group.conversationId ? (
+          <Link
+            href={`/prof/messages/${group.conversationId}`}
+            className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+          >
+            {t("write")}
+          </Link>
+        ) : null}
       </header>
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">

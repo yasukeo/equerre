@@ -116,5 +116,12 @@ export async function POST(request: Request) {
     report[reminder.kind] = sent;
   }
 
+  // Files attached to no message a day after they were uploaded were given up (D-083).
+  const { data: stale } = await admin.rpc("stale_message_files", { p_limit: 200 });
+  if (stale && stale.length > 0) {
+    const { data: removed } = await admin.storage.from("message-files").remove(stale);
+    report.staleFiles = removed?.length ?? 0;
+  }
+
   return Response.json(report);
 }
