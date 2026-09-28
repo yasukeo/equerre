@@ -78,11 +78,12 @@ describe("the lesson library", () => {
   });
 
   it("never lets a solution reach a student through a lesson join", async () => {
-    // exercises and exercise_solutions are tutor-only; an embed must not smuggle them out.
+    // exercise_solutions is tutor-only: an exercise she was given comes without it, and an
+    // embed must not smuggle it out.
     const { data, error } = await salma
       .from("exercises")
       .select("id, solution:exercise_solutions(*)");
-    expect(data ?? []).toEqual([]);
+    for (const row of data ?? []) expect(row.solution).toBeNull();
     expect(error === null || error.code === "PGRST200" || error.code === "42501").toBe(true);
   });
 });

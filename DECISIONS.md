@@ -528,6 +528,67 @@ Three reviewers (security, logic and reliability, screens) found no way into a c
   - « Plus » was not marked on the pages it stands for.
 - **Open concerns.** A signed address can be made to last long by someone who may read the file. The phone's on-screen keyboard and the sticky composer are to be checked on a real Android phone.
 
+**D-084 — The notification centre.**
+Notifications are written by the database when what they tell happens (`20260927210745`), so no page can forget one:
+
+- **To the tutor:** a booking asked for, a booking confirmed at once, a booking a student cancelled.
+- **To the student, or each member of the group that day who still follows lessons:**
+  - her request confirmed or declined;
+  - sessions planned, cancelled or moved;
+  - new homework;
+  - a correction ready.
+
+The session triggers run once per statement, so a weekly series planned or cancelled in one go is one notification per person (« 5 séances planifiées… »), not five. Corrections of one homework made one after another are one notification that counts them, as long as it is neither read nor emailed. Answers the database grades at once are seen at once, and tell nothing. The job adds the day-before reminder to the centre when it claims it (D-086).
+
+Each person reads her own notifications, and only marks them read, through `mark_notifications_read`; nobody writes or deletes one. What a notification says is written when it is shown, from its type and payload, in French and Casablanca time: « Rayane Amrani demande une séance le mercredi 14 octobre à 17:00. » A ready correction carries its grade in red pen, the third of DESIGN.md's three places.
+
+A bell in the header of both workspaces counts what is unread. The page lists the fifty newest and marks them read as soon as it is on screen (D-086). `tests/rls/notifications.test.ts` checks through the API:
+
+- a series makes one notification;
+- nobody reads, forges or changes another person's notifications;
+- the job's functions answer the secret key only.
+
+The seed accounts' notifications made during an RLS run are removed at its end (`tests/rls/global-setup.ts`).
+
+**D-085 — Emails from the notification centre.**
+The scheduled job (`/api/cron/rappels`, D-078) also sends:
+
+- **New homework and corrections ready**, ten minutes after they happen, so corrections made in a row go in one email. One already read in the app is stamped without an email.
+- **A digest of messages** unread for a quarter of an hour, one email per person listing each conversation and how many messages wait, never one email per message. It follows the chat's reading rules (D-080, D-083), and `message_digests` remembers up to which message each person was told.
+
+Each email is claimed by a stamp before it is sent and the stamp is taken back if it could not leave, as reminders are (claims in D-086). Booking and session emails still go at once from the actions that cause them (D-077); the centre repeats them in the app. Like reminders, these emails wait for the end-of-project settings: the Resend key, the secret key, `CRON_SECRET` and the Supabase Cron schedule (D-064).
+
+**D-086 — What the review of the notification centre changed.**
+Three adversarial reviews (screens, security, logic) of D-084 and D-085. The fixes are in `20260928023434` and the app.
+
+- **One notification per cancelled series.** « Aussi les suivantes » took two statements, so the students had two notifications. `cancel_sessions` cancels the session and the rest of its series in one statement. It runs under the tutor's own policies; a student gets nothing back.
+- **Marking read.** The page marks everything up to the newest notification it shows, so more than fifty unread no longer leave the bell stuck. It marks as soon as the page is on screen, or when she comes back to a background tab, rather than after 2.5 seconds. The page keeps its « Nouvelle » marks while she reads, and for ten minutes after, when it is drawn again.
+- **A live bell.** `notifications` joins the Realtime publication, and the bell counts again when a notification of hers arrives or is read. The header stays on screen from one page to the next, and was never drawn again. The bell is `aria-current` on its page.
+- **Emails claimed by the database.** `claim_notification_email` stamps one email and reads the homework as it is now. It sends nothing when:
+  - the homework is gone;
+  - the notification was read in time;
+  - it is more than two days old, which covers the backlog that builds up before the end-of-project settings (D-064);
+  - the student has stopped, or is paused and the email is about new homework.
+
+  The title, due date and number of corrections are those at the claim.
+
+- **The digest.** It is claimed by compare-and-set (`claim_message_digest`), so two runs never both send it. A failed send puts the previous mark back (`release_message_digest`). It counts every unread message, waits three hours between two digests to the same person, and looks at the last two days only.
+- **Corrections.** Two first corrections of one homework at once wait for each other (an advisory lock), so they make one notification. A stopped student is told of none (D-060).
+- **Place or link changed.** Such a session is in the centre too, with its own sentence. A moved session says from when it moved.
+- **The reminder in the centre.** The job adds it when it claims the day-before reminder, before sending, and keeps it whatever the email does. There is one per person and session (`notifications_reminder_once`), so a session moved after its reminder is not reminded twice; the move itself is a notification.
+- **The job.** Each stage (reminders, emails, digests, file sweep) runs on its own, so one that fails is logged and the next still runs. After three failed emails in a row, a stage stops until the next run, because the provider is likely down. The email builders never throw.
+- **Screens.**
+  - Below 640 px the header keeps only the door icon for signing out, so it fits a 360 px phone.
+  - The grade shows only for a single correction.
+  - The text reads « à rendre le … » in the app and in the email.
+  - The tutor and a student each get their own empty page.
+- **Tests.** The RLS run removes only the seed accounts' notifications that were not there when it began. Before, it removed every notification made since it started, anyone's.
+
+Kept as they are:
+
+- A job stopped between its claim and the email loses that email, as a reminder would.
+- The first run sends what is less than two days old.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
@@ -536,6 +597,7 @@ Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus
 | ---------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Tutor "add a student" action (phase 0/1) | `auth.admin.createUser`, `auth.admin.getUserById`, `auth.admin.generateLink`             | Creating another person's account, checking whether it was ever used, and issuing its set-password link are admin operations by definition.            |
 | `/api/cron/*` route handlers (phase 2)   | Read upcoming sessions and stamp `reminder_*_sent_at` for everyone                       | A cron job has no signed-in user, so no RLS identity.                                                                                                  |
+| `/api/cron/rappels`, emails (D-085)      | Read notifications and unread messages of everyone, stamp what was emailed               | A job has no session, and it writes to others' rows.                                                                                                   |
 | `/api/cron/rappels`, file sweep (D-083)  | Remove message files no message holds, a day after upload                                | A job has no session, and the files belong to others.                                                                                                  |
 | Session emails to the tutor (D-077)      | Read the tutor's email address when a student requests, books or cancels                 | A student may not read the tutor's profile, and the address should not travel through her session.                                                     |
 | `pnpm storage:sweep` (D-054)             | Read every lesson, exercise and solution; delete the lesson files none of them refers to | A script has no session. It must read drafts and worked solutions, which only the tutor may, and a reference it cannot read is a file it would delete. |

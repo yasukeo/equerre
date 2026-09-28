@@ -161,7 +161,7 @@ export async function declineRequest(_previous: FormState, formData: FormData): 
 // ─────────────────────────────────────────────────────────────── one session
 
 export async function cancelSession(_previous: FormState, formData: FormData): Promise<FormState> {
-  const viewer = await requireViewer("tutor");
+  await requireViewer("tutor");
   const t = await getTranslations("tutor.session");
   const sessionId = id.safeParse(textField(formData, "id"));
   const reason = textField(formData, "reason").trim();
@@ -171,38 +171,28 @@ export async function cancelSession(_previous: FormState, formData: FormData): P
     return { status: "error", message: t("errors.reasonTooLong"), values: { reason } };
   }
 
+  // With « aussi les suivantes », the rest of a weekly series still planned or asked for goes
+  // in the same statement: each student hears of it once (D-086).
   const supabase = await createClient();
-  const cancelled = {
-    status: "annulee" as const,
-    cancelled_at: new Date().toISOString(),
-    cancelled_by: viewer.id,
-    cancellation_reason: reason || null,
-  };
-  const { data, error } = await supabase
-    .from("sessions")
-    .update(cancelled)
-    .eq("id", sessionId.data)
-    .eq("status", "planifiee")
-    .select(NOTICE_FIELDS);
+  const { data: ids, error } = await supabase.rpc("cancel_sessions", {
+    p_session_id: sessionId.data,
+    p_reason: reason,
+    p_following: following,
+  });
   if (error) return { status: "error", message: t("errors.unknown"), values: { reason } };
-  const row = data[0];
-  if (!row) {
+  if (!ids.includes(sessionId.data)) {
     refresh();
     return { status: "error", message: t("errors.gone") };
   }
-
-  // The rest of a weekly series, from this one on: what is still planned or asked for.
-  let later = 0;
-  if (following && row.series_id) {
-    const { data: rest, error: restError } = await supabase
-      .from("sessions")
-      .update(cancelled)
-      .eq("series_id", row.series_id)
-      .gt("starts_at", row.starts_at)
-      .in("status", ["planifiee", "en_attente"])
-      .select("id");
-    if (restError) return { status: "error", message: t("errors.unknown") };
-    later = rest.length;
+  const later = ids.length - 1;
+  const { data: row } = await supabase
+    .from("sessions")
+    .select(NOTICE_FIELDS)
+    .eq("id", sessionId.data)
+    .single();
+  if (!row) {
+    refresh();
+    redirect(`/prof/seances/${sessionId.data}?annulee=${later}`);
   }
 
   await tell(supabase, "cancelledByTutor", row, {

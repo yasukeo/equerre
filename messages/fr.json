@@ -1385,6 +1385,25 @@
         "subject": "Rappel : séance à {start}",
         "body": "Votre séance commence bientôt : {day, select, today {aujourd’hui} tomorrow {demain} other {le {date}}}, de {start} à {end}."
       }
+    },
+    "digest": {
+      "greeting": "Bonjour {name},",
+      "subject": "{count, plural, one {Un nouveau message} other {# nouveaux messages}}",
+      "body": "{count, plural, one {Un message vous attend.} other {# messages vous attendent.}}",
+      "line": "{name} : {count, plural, one {# message} other {# messages}}",
+      "button": "Lire les messages"
+    },
+    "assignment": {
+      "greeting": "Bonjour {name},",
+      "subject": "Nouveau devoir : {title}",
+      "body": "Votre professeure vous a donné un devoir : {title}, à rendre le {due}.",
+      "button": "Voir le devoir"
+    },
+    "correction": {
+      "greeting": "Bonjour {name},",
+      "subject": "Correction prête : {title}",
+      "body": "{count, plural, one {Votre professeure a corrigé un exercice de « {title} ».} other {Votre professeure a corrigé # exercices de « {title} ».}}",
+      "button": "Voir la correction"
     }
   },
   "lesson": {
@@ -1532,5 +1551,29 @@
     "arrived": "Nouveau message de {name}.",
     "queued": "En attente d’envoi.",
     "hintKeys": "Ctrl + Entrée pour envoyer."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "bell": "Notifications",
+    "bellUnread": "{count, plural, one {Notifications : # nouvelle} other {Notifications : # nouvelles}}",
+    "emptyTutor": "Aucune notification pour l’instant. Les demandes de séance, les réservations et les annulations de vos élèves apparaîtront ici.",
+    "emptyStudent": "Aucune notification pour l’instant. Vos séances, vos devoirs et vos corrections apparaîtront ici.",
+    "new": "Nouvelle",
+    "grade": "Note",
+    "reason": "Motif : {reason}",
+    "types": {
+      "booking_requested": "{who} demande une séance le {date} à {time}.",
+      "booking_made": "{who} a réservé une séance le {date} à {time}.",
+      "booking_cancelled": "{who} a annulé la séance du {date} à {time}.",
+      "booking_confirmed": "Votre séance du {date} à {time} est confirmée.",
+      "booking_declined": "Votre demande pour le {date} à {time} n’a pas été retenue.",
+      "session_planned": "{count, plural, one {Nouvelle séance le {date} à {time}.} other {# séances planifiées, chaque semaine à partir du {date} à {time}.}}",
+      "session_cancelled": "{count, plural, one {Votre séance du {date} à {time} est annulée.} other {# séances annulées, à partir du {date}.}}",
+      "session_moved": "Votre séance du {was} est déplacée au {date} à {time}.",
+      "session_moved_place": "Le lieu ou le lien de votre séance du {date} à {time} a changé.",
+      "session_reminder": "Rappel : séance le {date} à {time}.",
+      "assignment_new": "Nouveau devoir : {title}, à rendre le {due}.",
+      "correction_ready": "{count, plural, one {Correction prête : {title}.} other {# exercices corrigés : {title}.}}"
+    }
   }
 }

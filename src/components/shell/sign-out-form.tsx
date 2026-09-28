@@ -24,9 +24,10 @@ function forgetDevice() {
 export function SignOutForm({ label }: { label: string }) {
   return (
     <form action={signOut} onSubmit={forgetDevice}>
-      <Button type="submit" variant="ghost" size="sm">
+      {/* On a narrow phone, the door alone: the header keeps the brand, the bell and it. */}
+      <Button type="submit" variant="ghost" size="sm" className="min-w-11">
         <LogOut aria-hidden="true" />
-        {label}
+        <span className="sr-only sm:not-sr-only">{label}</span>
       </Button>
     </form>
   );

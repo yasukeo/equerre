@@ -674,6 +674,32 @@ export type Database = {
         }
         Relationships: []
       }
+      message_digests: {
+        Row: {
+          profile_id: string
+          sent_at: string | null
+          sent_up_to: string
+        }
+        Insert: {
+          profile_id: string
+          sent_at?: string | null
+          sent_up_to: string
+        }
+        Update: {
+          profile_id?: string
+          sent_at?: string | null
+          sent_up_to?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_digests_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           attachments: Json
@@ -713,6 +739,44 @@ export type Database = {
           {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          emailed_at: string | null
+          id: string
+          payload: Json
+          profile_id: string
+          read_at: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Insert: {
+          created_at?: string
+          emailed_at?: string | null
+          id?: string
+          payload?: Json
+          profile_id: string
+          read_at?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Update: {
+          created_at?: string
+          emailed_at?: string | null
+          id?: string
+          payload?: Json
+          profile_id?: string
+          read_at?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1218,6 +1282,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_session_reminder: {
+        Args: { p_session_id: string }
+        Returns: undefined
+      }
       booking_calendar: {
         Args: { p_from: string; p_to: string }
         Returns: Json
@@ -1225,6 +1293,28 @@ export type Database = {
       cancel_my_session: {
         Args: { p_reason?: string; p_session_id: string }
         Returns: Database["public"]["Enums"]["session_status"]
+      }
+      cancel_sessions: {
+        Args: { p_following?: boolean; p_reason?: string; p_session_id: string }
+        Returns: string[]
+      }
+      claim_message_digest: {
+        Args: { p_profile_id: string; p_up_to: string }
+        Returns: string
+      }
+      claim_notification_email: {
+        Args: { p_id: string }
+        Returns: {
+          assignment_id: string
+          count: number
+          due_at: string
+          email: string
+          full_name: string
+          send: boolean
+          stamp: string
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+        }[]
       }
       close_session: {
         Args: {
@@ -1254,6 +1344,18 @@ export type Database = {
         Args: { p_conversation_id: string; p_up_to: string }
         Returns: undefined
       }
+      mark_notifications_read: { Args: { p_up_to: string }; Returns: undefined }
+      message_digests_due: {
+        Args: never
+        Returns: {
+          conversations: Json
+          email: string
+          full_name: string
+          is_tutor: boolean
+          newest: string
+          profile_id: string
+        }[]
+      }
       my_inbox: {
         Args: never
         Returns: {
@@ -1271,6 +1373,7 @@ export type Database = {
           unread: number
         }[]
       }
+      notifications_to_email: { Args: { p_limit?: number }; Returns: string[] }
       plan_sessions: {
         Args: {
           p_group_id?: string
@@ -1282,6 +1385,10 @@ export type Database = {
           p_student_id?: string
         }
         Returns: string
+      }
+      release_message_digest: {
+        Args: { p_previous: string; p_profile_id: string; p_up_to: string }
+        Returns: undefined
       }
       request_session: {
         Args: {
@@ -1356,6 +1463,18 @@ export type Database = {
       attendance_status: "present" | "absent" | "excuse"
       choice_mode: "unique" | "multiple"
       lesson_visibility: "public" | "enrolled" | "specific"
+      notification_type:
+        | "booking_requested"
+        | "booking_made"
+        | "booking_cancelled"
+        | "booking_confirmed"
+        | "booking_declined"
+        | "session_planned"
+        | "session_cancelled"
+        | "session_moved"
+        | "session_reminder"
+        | "assignment_new"
+        | "correction_ready"
       publication_status: "draft" | "published"
       session_mode: "en_ligne" | "domicile" | "chez_prof"
       session_status:
@@ -1500,6 +1619,19 @@ export const Constants = {
       attendance_status: ["present", "absent", "excuse"],
       choice_mode: ["unique", "multiple"],
       lesson_visibility: ["public", "enrolled", "specific"],
+      notification_type: [
+        "booking_requested",
+        "booking_made",
+        "booking_cancelled",
+        "booking_confirmed",
+        "booking_declined",
+        "session_planned",
+        "session_cancelled",
+        "session_moved",
+        "session_reminder",
+        "assignment_new",
+        "correction_ready",
+      ],
       publication_status: ["draft", "published"],
       session_mode: ["en_ligne", "domicile", "chez_prof"],
       session_status: [

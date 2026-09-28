@@ -50,9 +50,13 @@ describe("a student", () => {
     }
   });
 
-  it("cannot read exercises or their solutions directly", async () => {
+  it("cannot read solutions, nor exercises she was not given", async () => {
     expect((await salma.from("exercise_solutions").select("exercise_id")).data).toEqual([]);
-    expect((await salma.from("exercises").select("id")).data).toEqual([]);
+    // Homework the tutor gives her group opens its exercises to her, and nothing else.
+    const { data: given } = await salma.from("assignment_items").select("exercise_id");
+    const allowed = new Set((given ?? []).map((item) => item.exercise_id));
+    const { data: readable } = await salma.from("exercises").select("id");
+    for (const exercise of readable ?? []) expect(allowed.has(exercise.id)).toBe(true);
   });
 
   it("cannot promote herself or change her level", async () => {

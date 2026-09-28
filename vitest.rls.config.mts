@@ -19,6 +19,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/rls/**/*.test.ts"],
+    globalSetup: ["tests/rls/global-setup.ts"],
     testTimeout: 20_000,
     // One project, shared seed data: run files one after another.
     fileParallelism: false,

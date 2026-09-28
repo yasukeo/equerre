@@ -2,7 +2,9 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
 import { BrandMark } from "@/components/brand-mark";
+import { Bell } from "@/components/notifications/bell";
 import { getViewer } from "@/lib/auth";
+import { countUnreadNotifications } from "@/lib/notifications/queries";
 import { OfflineBanner } from "./offline-banner";
 import { SignOutForm } from "./sign-out-form";
 
@@ -68,9 +70,13 @@ async function ViewerMenu({ signOutLabel }: { signOutLabel: string }) {
     return null;
   }
 
+  const unread = await countUnreadNotifications();
+  const href = viewer.role === "tutor" ? "/prof/notifications" : "/eleve/notifications";
+
   return (
-    <div className="flex items-center gap-2">
-      <span className="hidden text-sm text-encre-douce sm:inline">{viewer.fullName}</span>
+    <div className="flex min-w-0 items-center gap-1 sm:gap-2">
+      <span className="hidden truncate text-sm text-encre-douce sm:inline">{viewer.fullName}</span>
+      <Bell href={href} profileId={viewer.id} initial={unread} />
       <SignOutForm label={signOutLabel} />
     </div>
   );
