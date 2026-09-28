@@ -2,11 +2,9 @@ import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
-// Loaded here rather than globally: only the lesson routes set any maths.
-import "katex/dist/katex.min.css";
-import "./lecon.css";
 
-export default async function CoursLayout({ children }: { children: ReactNode }) {
+/** The public site (D-089): wide, calm, on the squared paper of DESIGN.md. */
+export default async function SiteLayout({ children }: { children: ReactNode }) {
   const t = await getTranslations("common");
   return (
     <div className="flex min-h-dvh flex-col">
@@ -17,7 +15,7 @@ export default async function CoursLayout({ children }: { children: ReactNode })
         {t("skipToContent")}
       </a>
       <SiteHeader />
-      <div className="flex-1">{children}</div>
+      {children}
       <SiteFooter />
     </div>
   );

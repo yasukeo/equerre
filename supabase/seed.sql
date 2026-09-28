@@ -1,6 +1,6 @@
 -- Development seed for Équerre:
 -- 1 tutor, 8 students, 3 groups, 9 chapters, 12 lessons, 30 exercises, 40 sessions,
--- 4 plans and 9 payments.
+-- 4 plans, 9 payments and 3 blog posts.
 --
 -- Run it with `pnpm db:seed`, which replaces {{SEED_PASSWORD}} with SEED_PASSWORD from
 -- .env.local. Seed accounts use the reserved .test domain: sign in with the password.
@@ -937,6 +937,85 @@ from public.payments p
 where p.receipt_number like extract(year from now() at time zone 'Africa/Casablanca')::text || '-%'
 having count(*) > 0
 on conflict (year) do update set last = greatest(c.last, excluded.last);
+
+-- ─────────────────────────────────────────────────────────────── blog
+-- Three published posts for the public site (D-089), written only into a blog that has none:
+-- a post she has since edited or deleted stays as she left it, and a slug she reused for
+-- her own post is never taken back (D-090).
+
+do $seed_posts$
+begin
+if exists (select 1 from public.posts) then
+  return;
+end if;
+
+insert into public.posts (id, title, slug, excerpt, category, status, published_at, content)
+values
+  (
+    pg_temp.uid('72000000', 1),
+    'Rédiger une limite : chaque égalité a sa raison',
+    'rediger-une-limite',
+    'Au bac, le résultat seul rapporte peu. Ce qui compte, c’est la justification de chaque étape. Voici comment l’écrire.',
+    'methode',
+    'published',
+    now() - interval '12 days',
+    pg_temp.doc(
+      pg_temp.p('Devant une limite comme $\lim_{x \to +\infty} \frac{2x^2 + 1}{x^2 - 3}$, beaucoup d’élèves écrivent directement « $= 2$ ». Le correcteur ne peut pas savoir si c’est compris ou deviné.'),
+      pg_temp.h('Une égalité, une raison'),
+      pg_temp.p('Chaque ligne de calcul doit pouvoir se lire à voix haute avec un « parce que ». On factorise par le terme de plus haut degré, au numérateur et au dénominateur (pour $x \neq 0$) :'),
+      pg_temp.m('\frac{2x^2 + 1}{x^2 - 3} = \frac{x^2\left(2 + \frac{1}{x^2}\right)}{x^2\left(1 - \frac{3}{x^2}\right)} = \frac{2 + \frac{1}{x^2}}{1 - \frac{3}{x^2}}'),
+      pg_temp.p('Or $\frac{1}{x^2}$ et $\frac{3}{x^2}$ tendent vers $0$ quand $x$ tend vers $+\infty$, donc la limite vaut $\frac{2}{1} = 2$.'),
+      pg_temp.box('attention',
+        pg_temp.p('Écrire « $\frac{\infty}{\infty} = 1$ » n’a pas de sens : c’est une forme indéterminée, il faut transformer l’expression.')
+      ),
+      pg_temp.p('Relisez votre copie en vous demandant, à chaque signe $=$ : pourquoi ? Si la réponse n’est pas écrite, ajoutez-la.')
+    )
+  ),
+  (
+    pg_temp.uid('72000000', 2),
+    'Les trois semaines avant l’examen régional',
+    'trois-semaines-avant-le-regional',
+    'Un plan simple : refaire les sujets, repérer ses erreurs récurrentes, et arriver reposé le jour J.',
+    'examens',
+    'published',
+    now() - interval '6 days',
+    pg_temp.doc(
+      pg_temp.p('Trois semaines suffisent pour progresser nettement, à condition de travailler sur des sujets complets plutôt que sur des exercices isolés.'),
+      pg_temp.h('Semaine 1 : les sujets des années passées'),
+      pg_temp.p('Faites un sujet en temps limité, sans cours. Corrigez-le ensuite en couleur, à l’aide du corrigé, et notez chaque erreur dans un carnet.'),
+      pg_temp.h('Semaine 2 : les erreurs qui reviennent'),
+      pg_temp.p('Relisez le carnet : la plupart des points perdus viennent de deux ou trois erreurs répétées. Refaites les exercices du cours qui portent sur ces points.'),
+      pg_temp.h('Semaine 3 : consolider et dormir'),
+      pg_temp.p('Un dernier sujet en conditions réelles, puis des révisions légères. La veille, on ne découvre rien de nouveau.'),
+      pg_temp.box('exemple',
+        pg_temp.p('Une erreur type à noter : oublier de vérifier que $x - 1 \geq 0$ avant de résoudre $\sqrt{x - 1} = 2$.')
+      )
+    )
+  ),
+  (
+    pg_temp.uid('72000000', 3),
+    'Les erreurs de signe : deux pièges, un réflexe',
+    'erreurs-de-signe',
+    'Un moins devant une parenthèse, une inégalité multipliée par un nombre négatif : deux pièges, et un réflexe pour les éviter.',
+    'erreurs',
+    'published',
+    now() - interval '2 days',
+    pg_temp.doc(
+      pg_temp.p('Une erreur de signe au début d’un exercice fausse toute la suite. Deux situations reviennent sans cesse.'),
+      pg_temp.h('Le moins devant une parenthèse'),
+      pg_temp.m('-(a - b) = -a + b'),
+      pg_temp.p('Le signe moins change le signe de chaque terme, pas seulement du premier.'),
+      pg_temp.h('Multiplier une inégalité par un nombre négatif'),
+      pg_temp.box('attention',
+        pg_temp.p('Si $-2x > 6$, alors $x < -3$ : le sens de l’inégalité change.')
+      ),
+      pg_temp.h('Le réflexe'),
+      pg_temp.p('Vérifiez chaque résultat en remplaçant $x$ par une valeur simple. Une vérification de dix secondes évite de perdre tout un exercice.')
+    )
+  )
+on conflict do nothing;
+end
+$seed_posts$;
 
 -- ─────────────────────────────────────────────────────────────── clean up
 

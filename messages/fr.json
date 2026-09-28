@@ -42,12 +42,6 @@
       "home": "Revenir à l’accueil"
     }
   },
-  "home": {
-    "title": "Des maths qui tiennent debout.",
-    "lead": "Cours particuliers de la 1re année collège au 2e bac, avec les leçons, les devoirs et les séances réunis dans un seul espace.",
-    "signIn": "Se connecter",
-    "signUp": "J’ai un code d’invitation"
-  },
   "auth": {
     "common": {
       "email": "Adresse e-mail",
@@ -148,9 +142,11 @@
         "sessionTypes": "Types de séance",
         "groups": "Groupes",
         "invite": "Inviter un élève",
-        "payments": "Paiements"
+        "payments": "Paiements",
+        "site": "Site public"
       },
-      "payments": "Paiements"
+      "payments": "Paiements",
+      "site": "Site public"
     },
     "student": {
       "label": "Mon espace",
@@ -1622,7 +1618,7 @@
       "paidOn": "Payé le",
       "note": "Note",
       "voidedTitle": "ANNULÉ",
-      "voidedDetail": "Ce reçu a été annulé le {date}. Motif : {reason}",
+      "voidedDetail": "Ce reçu a été annulé le {date}. Motif : {reason}",
       "footer": "Ce reçu atteste que {tutor} a reçu la somme ci-dessus pour l’objet indiqué. Document établi avec {brand}.",
       "subject": "Paiement de {student}",
       "titleVoided": "Reçu n° {number} — annulé",
@@ -1635,23 +1631,23 @@
   },
   "paymentsHub": {
     "title": "Paiements",
-    "lead": "Les soldes se calculent seuls : un pack crédite des heures, un abonnement couvre une période, et chaque séance faite, ou manquée sans prévenir, en décompte, sauf pendant un abonnement.",
+    "lead": "Les soldes se calculent seuls : un pack crédite des heures, un abonnement couvre une période, et chaque séance faite, ou manquée sans prévenir, en décompte, sauf pendant un abonnement.",
     "record": "Enregistrer un paiement",
     "plans": "Formules",
     "overdueHeading": "Soldes en retard",
-    "noOverdue": "Aucun solde en retard : tous les comptes sont à jour.",
+    "noOverdue": "Aucun solde en retard : tous les comptes sont à jour.",
     "owes": "Doit {hours}",
     "recordFor": "Enregistrer un paiement",
     "recentHeading": "Derniers paiements",
-    "noPayments": "Aucun paiement enregistré pour l’instant. Enregistrez le premier avec « Enregistrer un paiement ».",
+    "noPayments": "Aucun paiement enregistré pour l’instant. Enregistrez le premier avec « Enregistrer un paiement ».",
     "allStudents": "Voir le solde de chaque élève",
     "recordForName": "pour {name}"
   },
   "plans": {
     "title": "Formules",
     "back": "Paiements",
-    "lead": "Un pack crédite des heures ; un abonnement couvre une période.",
-    "empty": "Aucune formule pour l’instant : créez la première avec le formulaire.",
+    "lead": "Un pack crédite des heures ; un abonnement couvre une période.",
+    "empty": "Aucune formule pour l’instant : créez la première avec le formulaire.",
     "newHeading": "Nouvelle formule",
     "kind": "Type",
     "name": "Nom",
@@ -1690,39 +1686,39 @@
   "recordPayment": {
     "title": "Enregistrer un paiement",
     "back": "Paiements",
-    "lead": "Chaque paiement reçoit un numéro de reçu. Il ne se modifie plus : une erreur s’annule, avec un motif, puis se saisit à nouveau.",
+    "lead": "Chaque paiement reçoit un numéro de reçu. Il ne se modifie plus : une erreur s’annule, avec un motif, puis se saisit à nouveau.",
     "student": "Élève",
     "pickStudent": "Choisissez un élève",
-    "currentBalance": "Solde actuel : {hours}",
+    "currentBalance": "Solde actuel : {hours}",
     "plan": "Formule",
     "otherPlan": "Autre paiement, sans formule",
     "amount": "Montant reçu (MAD)",
-    "amountHint": "Le prix de la formule ; changez-le pour une remise.",
+    "amountHint": "Le prix de la formule ; changez-le pour une remise.",
     "method": "Mode de paiement",
     "paidOn": "Payé le",
     "coversFrom": "Début de la période",
     "coversUntil": "Couvre du {from} au {to}.",
     "label": "Objet du paiement",
-    "labelHint": "Tel qu’il figurera sur le reçu, par exemple « Séance du 12 octobre ».",
+    "labelHint": "Tel qu’il figurera sur le reçu, par exemple « Séance du 12 octobre ».",
     "hours": "Heures créditées",
     "hoursHint": "Les heures que ce paiement règle, par exemple 2 pour deux séances d’une heure. Laissez vide pour des frais sans séance.",
     "note": "Note (facultatif)",
     "noteHint": "Numéro de chèque, référence du virement… Elle figure sur le reçu.",
     "submit": "Enregistrer le paiement",
     "submitting": "Enregistrement…",
-    "noPlans": "Aucune formule n’est proposée : enregistrez un autre paiement, ou créez vos formules.",
+    "noPlans": "Aucune formule n’est proposée : enregistrez un autre paiement, ou créez vos formules.",
     "createPlans": "Créer mes formules",
-    "noStudents": "Aucun élève pour l’instant : invitez votre premier élève.",
+    "noStudents": "Aucun élève pour l’instant : invitez votre premier élève.",
     "errors": {
       "student": "Choisissez l’élève qui a payé.",
       "amount": "Indiquez un montant en MAD, par exemple 1500 ou 1500,50.",
       "method": "Choisissez un mode de paiement.",
-      "paidOn": "Indiquez la date du paiement : aujourd’hui ou avant.",
+      "paidOn": "Indiquez la date du paiement : aujourd’hui ou avant.",
       "coversFrom": "Indiquez le premier jour de la période couverte, à un an d’aujourd’hui au plus.",
       "label": "Dites en 120 caractères au plus à quoi correspond ce paiement.",
       "hours": "Indiquez un nombre d’heures entre 0 et 500, ou laissez vide.",
       "note": "La note tient en 500 caractères au plus.",
-      "plan": "Choisissez une formule, ou « Autre paiement, sans formule ».",
+      "plan": "Choisissez une formule, ou « Autre paiement, sans formule ».",
       "unknown": "Le paiement n’a pas pu être enregistré. Réessayez dans un instant."
     },
     "pickPlan": "Choisissez une formule",
@@ -1735,9 +1731,9 @@
     "lastPaid": "Dernier paiement le {date}",
     "neverPaid": "Aucun paiement enregistré",
     "record": "Enregistrer un paiement",
-    "recorded": "Paiement enregistré : reçu n° {number}.",
+    "recorded": "Paiement enregistré : reçu n° {number}.",
     "statementHeading": "Relevé d’heures",
-    "statementEmpty": "Rien au relevé pour l’instant : ni séance faite, ni paiement.",
+    "statementEmpty": "Rien au relevé pour l’instant : ni séance faite, ni paiement.",
     "sessionLine": "Séance · {label}",
     "covered": "couverte par l’abonnement",
     "paymentLine": "Paiement · {label}",
@@ -1751,7 +1747,7 @@
     "voidSubmit": "Annuler le paiement",
     "voiding": "Annulation…",
     "voided": "Paiement annulé.",
-    "voidedOn": "le {date}. Motif : {reason}",
+    "voidedOn": "le {date}. Motif : {reason}",
     "errors": {
       "reason": "Indiquez le motif de l’annulation (300 caractères au plus).",
       "gone": "Ce paiement est déjà annulé, ou n’existe plus. Rechargez la page.",
@@ -1765,7 +1761,202 @@
     "coveringUntil": "{scope} couvertes jusqu’au {to}",
     "coveringFrom": "{scope} couvertes du {from} au {to}",
     "coveredZero": "0 h, couverte",
-    "voidedBanner": "Paiement annulé : le reçu n° {number} porte désormais la mention « Annulé ».",
-    "toSettle": "À régler : {hours}"
+    "voidedBanner": "Paiement annulé : le reçu n° {number} porte désormais la mention « Annulé ».",
+    "toSettle": "À régler : {hours}"
+  },
+  "site": {
+    "nav": {
+      "label": "Navigation du site",
+      "courses": "Cours",
+      "advice": "Conseils",
+      "prices": "Tarifs",
+      "signIn": "Se connecter"
+    },
+    "home": {
+      "title": "Des maths qui tiennent debout.",
+      "who": "{tutor}, professeure de mathématiques",
+      "whoCity": "{tutor}, professeure de mathématiques à {city}",
+      "lead": "Cours particuliers et en petit groupe, du collège au 2e bac. Leçons, devoirs corrigés et séances réunis dans un seul espace, sur le téléphone.",
+      "whatsapp": "Écrire sur WhatsApp",
+      "prices": "Voir les tarifs",
+      "signIn": "Se connecter",
+      "example": {
+        "label": "Un exercice, pas à pas",
+        "statement": "Calculer la limite en +∞",
+        "step1": "On factorise par x², le terme de plus haut degré, au numérateur et au dénominateur.",
+        "step2": "Pour x ≠ 0, on simplifie par x².",
+        "step3": "Comme 1/x² et 3/x² tendent vers 0, la limite vaut 2/1 = 2.",
+        "margin": "Chaque étape dit pourquoi : c’est ce qu’on apprend à rédiger."
+      },
+      "howHeading": "Comment ça se passe",
+      "how": {
+        "contact": {
+          "title": "Un premier message",
+          "body": "Vous écrivez : la classe, la filière, ce qui bloque. On convient d’une première séance."
+        },
+        "sessions": {
+          "title": "Des séances régulières",
+          "body": "Des séances régulières, seul ou en petit groupe, dans les lieux indiqués plus bas."
+        },
+        "between": {
+          "title": "Le suivi entre les séances",
+          "body": "Leçons, devoirs photographiés puis corrigés, questions par message : l’élève retrouve tout sur son téléphone."
+        }
+      },
+      "levelsHeading": "Les niveaux",
+      "cycle": {
+        "college": "Collège",
+        "tronc_commun": "Tronc commun",
+        "1bac": "1re année du bac",
+        "2bac": "2e année du bac"
+      },
+      "placesHeading": "Où se passent les séances",
+      "places": {
+        "chez_prof": "Chez la professeure",
+        "chez_profCity": "Chez la professeure, à {city}",
+        "domicile": "À domicile",
+        "domicileAreas": "À domicile : {areas}",
+        "en_ligne": "En ligne, en visioconférence"
+      },
+      "pricesHeading": "Tarifs",
+      "pricesLead": "Une séance faite, ou manquée sans prévenir, est décomptée ; une séance annulée dans les délais ne l’est pas.",
+      "pack": "{hours} de cours",
+      "subscription": "{months, plural, =1 {Abonnement mensuel} other {Abonnement de # mois}} : {scope}",
+      "scope": {
+        "tous": "toutes les séances",
+        "individuel": "les séances individuelles",
+        "groupe": "les séances de groupe"
+      },
+      "aboutHeading": "La professeure",
+      "adviceHeading": "Derniers conseils",
+      "adviceAll": "Tous les conseils",
+      "coursesHeading": "Cours en accès libre",
+      "coursesLead": "Des leçons publiées pour tous : définitions, théorèmes, exemples corrigés.",
+      "coursesAll": "Tous les cours",
+      "contactHeading": "Pour commencer",
+      "contactBody": "Un message suffit : la classe de l’élève et ce qui lui pose problème.",
+      "contactNoWhatsapp": "Les inscriptions se font directement auprès de la professeure, qui donne à chaque élève son accès.",
+      "alreadyIn": "Déjà inscrit ?",
+      "metaTitle": "{tutor}, cours de mathématiques du collège au bac",
+      "metaTitleCity": "{tutor}, cours de mathématiques à {city}",
+      "jobTitle": "Professeure de mathématiques",
+      "knowsAbout": "Mathématiques",
+      "pricesEmpty": "Les tarifs vous sont communiqués au premier message."
+    },
+    "footer": {
+      "about": "{brand} · les cours de mathématiques de {tutor}",
+      "student": "Se connecter",
+      "courses": "Cours",
+      "advice": "Conseils"
+    }
+  },
+  "blog": {
+    "title": "Conseils",
+    "lead": "Méthode, préparation des examens, erreurs fréquentes : des conseils courts, à lire avant de se remettre au travail.",
+    "category": {
+      "methode": "Méthode",
+      "examens": "Examens",
+      "erreurs": "Erreurs fréquentes",
+      "orientation": "Orientation"
+    },
+    "minutes": "{count, plural, one {# min de lecture} other {# min de lecture}}",
+    "publishedOn": "Publié le {date}",
+    "empty": "Les premiers conseils arrivent bientôt.",
+    "back": "Tous les conseils",
+    "byCategory": "Par thème",
+    "toCourses": "Lire les cours en accès libre"
+  },
+  "coursesIndex": {
+    "title": "Cours en accès libre",
+    "lead": "Les leçons publiées pour tous : définitions, théorèmes et exemples corrigés, classés par niveau.",
+    "empty": "Aucune leçon publique pour l’instant.",
+    "lessons": "{count, plural, one {# leçon} other {# leçons}}",
+    "home": "Retour à l’accueil"
+  },
+  "siteAdmin": {
+    "title": "Site public",
+    "lead": "Ce que voient les parents et les élèves qui ne sont pas encore inscrits.",
+    "open": "Voir le site",
+    "profileHeading": "Votre présentation",
+    "tagline": "Phrase d’accroche",
+    "taglineHint": "Une phrase sous le titre de la page d’accueil, par exemple « Des maths expliquées pas à pas, du collège au bac. »",
+    "bio": "Présentation",
+    "bioHint": "Quelques lignes sur vous : votre parcours, votre façon d’enseigner.",
+    "city": "Ville",
+    "areas": "Quartiers où vous vous déplacez",
+    "areasHint": "Pour les cours à domicile, par exemple « Temara, Harhoura, Souissi ».",
+    "whatsapp": "Numéro WhatsApp",
+    "whatsappHint": "Les parents vous écrivent sur ce numéro depuis le site, par exemple 06 12 34 56 78.",
+    "save": "Enregistrer la présentation",
+    "saving": "Enregistrement…",
+    "saved": "Présentation enregistrée : le site est à jour.",
+    "elsewhere": "Ailleurs sur le site",
+    "postsLink": "Écrire des conseils",
+    "plansLink": "Les tarifs viennent de vos formules",
+    "coursesLink": "Les cours publics viennent de vos leçons « Tout le monde »",
+    "errors": {
+      "tagline": "La phrase d’accroche tient en 160 caractères au plus.",
+      "bio": "La présentation tient en 1 500 caractères au plus.",
+      "city": "La ville tient en 80 caractères au plus.",
+      "areas": "Les quartiers tiennent en 200 caractères au plus.",
+      "whatsapp": "Indiquez un numéro marocain, par exemple 06 12 34 56 78 ou +212 6 12 34 56 78, ou laissez vide.",
+      "unknown": "La présentation n’a pas pu être enregistrée. Réessayez dans un instant."
+    },
+    "noWhatsapp": "Sans numéro WhatsApp, le site n’a aucun bouton pour vous écrire : les parents ne peuvent pas vous contacter depuis la page d’accueil.",
+    "newTab": "(s’ouvre dans un nouvel onglet)"
+  },
+  "postsAdmin": {
+    "title": "Conseils",
+    "back": "Site public",
+    "lead": "Des articles courts pour le site public : méthode, examens, erreurs fréquentes, orientation.",
+    "newHeading": "Nouveau conseil",
+    "fieldTitle": "Titre",
+    "fieldCategory": "Thème",
+    "create": "Créer le brouillon",
+    "creating": "Création…",
+    "empty": "Aucun conseil pour l’instant : créez le premier avec « Nouveau conseil ».",
+    "status": {
+      "draft": "Brouillon",
+      "published": "Publié"
+    },
+    "updated": "Modifié le {date}",
+    "deleted": "Conseil supprimé.",
+    "errors": {
+      "fields": "Vérifiez les champs signalés.",
+      "title": "Donnez un titre de 140 caractères au plus.",
+      "category": "Choisissez un thème.",
+      "unknown": "Le conseil n’a pas pu être créé. Réessayez dans un instant."
+    }
+  },
+  "postEditor": {
+    "back": "Conseils",
+    "title": "Titre",
+    "excerpt": "Résumé",
+    "excerptHint": "Deux lignes, montrées dans la liste des conseils et quand le lien est partagé.",
+    "category": "Thème",
+    "body": "Texte",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "publish": "Publier",
+    "unpublish": "Retirer du site",
+    "saved": "Conseil enregistré.",
+    "published": "Conseil publié : il est en ligne.",
+    "unpublished": "Conseil retiré du site : il redevient un brouillon.",
+    "unsaved": "Modifications non enregistrées",
+    "open": "Voir sur le site",
+    "noImages": "Les conseils n’ont ni image ni document joint : du texte, des encadrés et des formules.",
+    "deleteHeading": "Supprimer ce conseil",
+    "deleteHint": "Il disparaît du site et de votre liste. Cela ne s’annule pas.",
+    "delete": "Supprimer le conseil",
+    "deleting": "Suppression…",
+    "errors": {
+      "fields": "Vérifiez les champs signalés.",
+      "title": "Donnez un titre de 140 caractères au plus.",
+      "excerpt": "Le résumé tient en 300 caractères au plus.",
+      "category": "Choisissez un thème.",
+      "content": "Le texte contient un élément que les conseils n’acceptent pas, comme une image collée. Retirez-le puis enregistrez.",
+      "notFound": "Ce conseil n’existe plus. Revenez à la liste.",
+      "unknown": "Le conseil n’a pas pu être enregistré. Réessayez dans un instant."
+    }
   }
 }

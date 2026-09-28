@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
-import { formatLocalDate } from "@/lib/dates";
+import { formatLocalDate, withFirst } from "@/lib/dates";
 import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "@/lib/lesson/document";
 import { renderLesson } from "@/lib/lesson/render";
+import { frenchSpaces } from "@/lib/typography";
 
 type Props = {
   title: string;
@@ -28,14 +29,16 @@ export async function LessonArticle({ title, summary, publishedAt, context, cont
       <p className="text-sm text-encre-douce">{context}</p>
 
       <h1 className="mt-2 text-[clamp(1.875rem,1.5rem+1.6vw,2.75rem)] leading-tight font-semibold text-balance [font-variation-settings:'HEXP'_100]">
-        {title}
+        {frenchSpaces(title)}
       </h1>
 
-      {summary === null ? null : <p className="mt-4 text-lg text-encre-douce">{summary}</p>}
+      {summary === null ? null : (
+        <p className="mt-4 text-lg text-encre-douce">{frenchSpaces(summary)}</p>
+      )}
 
       {publishedAt === null ? null : (
         <p className="mt-4 text-sm text-encre-douce">
-          {t("publishedOn", { date: formatLocalDate(publishedAt) })}
+          {t("publishedOn", { date: withFirst(formatLocalDate(publishedAt)) })}
         </p>
       )}
 

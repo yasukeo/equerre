@@ -670,6 +670,71 @@ Kept as they are:
 - The RLS suite runs against the one hosted project, which is also the deployed one. Its payments can leave gaps in a year's receipt numbers if a real payment is recorded during a run. Before real payments are recorded, the suite moves to a Supabase branch, with the other end-of-project settings (D-064).
 - The receipt still lacks the tutor's phone and city: they arrive with the public site's profile.
 
+**D-089 — The public site and its blog.**
+The front door for parents, and the top of the tutor's funnel (`20260928152441`).
+
+- **What a visitor sees.** Everything comes from the tutor's own data; nothing is invented about results or reviews.
+  - `/`: who teaches and where, and how it goes (a real sequence, so numbered: first message, regular sessions, follow-up between them). Then the levels by cycle, where sessions take place, the plans on offer with their prices, her presentation if she wrote one, the latest posts and public lessons, and how to start.
+  - `/cours`: the public lessons by level and chapter. The lesson pages themselves already existed (D-048).
+  - `/conseils` and `/conseils/[slug]`: the blog, by theme, with reading time.
+- **Its look is DESIGN.md's public surface.** The page sits on the squared grid with wide headings (HEXP 100).
+  - Its one bold element is a limit worked on a copybook page, each step with its reason. It has the red margin of the share images (D-048) and her remark underneath: what parents pay for is method.
+  - A phone gets the same page in one column. The header's links take a second line rather than a menu to open.
+- **Her presentation.** `site_profile`, one public row that only the tutor writes, holds the text that is not data elsewhere: a tagline, a presentation, her city, the areas she travels to, and a WhatsApp number. She edits it at `/prof/site` (« Site public »).
+  - The WhatsApp number becomes the page's main button (`wa.me`, with the Moroccan prefix added). Without one, the page sends visitors to sign in.
+  - The demo leaves it empty rather than make up a city or a number for a real person.
+- **Posts.** `posts` holds a title, a slug set once, an excerpt, a theme (méthode, examens, erreurs fréquentes, orientation), a draft or published status and a body.
+  - The body is written in the lesson editor without images or files. Both buckets are keyed by lesson (D-052), so the editor hides those buttons and the save refuses such nodes (`postDocumentSchema`).
+  - Published posts are public; drafts are hers. She creates, saves, publishes, withdraws and deletes them at `/prof/conseils`. Reading time is counted from the text when the page is drawn: 200 words a minute, a formula as three words.
+  - The seed publishes three posts, written as examples for her to keep, change or delete.
+- **Caching.** Every public page is prerendered from `"use cache"` reads made anonymously, so a cache can only hold public rows. Each is tagged, and the tutor's saves refresh it (`updateTag`): a post, her presentation, her plans, a lesson. Checked in the browser: a post published or deleted, and a city saved, showed at once on the home page and the blog.
+- **The build reads the database afresh.** Next keeps `"use cache"` results in `.next/cache/fetch-cache` from one build to the next, and Vercel restores that folder. A post added since the last build was prerendered as missing: the home page showed no posts until the folder was removed. `pnpm build` now removes it first (`scripts/fresh-data-cache.mjs`). It holds data, not compiled code.
+- **Search engines.**
+  - Each page has its title, description and canonical address.
+  - The home page carries JSON-LD for her as a `Person`, and each post as an `Article`.
+  - Posts get the same share image as lessons.
+  - `sitemap.xml` lists the public pages. `robots.txt` keeps crawlers out of everything behind the sign-in.
+- **French typography.** Titles and excerpts typed by hand get a non-breaking space before « : ; ! ? » and inside « » (`frenchSpaces`), so no line starts with a colon.
+- **Tests.** `tests/rls/site.test.ts` checks that a visitor and a student read published posts but never a draft, that only the tutor writes a post or the profile, that the profile stays one row, and that a WhatsApp number must look like a phone number.
+
+**D-090 — What the review of the public site changed.**
+Three adversarial reviews (security and caching, logic, screens and search) of D-089.
+
+- **No leak found.** Every cached read goes through the anonymous client. Every public read has a save that refreshes it: the profile, plans, lessons, posts and, now, the places sessions take place.
+- **A failed read throws.** It used to fall back to an empty answer, and a timeout during a build or right after a save would have kept a home page with no prices, posts or courses for a month. Errors are not cached, so a build fails loudly instead. This covers the profile, plans, levels, places, posts and public lessons, including the older lesson reads.
+- **WhatsApp numbers.**
+  - « 00212 … », « +212 06 … » and a number without its 0 all built broken links. Every usual way of writing a Moroccan number now gives the same `wa.me/212…` link (`whatsappNumber`, with tests).
+  - The profile form refuses a number the site cannot turn into a link, rather than save it and drop the button.
+- **A parent always has a next step.**
+  - Without a WhatsApp number, `/prof/site` warns the tutor that parents cannot write to her from the site, and the home page says that registration goes through the tutor.
+  - « Tarifs » in the header always leads to a section: with no plan on offer, it says prices are given at the first message.
+  - `/cours` with no lesson links back home.
+- **Only her data.** The places of sessions come from the modes of her active session types (`listOfferedModes`, refreshed when she saves a type), not from fixed text. The copy no longer promises « les mêmes prix pour tous » or « le même jour chaque semaine ».
+- **The home page has its own metadata.** The title is her name and her city (« {tutor}, cours de mathématiques à {city} »), the description her tagline, and it has a canonical address. Posts get an Open Graph title, description and address, and their JSON-LD gets `mainEntityOfPage`. The sitemap dates a post by its last change.
+- **The maths is written as rigorously as the page claims.**
+  - The hero's steps factorise « au numérateur et au dénominateur », simplify « pour x ≠ 0 », and conclude from both 1/x² and 3/x².
+  - The example post writes the final line it tells students to justify.
+  - The exam post's example uses a square root, which is on the régional syllabus, rather than a logarithm, which is not.
+- **Accessibility.**
+  - The home page's regions are `<section>`s with their headings. Step numbers are hidden from screen readers, since the list already numbers them.
+  - Links underline in the controls' colour, not the grid's, and a list of links is 44 px tall.
+  - The post editor has a heading, and its title is the post's.
+  - « Voir le site » says it opens a new tab.
+- **One name for one place.** Every way to the sign-in page reads « Se connecter ».
+- **French typography.**
+  - Non-breaking spaces before « : ; ! ? » and inside « » in the strings of the payments and the public site.
+  - `frenchSpaces` runs on everything she types that the home page shows: tagline, presentation, city, areas, plan names.
+  - Dates read « 1er » on the post page too.
+- **Lighter pages.** KaTeX's stylesheet comes only with the pages that set maths (the home page and a post), not with every public page.
+- **Posts.** Saving a post deleted in another tab says so rather than « enregistré », and deleting one already gone no longer reports it deleted. The slug keeps up to 100 characters, as intended.
+- **The seed** writes its three posts only into an empty blog, so a post she deleted does not come back and a slug she reused does not break the seed.
+
+Kept as they are:
+
+- A post's body can still hold, through the API and her own session, an image her editor would refuse. Only the tutor can write posts, so this is a check on herself.
+- An unknown post address answers 200 with the « page introuvable » content, like lesson pages (D-048).
+- The grid does not yet line up with the page's columns.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.

@@ -157,6 +157,41 @@ export const exerciseDocumentSchema = z.object({
 export type ExerciseDocument = z.infer<typeof exerciseDocumentSchema>;
 
 /**
+ * A blog post: the lesson vocabulary without images or attached documents, in an encadré or
+ * out of one. Both buckets are keyed by lesson (D-052), and a post is not a lesson (D-089).
+ */
+const postCalloutSchema = z.object({
+  type: z.literal("callout"),
+  attrs: z.object({ kind: z.enum(CALLOUT_KINDS) }),
+  content: z
+    .array(
+      z.discriminatedUnion("type", [
+        paragraphSchema,
+        blockMathSchema,
+        bulletListSchema,
+        orderedListSchema,
+      ]),
+    )
+    .min(1),
+});
+
+export const postDocumentSchema = z.object({
+  type: z.literal("doc"),
+  content: z.array(
+    z.discriminatedUnion("type", [
+      paragraphSchema,
+      headingSchema,
+      blockMathSchema,
+      bulletListSchema,
+      orderedListSchema,
+      postCalloutSchema,
+    ]),
+  ),
+});
+
+export type PostDocument = z.infer<typeof postDocumentSchema>;
+
+/**
  * A lesson as the database holds it: a Tiptap document, trusted only in its envelope.
  *
  * The strict schema above belongs on the way in, where refusing a node can tell the

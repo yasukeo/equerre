@@ -894,6 +894,45 @@ export type Database = {
         }
         Relationships: []
       }
+      posts: {
+        Row: {
+          category: Database["public"]["Enums"]["post_category"]
+          content: Json
+          created_at: string
+          excerpt: string | null
+          id: string
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["publication_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["post_category"]
+          content?: Json
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          published_at?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["publication_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["post_category"]
+          content?: Json
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          published_at?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["publication_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1185,6 +1224,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_profile: {
+        Row: {
+          areas: string | null
+          bio: string | null
+          city: string | null
+          id: boolean
+          tagline: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          areas?: string | null
+          bio?: string | null
+          city?: string | null
+          id?: boolean
+          tagline?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          areas?: string | null
+          bio?: string | null
+          city?: string | null
+          id?: boolean
+          tagline?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
       }
       student_notes: {
         Row: {
@@ -1651,6 +1720,7 @@ export type Database = {
       payment_method: "especes" | "virement" | "cheque" | "transfert"
       plan_kind: "hour_pack" | "subscription"
       plan_scope: "tous" | "individuel" | "groupe"
+      post_category: "methode" | "examens" | "erreurs" | "orientation"
       publication_status: "draft" | "published"
       session_mode: "en_ligne" | "domicile" | "chez_prof"
       session_status:
@@ -1811,6 +1881,7 @@ export const Constants = {
       payment_method: ["especes", "virement", "cheque", "transfert"],
       plan_kind: ["hour_pack", "subscription"],
       plan_scope: ["tous", "individuel", "groupe"],
+      post_category: ["methode", "examens", "erreurs", "orientation"],
       publication_status: ["draft", "published"],
       session_mode: ["en_ligne", "domicile", "chez_prof"],
       session_status: [

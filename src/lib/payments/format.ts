@@ -1,4 +1,6 @@
-import { formatLocal } from "@/lib/dates";
+import { formatLocal, withFirst } from "@/lib/dates";
+
+export { withFirst };
 
 // How money and hours read in French (DECISIONS.md, D-087): « 1 500 MAD », « 1 500,50 MAD »,
 // « 2,5 h », « −3 h ». Times of day never come in here; dates are Casablanca calendar days.
@@ -55,14 +57,6 @@ export function coverageEnd(from: string, months: number): string {
   target.setUTCDate(Math.min(day, lastDay));
   target.setUTCDate(target.getUTCDate() - 1);
   return target.toISOString().slice(0, 10);
-}
-
-const FIRST =
-  /(^|[^0-9])1 (janv\.|janvier|févr\.|février|mars|avr\.|avril|mai|juin|juil\.|juillet|août|sept\.|septembre|oct\.|octobre|nov\.|novembre|déc\.|décembre)/g;
-
-/** « 1 octobre » → « 1er octobre »: French writes the first of the month so. */
-export function withFirst(text: string): string {
-  return text.replace(FIRST, "$11er $2");
 }
 
 /** A calendar day (`yyyy-MM-dd`) in words: « 1er octobre 2026 ». */

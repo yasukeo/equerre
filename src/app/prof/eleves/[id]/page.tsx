@@ -11,7 +11,7 @@ import {
   overdueDays,
   ReceiptLink,
 } from "@/components/payments/account-panel";
-import { Flash } from "@/components/payments/flash";
+import { Flash } from "@/components/ui/flash";
 import { SessionStatusChip } from "@/components/session-status";
 import { StudentStatusChip } from "@/components/student-status";
 import { buttonVariants } from "@/components/ui/button";

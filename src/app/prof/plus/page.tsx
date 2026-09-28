@@ -1,6 +1,7 @@
 import {
   BookOpen,
   CalendarClock,
+  Globe,
   NotebookPen,
   Tags,
   UserPlus,
@@ -20,7 +21,15 @@ export async function generateMetadata(): Promise<Metadata> {
 // On a phone, the places the bottom bar has no room for (DECISIONS.md, D-082).
 const PLACES: {
   href: string;
-  key: "payments" | "lessons" | "exercises" | "availability" | "sessionTypes" | "groups" | "invite";
+  key:
+    | "payments"
+    | "lessons"
+    | "exercises"
+    | "availability"
+    | "sessionTypes"
+    | "groups"
+    | "invite"
+    | "site";
   icon: LucideIcon;
 }[] = [
   { href: "/prof/paiements", key: "payments", icon: Wallet },
@@ -30,6 +39,7 @@ const PLACES: {
   { href: "/prof/seances/types", key: "sessionTypes", icon: Tags },
   { href: "/prof/eleves/groupes", key: "groups", icon: Users },
   { href: "/prof/eleves/inviter", key: "invite", icon: UserPlus },
+  { href: "/prof/site", key: "site", icon: Globe },
 ];
 
 export default async function MorePage() {

@@ -32,12 +32,14 @@ export async function listPublicLessons(): Promise<LessonParams[]> {
   cacheTag(COURSE_INDEX_TAG);
   cacheLife("max");
 
-  const { data } = await publicClient()
+  const { data, error } = await publicClient()
     .from("lessons")
     .select("slug, position, chapters!inner(slug, levels!inner(code))")
     .order("position");
+  // An error is not cached; an empty answer would be, and would drop every lesson page.
+  if (error) throw new Error("Could not read the public lessons", { cause: error });
 
-  return (data ?? []).map((row) => ({
+  return data.map((row) => ({
     niveau: levelSlug(row.chapters.levels.code),
     chapitre: row.chapters.slug,
     lecon: row.slug,
@@ -48,7 +50,7 @@ export async function getPublicLesson(params: LessonParams): Promise<PublicLesso
   "use cache";
   cacheTag(lessonTag(params.lecon), COURSE_INDEX_TAG);
 
-  const { data } = await publicClient()
+  const { data, error } = await publicClient()
     .from("lessons")
     .select(
       "title, summary, content, published_at, chapters!inner(title, slug, levels!inner(code, label))",
@@ -57,6 +59,7 @@ export async function getPublicLesson(params: LessonParams): Promise<PublicLesso
     .eq("chapters.slug", params.chapitre)
     .eq("chapters.levels.code", levelCode(params.niveau))
     .maybeSingle();
+  if (error) throw new Error("Could not read the lesson", { cause: error });
 
   if (!data) {
     // A lesson about to be published must not be remembered as missing for a month.
@@ -75,4 +78,54 @@ export async function getPublicLesson(params: LessonParams): Promise<PublicLesso
     chapterTitle: data.chapters.title,
     levelLabel: data.chapters.levels.label,
   };
+}
+
+export type PublicCourseLevel = {
+  code: string;
+  label: string;
+  chapters: {
+    slug: string;
+    title: string;
+    lessons: { slug: string; title: string; summary: string | null }[];
+  }[];
+};
+
+/**
+ * The public lessons as a course index (D-089): by level in school order, then chapter, then
+ * lesson. Read anonymously, like the pages it links to, so it lists exactly those.
+ */
+export async function listPublicCourse(): Promise<PublicCourseLevel[]> {
+  "use cache";
+  cacheTag(COURSE_INDEX_TAG);
+  cacheLife("max");
+
+  const { data, error } = await publicClient()
+    .from("lessons")
+    .select(
+      "slug, title, summary, position, chapters!inner(slug, title, position, levels!inner(code, label, position))",
+    );
+  if (error) throw new Error("Could not read the public lessons", { cause: error });
+
+  const rows = [...data].sort(
+    (a, b) =>
+      a.chapters.levels.position - b.chapters.levels.position ||
+      a.chapters.position - b.chapters.position ||
+      a.position - b.position,
+  );
+  const levels: PublicCourseLevel[] = [];
+  for (const row of rows) {
+    const level = row.chapters.levels;
+    let entry = levels.find((candidate) => candidate.code === level.code);
+    if (!entry) {
+      entry = { code: level.code, label: level.label, chapters: [] };
+      levels.push(entry);
+    }
+    let chapter = entry.chapters.find((candidate) => candidate.slug === row.chapters.slug);
+    if (!chapter) {
+      chapter = { slug: row.chapters.slug, title: row.chapters.title, lessons: [] };
+      entry.chapters.push(chapter);
+    }
+    chapter.lessons.push({ slug: row.slug, title: row.title, summary: row.summary });
+  }
+  return levels;
 }

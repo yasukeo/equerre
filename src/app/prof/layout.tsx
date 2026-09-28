@@ -3,6 +3,7 @@ import {
   CalendarDays,
   ClipboardList,
   Ellipsis,
+  Globe,
   House,
   MessageCircle,
   NotebookPen,
@@ -70,10 +71,25 @@ export default async function TutorLayout({ children }: { children: ReactNode })
               {t("exercises")}
             </NavLink>
           </li>
+          <li className={DESKTOP_ONLY}>
+            <NavLink
+              href="/prof/site"
+              also={["/prof/conseils"]}
+              icon={<Globe aria-hidden="true" />}
+            >
+              {t("site")}
+            </NavLink>
+          </li>
           <li className={PHONE_ONLY}>
             <NavLink
               href="/prof/plus"
-              also={["/prof/paiements", "/prof/lecons", "/prof/exercices"]}
+              also={[
+                "/prof/paiements",
+                "/prof/lecons",
+                "/prof/exercices",
+                "/prof/site",
+                "/prof/conseils",
+              ]}
               icon={<Ellipsis aria-hidden="true" />}
             >
               {t("more")}

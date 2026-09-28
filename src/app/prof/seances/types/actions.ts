@@ -1,12 +1,13 @@
 "use server";
 
-import { refresh } from "next/cache";
+import { refresh, updateTag } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { requireViewer } from "@/lib/auth";
 import { parseDecimal } from "@/lib/decimal";
 import { fieldErrorsFor, textField, type FormState } from "@/lib/form-state";
 import { MAX_SESSION_TYPE_NAME_LENGTH } from "@/lib/sessions/limits";
+import { MODES_TAG } from "@/lib/site/queries";
 import { createClient } from "@/lib/supabase/server";
 
 // Session types: a duration, a mode and a price in MAD (DECISIONS.md, D-074). A type sessions
@@ -81,6 +82,8 @@ export async function createType(_previous: FormState, formData: FormData): Prom
     .from("session_types")
     .insert({ ...read.row, is_group: textField(formData, "isGroup") === "true" });
   if (error) return { status: "error", message: read.t("errors.unknown"), values: read.values };
+  // The public site says where sessions take place, from the types on offer (D-090).
+  updateTag(MODES_TAG);
   refresh();
   return { status: "success", message: read.t("created") };
 }
@@ -102,6 +105,7 @@ export async function updateType(_previous: FormState, formData: FormData): Prom
   if (data.length === 0) {
     return { status: "error", message: read.t("errors.gone"), values: read.values };
   }
+  updateTag(MODES_TAG);
   refresh();
   return { status: "success", message: read.t("saved"), values: read.values };
 }

@@ -64,6 +64,8 @@ export type DocumentEditorProps = {
   folderId: string;
   /** Attached PDFs, for lessons only (D-044). */
   attachments: boolean;
+  /** Images, for lessons and exercises; the blog's posts have none in v1 (D-089). */
+  images?: boolean;
   calloutLabels: Record<CalloutKind, string>;
   /**
    * Called once, with the document as the editor first writes it. The stored JSON comes back
@@ -80,6 +82,7 @@ export function DocumentEditor({
   initialContent,
   folderId,
   attachments,
+  images = true,
   calloutLabels,
   onReady,
   onChange,
@@ -245,7 +248,7 @@ export function DocumentEditor({
           label={label}
           calloutLabels={calloutLabels}
           onMath={(display) => setMath({ display, latex: "", pos: null })}
-          onImage={openImage}
+          onImage={images ? openImage : null}
           onFile={attachments ? openFile : null}
         />
         <EditorContent editor={editor} />
@@ -265,7 +268,7 @@ export function DocumentEditor({
                   onClose={() => setMath(null)}
                 />
               ) : null}
-              {image ? (
+              {image && images ? (
                 <ImageDialog
                   folderId={folderId}
                   target={image}
@@ -343,7 +346,7 @@ function Toolbar({
   label: string;
   calloutLabels: Record<CalloutKind, string>;
   onMath: (display: boolean) => void;
-  onImage: () => void;
+  onImage: (() => void) | null;
   onFile: (() => void) | null;
 }) {
   const t = useTranslations("editor.toolbar");
@@ -443,7 +446,9 @@ function Toolbar({
       {tool(t("blockMath"), <SquareSigma {...icon} />, () => onMath(true))}
       <span className="editeur-separateur" aria-hidden="true" />
       {/* While one is selected, the same button edits it rather than adding another. */}
-      {tool(active.image ? t("imageEdit") : t("image"), <ImagePlus {...icon} />, onImage)}
+      {onImage
+        ? tool(active.image ? t("imageEdit") : t("image"), <ImagePlus {...icon} />, onImage)
+        : null}
       {onFile
         ? tool(active.file ? t("fileEdit") : t("file"), <Paperclip {...icon} />, onFile)
         : null}

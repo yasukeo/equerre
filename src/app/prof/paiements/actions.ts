@@ -1,6 +1,6 @@
 "use server";
 
-import { refresh } from "next/cache";
+import { refresh, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
@@ -19,6 +19,7 @@ import {
 } from "@/lib/payments/limits";
 import { manualPayments } from "@/lib/payments/provider";
 import { isDateKey } from "@/lib/sessions/calendar-views";
+import { PLANS_TAG } from "@/lib/site/queries";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 
@@ -125,6 +126,8 @@ export async function createPlan(_previous: FormState, formData: FormData): Prom
   const supabase = await createClient();
   const { error } = await supabase.from("plans").insert(read.row);
   if (error) return { status: "error", message: read.t("errors.unknown"), values: read.values };
+  // The public site shows the plans on offer: it shows this one now.
+  updateTag(PLANS_TAG);
   refresh();
   return { status: "success", message: read.t("created") };
 }
@@ -148,6 +151,7 @@ export async function updatePlan(_previous: FormState, formData: FormData): Prom
   if (data.length === 0) {
     return { status: "error", message: read.t("errors.gone"), values: read.values };
   }
+  updateTag(PLANS_TAG);
   refresh();
   return { status: "success", message: read.t("saved"), values: read.values };
 }

@@ -36,6 +36,14 @@ export function formatLocalDate(value: DateInput): string {
   return longDate.format(new Date(value));
 }
 
+const FIRST =
+  /(^|[^0-9])1 (janv\.|janvier|févr\.|février|mars|avr\.|avril|mai|juin|juil\.|juillet|août|sept\.|septembre|oct\.|octobre|nov\.|novembre|déc\.|décembre)/g;
+
+/** « 1 octobre » → « 1er octobre »: French writes the first of the month so. */
+export function withFirst(text: string): string {
+  return text.replace(FIRST, "$11er $2");
+}
+
 /** The Casablanca calendar day (`yyyy-MM-dd`) an instant falls on. */
 export function localDateKey(value: DateInput): string {
   return formatLocal(value, "yyyy-MM-dd");
