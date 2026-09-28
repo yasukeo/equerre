@@ -1,5 +1,6 @@
 -- Development seed for Équerre:
--- 1 tutor, 8 students, 3 groups, 9 chapters, 12 lessons, 30 exercises, 40 sessions.
+-- 1 tutor, 8 students, 3 groups, 9 chapters, 12 lessons, 30 exercises, 40 sessions,
+-- 4 plans and 9 payments.
 --
 -- Run it with `pnpm db:seed`, which replaces {{SEED_PASSWORD}} with SEED_PASSWORD from
 -- .env.local. Seed accounts use the reserved .test domain: sign in with the password.
@@ -858,6 +859,85 @@ update public.conversations c
 set last_message_at = (select max(m.created_at) from public.messages m where m.conversation_id = c.id)
 where c.student_id = pg_temp.uid('00000000', 101) or c.group_id = pg_temp.uid('10000000', 1);
 
+-- ─────────────────────────────────────────────────────────────── plans and payments
+-- Four plans, and payments that give each kind of account (D-087): Salma and Imane in credit
+-- with a pack, Omar and Salma's groups paid by the month or the term, Nour and Rayane covered,
+-- Yassine short of hours with one payment voided, Hiba owing everything.
+-- Written once: a plan she has since changed keeps her changes, and the payments are only
+-- added to books that hold none (D-088). A receipt, once numbered, is never taken back.
+
+insert into public.plans (id, kind, name, hours, period_months, scope, price_mad)
+values
+  (pg_temp.uid('70000000', 1), 'hour_pack', 'Pack 10 heures', 10, null, 'tous', 1600),
+  (pg_temp.uid('70000000', 2), 'hour_pack', 'Pack 5 heures', 5, null, 'tous', 850),
+  (pg_temp.uid('70000000', 3), 'subscription', 'Groupe — un mois', null, 1, 'groupe', 400),
+  (pg_temp.uid('70000000', 4), 'subscription', 'Groupe — un trimestre', null, 3, 'groupe', 1100)
+on conflict (id) do nothing;
+
+with paid (n, student_n, plan_n, amount, method, days_ago, starts_days_ago, note, voided) as (
+  values
+    (1, 101, 1, 1600, 'especes', 26, null::integer, null::text, null::text),
+    (2, 101, 4, 1100, 'virement', 26, 35, 'Virement du début du mois', null),
+    (3, 102, 3, 400, 'especes', 24, 35, null, null),
+    (4, 102, 2, 850, 'especes', 24, null, null, null),
+    (5, 104, 2, 850, 'transfert', 18, null, 'Transfert Cash Plus', null),
+    (6, 105, 1, 1600, 'cheque', 20, null, 'Chèque n° 4521', 'Saisi deux fois'),
+    (7, 105, 1, 1600, 'cheque', 20, null, 'Chèque n° 4521', null),
+    (8, 106, 4, 1100, 'virement', 25, 35, null, null),
+    (9, 103, 3, 400, 'especes', 25, 35, null, null)
+),
+numbered as (
+  select
+    paid.*,
+    pl.name,
+    pl.kind,
+    pl.hours,
+    pl.period_months,
+    pl.scope,
+    -- Numbered after the receipts already given this year.
+    coalesce((select c.last from public.receipt_counters c
+     where c.year = extract(year from now() at time zone 'Africa/Casablanca')::smallint), 0)
+      + row_number() over (order by paid.n) as rank,
+    ((now() at time zone 'Africa/Casablanca')::date - paid.days_ago) as paid_on,
+    ((now() at time zone 'Africa/Casablanca')::date - paid.starts_days_ago) as covers_from
+  from paid
+  join public.plans pl on pl.id = pg_temp.uid('70000000', paid.plan_n)
+  where not exists (select 1 from public.payments)
+)
+insert into public.payments (
+  id, receipt_number, student_id, plan_id, label, amount_mad, method, paid_on, hours_credited,
+  covers_from, covers_to, covers_scope, note, created_at, voided_at, void_reason
+)
+select
+  pg_temp.uid('71000000', n),
+  extract(year from now() at time zone 'Africa/Casablanca')::text || '-'
+    || lpad(rank::text, greatest(4, length(rank::text)), '0'),
+  pg_temp.uid('00000000', student_n),
+  pg_temp.uid('70000000', plan_n),
+  name,
+  amount,
+  method::public.payment_method,
+  paid_on,
+  coalesce(hours, 0),
+  case when kind = 'subscription' then covers_from end,
+  case when kind = 'subscription'
+    then (covers_from + make_interval(months => period_months) - interval '1 day')::date end,
+  case when kind = 'subscription' then scope end,
+  note,
+  paid_on::timestamp at time zone 'Africa/Casablanca' + interval '19 hours',
+  case when voided is not null then paid_on::timestamp at time zone 'Africa/Casablanca' + interval '20 hours' end,
+  voided
+from numbered;
+
+insert into public.receipt_counters as c (year, last)
+select
+  extract(year from now() at time zone 'Africa/Casablanca')::smallint,
+  max(split_part(p.receipt_number, '-', 2)::integer)
+from public.payments p
+where p.receipt_number like extract(year from now() at time zone 'Africa/Casablanca')::text || '-%'
+having count(*) > 0
+on conflict (year) do update set last = greatest(c.last, excluded.last);
+
 -- ─────────────────────────────────────────────────────────────── clean up
 
 drop function pg_temp.seed_exercise(integer, integer, text, integer, public.answer_type, jsonb, jsonb, text[], numeric, numeric, jsonb, text[], public.choice_mode);
@@ -879,4 +959,5 @@ select
   (select count(*) from public.groups) as groups,
   (select count(*) from public.lessons) as lessons,
   (select count(*) from public.exercises) as exercises,
-  (select count(*) from public.sessions) as sessions;
+  (select count(*) from public.sessions) as sessions,
+  (select count(*) from public.payments) as payments;

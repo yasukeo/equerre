@@ -347,7 +347,7 @@ The seed's memberships dated from seeding day, while its group sessions go back 
 - her next session;
 - her average.
 
-The list filters by name (accents ignored), level and standing, active and paused by default, and to those with no session to come. The filters live in the address, so a filtered list is a link she can keep. A level the address names but the database does not know lists everyone. The remaining hours balance of the brief comes with payments, in phase 4.
+The list filters by name (accents ignored), level and standing, active and paused by default, and to those with no session to come. The filters live in the address, so a filtered list is a link she can keep. A level the address names but the database does not know lists everyone. Each row shows the student's balance of hours, and the list filters on accounts in arrears (D-087).
 
 `/prof/eleves/[id]` is the file:
 
@@ -589,17 +589,99 @@ Kept as they are:
 - A job stopped between its claim and the email loses that email, as a reminder would.
 - The first run sends what is less than two days old.
 
+**D-087 — Payments: tracking, not processing.**
+The tutor sells hour packs and subscriptions priced in MAD, and records by hand what she received: espèces, virement, chèque or transfert d'argent (`20260928041147`). No money moves through the app.
+
+- **Plans.** `/prof/paiements/formules`.
+  - A pack credits hours.
+  - A subscription covers 1 to 12 months of the student's group sessions, individual sessions, or both.
+  - The kind is fixed once created. A plan is withdrawn, never deleted, because payments name it.
+  - Plans on offer can be read by anyone, so the public site can show her prices (phase 4b).
+- **A payment is a receipt.** `public.record_payment` gives each one the next number of the year it is recorded (« 2026-0007 »), through a counter row, so there is never a gap or a repeat. It copies what was bought: the plan's name, its hours or the period it covers.
+  - A payment without a plan says in her words what it was for, and may credit hours.
+  - Nothing writes, changes or deletes a payment directly, not even the tutor: a mistake is voided with a reason (`public.void_payment`) and recorded again. The voided receipt stays, marked « Annulé » with the reason.
+  - A student with payments cannot be deleted.
+- **The balance counts time, and the database computes it** (`public.student_accounts`, `public.account_statement`), in exact minutes shown as hours (D-088), so every screen and the receipt agree.
+  - Credits: each payment's hours, from the start of the day it was paid.
+  - Charges: each session's length, unless a subscription covers its Casablanca day and its kind. An individual session counts when done, or missed without cancelling (`absent`). A group session counts for each member present or absent; excused costs nothing.
+  - Below zero she owes hours. The account is late from the session that took it below zero and kept it there, so « En retard de 20 jours » (DESIGN.md) counts from the first unpaid session.
+  - There is no amount owed in MAD: packs and subscriptions price an hour differently, and a guessed sum would be wrong. The tutor reads the hours and the dates.
+- **Who reads what.** The tutor reads every account. A student reads her own balance, statement, payments and receipts (`/eleve/profil`), and nobody else's. The parent view will read her children's through the same check (`private.can_see_account`).
+- **Screens.**
+  - `/prof/paiements`: accounts in arrears, the longest overdue first, then the latest payments.
+  - `/prof/paiements/nouveau`: records a payment. A subscription starts the day after the current one ends, and the form says when it ends.
+  - The student file has a « Paiements » section (balance, statement, payments, receipts, voiding) and the balance in its figures.
+  - The student list shows each balance and filters on arrears. The dashboard counts accounts in arrears.
+  - Payment status is never colour alone: ✓ À jour, △ En retard de _n_ jours.
+- **The receipt** is an A5 PDF built on the server with pdf-lib (`/recus/[id]`, `src/lib/payments/receipt.ts`), for whoever may read the payment. It uses the standard Helvetica faces, which need no font file and carry every French letter; a character they cannot draw (Arabic) prints as « ? » until an Arabic font is embedded with the RTL work. pdf-lib was chosen over PDFKit because it needs no font files read from disk, which serverless bundling loses.
+- **A gateway later.** Recording goes through a `PaymentProvider` (`src/lib/payments/provider.ts`), whose only implementation today is `manualPayments`. CMI, YouCan Pay or PayZone would add a provider: start a checkout, and on the gateway's confirmed webhook record the payment through the same function, so numbering, receipts and balances keep one path.
+- **Tests.** `tests/rls/payments.test.ts` checks, through the API:
+  - only the tutor records or voids a payment;
+  - receipts follow each other;
+  - nobody writes a payment directly;
+  - a student reads only her own account;
+  - voiding gives back the balance;
+  - a withdrawn plan, a future date or a subscription with no start is refused.
+
+  The secret key removes the test payments and puts the counter back. The seed adds four plans and nine payments that show each kind of account.
+
+**D-088 — What the review of payments changed.**
+Three adversarial reviews (security, logic, screens) of D-087. None found a way to read or write another student's account. The fixes are in `20260928150101` and the app.
+
+- **Accounts count in minutes, exactly.** Each session used to be rounded to a hundredth of an hour, so three 40-minute sessions made 2,01 h and a student who had paid two hours showed as late.
+  - The database now counts minutes without rounding, and whether she owes is decided on them (`Account.owes`).
+  - Hours are only how the balance is shown.
+- **The statement is numbered in the order it is added up** and shown in exactly the reverse, so lines of the same instant no longer contradict each other. It is read in pages past PostgREST's 1000 rows.
+- **Coverage says what and when.**
+  - Accounts list the subscriptions still running or to come, with what they cover: « Séances de groupe couvertes jusqu'au 23 novembre ». An October subscription recorded in September no longer reads as covering September.
+  - A new subscription starts the day after the one covering the same sessions ends. With none, it starts on the 1st of this month, or of the next from the 20th on. A date she typed herself is kept.
+- **Recording.**
+  - The form starts with no plan chosen, and « Autre paiement » starts with no amount, so a payment is never recorded under the cheapest pack by default.
+  - The label and hours of « Autre » are read only when it is chosen.
+  - The hours hint says what they are for: the sessions a payment settles.
+- **Voiding** sends her back to the file with a banner that takes the focus, as recording does. The banners carry a check mark, and a payment recorded then voided no longer reads as recorded.
+- **The receipt** (« Reçu de paiement n° … »):
+  - A voided one says « annulé » in its title and « ANNULÉ » with the reason above the amount, which it greys.
+  - It adds the amount in words, the payer (the parent on the file, « pour » the student) and a signature line.
+  - Every row has a number of lines it may take, ended by « … », and nothing is drawn below the signature: the longest note and reason still fit.
+  - Line breaks in a note are kept.
+  - It opens in the browser's viewer instead of downloading.
+  - Its address must be a UUID.
+- **What a student sees.** Her balance and receipts in ink, « À régler : 6 h » without a count of days, and « Vos parents peuvent voir le détail avec votre professeure ». Arrears in red, with days, are the tutor's view.
+- **Dates and copy.**
+  - The first of the month reads « 1er » across payments and on the receipt.
+  - « n° » holds to its number, and a voided amount is struck through.
+  - Each overdue row's button has its own accessible name. The student list says « en retard » in words.
+  - Errors say what is missing.
+  - The plans page no longer promises the public site, until it shows them.
+- **Group sessions.** Closing one pre-marked every member of the day present, so a paused or stopped member was charged unless the tutor noticed. She is now pre-marked excused (`session-forms.tsx`).
+- **Database hardening.**
+  - A 10 000th receipt keeps five digits.
+  - A payment's hours are checked before being rounded.
+  - A subscription starts within a year of today.
+  - A plan's kind cannot change (`plans_keep_kind`).
+  - `private.account_lines` checks access itself, not only through its callers.
+- **Tests and seed.**
+  - The RLS tests give their receipt numbers back through `public.remove_test_payments`, with the secret key only, under the counter's lock. They check its errors, and find notifications by the session they are about rather than by this machine's clock, which ran a second ahead of the database's.
+  - The seed no longer rewrites plans that already exist, and adds its payments only to books that hold none.
+
+Kept as they are:
+
+- The RLS suite runs against the one hosted project, which is also the deployed one. Its payments can leave gaps in a year's receipt numbers if a real payment is recorded during a run. Before real payments are recorded, the suite moves to a Supabase branch, with the other end-of-project settings (D-064).
+- The receipt still lacks the tutor's phone and city: they arrive with the public site's profile.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
 
-| Where                                    | What for                                                                                 | Why it needs the secret key                                                                                                                            |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Tutor "add a student" action (phase 0/1) | `auth.admin.createUser`, `auth.admin.getUserById`, `auth.admin.generateLink`             | Creating another person's account, checking whether it was ever used, and issuing its set-password link are admin operations by definition.            |
-| `/api/cron/*` route handlers (phase 2)   | Read upcoming sessions and stamp `reminder_*_sent_at` for everyone                       | A cron job has no signed-in user, so no RLS identity.                                                                                                  |
-| `/api/cron/rappels`, emails (D-085)      | Read notifications and unread messages of everyone, stamp what was emailed               | A job has no session, and it writes to others' rows.                                                                                                   |
-| `/api/cron/rappels`, file sweep (D-083)  | Remove message files no message holds, a day after upload                                | A job has no session, and the files belong to others.                                                                                                  |
-| Session emails to the tutor (D-077)      | Read the tutor's email address when a student requests, books or cancels                 | A student may not read the tutor's profile, and the address should not travel through her session.                                                     |
-| `pnpm storage:sweep` (D-054)             | Read every lesson, exercise and solution; delete the lesson files none of them refers to | A script has no session. It must read drafts and worked solutions, which only the tutor may, and a reference it cannot read is a file it would delete. |
+| Where                                    | What for                                                                                                          | Why it needs the secret key                                                                                                                            |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tutor "add a student" action (phase 0/1) | `auth.admin.createUser`, `auth.admin.getUserById`, `auth.admin.generateLink`                                      | Creating another person's account, checking whether it was ever used, and issuing its set-password link are admin operations by definition.            |
+| `/api/cron/*` route handlers (phase 2)   | Read upcoming sessions and stamp `reminder_*_sent_at` for everyone                                                | A cron job has no signed-in user, so no RLS identity.                                                                                                  |
+| `/api/cron/rappels`, emails (D-085)      | Read notifications and unread messages of everyone, stamp what was emailed                                        | A job has no session, and it writes to others' rows.                                                                                                   |
+| `/api/cron/rappels`, file sweep (D-083)  | Remove message files no message holds, a day after upload                                                         | A job has no session, and the files belong to others.                                                                                                  |
+| Session emails to the tutor (D-077)      | Read the tutor's email address when a student requests, books or cancels                                          | A student may not read the tutor's profile, and the address should not travel through her session.                                                     |
+| `pnpm storage:sweep` (D-054)             | Read every lesson, exercise and solution; delete the lesson files none of them refers to                          | A script has no session. It must read drafts and worked solutions, which only the tutor may, and a reference it cannot read is a file it would delete. |
+| RLS tests' cleanup (D-086, D-088)        | Remove the notifications and payments the run made, and give receipt numbers back (`public.remove_test_payments`) | Nobody signed in may delete a notification or a payment, and the counter has no policy at all.                                                         |
 
 The seed script does not use it (D-028).

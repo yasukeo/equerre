@@ -1,4 +1,4 @@
-import { UserPlus, Users } from "lucide-react";
+import { TriangleAlert, UserPlus, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -8,6 +8,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { requireViewer } from "@/lib/auth";
 import { formatLocal } from "@/lib/dates";
+import { formatHours } from "@/lib/payments/format";
+import { getAccounts } from "@/lib/payments/queries";
 import { listStudents, type StudentRow } from "@/lib/students/queries";
 import { cn } from "@/lib/utils";
 
@@ -59,7 +61,10 @@ async function Students({
     getTranslations("studentStatus"),
     searchParams,
   ]);
-  const { students, levels } = await listStudents(new Date());
+  const [{ students, levels }, accounts] = await Promise.all([
+    listStudents(new Date()),
+    getAccounts(),
+  ]);
 
   // The filters travel in the address, so a filtered list can be kept and shared as a link.
   const query = one(params.q).trim();
@@ -71,6 +76,9 @@ async function Students({
     ? (one(params.statut) as StatusFilter)
     : "current";
   const withoutSession = one(params.sans) === "seance";
+  const overdueOnly = one(params.solde) === "retard";
+  const balanceOf = (id: string) => accounts.get(id)?.balance ?? 0;
+  const owes = (id: string) => accounts.get(id)?.owes ?? false;
   const folded = (text: string) =>
     text
       .normalize("NFD")
@@ -83,7 +91,8 @@ async function Students({
       (level === "" || student.levelCode === level) &&
       (status === "all" ||
         (status === "current" ? student.status !== "arrete" : student.status === status)) &&
-      (!withoutSession || student.nextSession === null),
+      (!withoutSession || student.nextSession === null) &&
+      (!overdueOnly || owes(student.id)),
   );
 
   if (students.length === 0) {
@@ -95,7 +104,7 @@ async function Students({
       <form
         // Drawn afresh for each set of filters: Next keeps the page between visits, and a select
         // keeps what it showed, whatever its default now says.
-        key={[query, level, status, withoutSession].join("|")}
+        key={[query, level, status, withoutSession, overdueOnly].join("|")}
         method="get"
         role="search"
         aria-label={t("filters")}
@@ -126,16 +135,28 @@ async function Students({
             <option value="all">{t("statusAll")}</option>
           </Select>
         </div>
-        <label className="flex min-h-11 items-center gap-2 text-sm sm:col-span-2 lg:col-span-2">
-          <input
-            type="checkbox"
-            name="sans"
-            value="seance"
-            defaultChecked={withoutSession}
-            className="size-4 accent-stylo-bleu"
-          />
-          {t("withoutSession")}
-        </label>
+        <div className="flex flex-wrap gap-x-6 sm:col-span-2 lg:col-span-2">
+          <label className="flex min-h-11 items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="sans"
+              value="seance"
+              defaultChecked={withoutSession}
+              className="size-4 accent-stylo-bleu"
+            />
+            {t("withoutSession")}
+          </label>
+          <label className="flex min-h-11 items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="solde"
+              value="retard"
+              defaultChecked={overdueOnly}
+              className="size-4 accent-stylo-bleu"
+            />
+            {t("overdueOnly")}
+          </label>
+        </div>
         <div className="flex flex-wrap items-center gap-3 lg:justify-end">
           <button type="submit" className={buttonVariants({ variant: "outline" })}>
             {t("apply")}
@@ -174,7 +195,10 @@ async function Students({
                     ? null
                     : t("average", { average: gradeFormat.format(student.average) }),
                 noGroup: t("noGroup"),
+                balance: t("balance", { hours: formatHours(balanceOf(student.id)) }),
+                overdue: t("overdue"),
               }}
+              owes={owes(student.id)}
             />
           ))}
         </ul>
@@ -188,11 +212,19 @@ const gradeFormat = new Intl.NumberFormat("fr", { maximumFractionDigits: 1 });
 function StudentItem({
   student,
   statusLabel,
+  owes,
   t,
 }: {
   student: StudentRow;
   statusLabel: string;
-  t: { nextSession: string; average: string | null; noGroup: string };
+  owes: boolean;
+  t: {
+    nextSession: string;
+    average: string | null;
+    noGroup: string;
+    balance: string;
+    overdue: string;
+  };
 }) {
   return (
     <li className="bg-surface">
@@ -218,6 +250,16 @@ function StudentItem({
           {t.average}
         </span>
         <span className="flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-encre-douce">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 tabular",
+              owes && "font-medium text-stylo-rouge",
+            )}
+          >
+            {owes ? <TriangleAlert aria-hidden="true" className="size-3.5" /> : null}
+            {t.balance}
+            {owes ? ` · ${t.overdue}` : null}
+          </span>
           <span>{t.nextSession}</span>
           <span>
             {student.groups.length === 0

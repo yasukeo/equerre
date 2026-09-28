@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { AccountPanel } from "@/components/payments/account-panel";
 import { requireViewer } from "@/lib/auth";
+import { localDateKey } from "@/lib/dates";
+import { formatHours } from "@/lib/payments/format";
+import { getAccounts, getStatement, listPayments } from "@/lib/payments/queries";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,7 +22,41 @@ export default async function StudentProfilePage() {
       <Suspense fallback={<div aria-hidden="true" className="h-72 rounded-md bg-sunken" />}>
         <ProfileDetails />
       </Suspense>
+      <Suspense fallback={<div aria-hidden="true" className="h-72 rounded-md bg-sunken" />}>
+        <MyAccount />
+      </Suspense>
     </div>
+  );
+}
+
+/** Her hours, her subscription and her receipts (D-087): read-only, through her own session. */
+async function MyAccount() {
+  const viewer = await requireViewer("student");
+  const t = await getTranslations("student.account");
+  const [accounts, payments] = await Promise.all([
+    getAccounts(viewer.id),
+    listPayments({ studentId: viewer.id }),
+  ]);
+  const account = accounts.get(viewer.id);
+  const statement = await getStatement(viewer.id, payments);
+
+  return (
+    <section aria-labelledby="my-account" className="grid gap-4">
+      <div className="grid gap-1">
+        <h2 id="my-account" className="text-lg font-medium">
+          {t("heading")}
+        </h2>
+        <p className="text-sm text-encre-douce">{t("lead")}</p>
+      </div>
+      {account?.owes ? <p>{t("owes", { hours: formatHours(-account.balance) })}</p> : null}
+      <AccountPanel
+        account={account}
+        payments={payments}
+        statement={statement}
+        today={localDateKey(new Date())}
+        audience="student"
+      />
+    </section>
   );
 }
 

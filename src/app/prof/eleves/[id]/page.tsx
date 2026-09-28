@@ -5,22 +5,36 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
 import { z } from "zod";
+import {
+  AccountPanel,
+  AccountStatusChip,
+  overdueDays,
+  ReceiptLink,
+} from "@/components/payments/account-panel";
+import { Flash } from "@/components/payments/flash";
 import { SessionStatusChip } from "@/components/session-status";
 import { StudentStatusChip } from "@/components/student-status";
+import { buttonVariants } from "@/components/ui/button";
 import { WorkChip } from "@/components/work-status";
 import { requireViewer } from "@/lib/auth";
-import { formatLocal } from "@/lib/dates";
+import { formatLocal, localDateKey } from "@/lib/dates";
 import type { ExerciseWork } from "@/lib/homework/work";
+import { formatHours } from "@/lib/payments/format";
+import { getAccounts, getStatement, listPayments } from "@/lib/payments/queries";
 import { getStudentFile, type StudentSession } from "@/lib/students/queries";
 import { NotesPanel } from "./notes-panel";
 import { StudentForm } from "./student-form";
+import { VoidPaymentForm } from "./void-payment-form";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.student");
   return { title: t("title") };
 }
 
-export default async function StudentPage({ params }: PageProps<"/prof/eleves/[id]">) {
+export default async function StudentPage({
+  params,
+  searchParams,
+}: PageProps<"/prof/eleves/[id]">) {
   const t = await getTranslations("tutor.student");
 
   return (
@@ -32,7 +46,7 @@ export default async function StudentPage({ params }: PageProps<"/prof/eleves/[i
         {t("back")}
       </Link>
       <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
-        <Student params={params} />
+        <Student params={params} searchParams={searchParams} />
       </Suspense>
     </div>
   );
@@ -42,19 +56,45 @@ export default async function StudentPage({ params }: PageProps<"/prof/eleves/[i
 const RECENT = 8;
 const gradeFormat = new Intl.NumberFormat("fr", { maximumFractionDigits: 1 });
 
-async function Student({ params }: { params: Promise<{ id: string }> }) {
+async function Student({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await requireViewer("tutor");
-  const { id } = await params;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   if (!z.uuid().safeParse(id).success) notFound();
 
-  const [t, tStatus, tWork] = await Promise.all([
+  const [t, tStatus, tWork, tAccount, tPayments] = await Promise.all([
     getTranslations("tutor.student"),
     getTranslations("studentStatus"),
     getTranslations("student.homework.work"),
+    getTranslations("account"),
+    getTranslations("payments"),
   ]);
-  const file = await getStudentFile(id, new Date());
+  const now = new Date();
+  const [file, accounts, payments] = await Promise.all([
+    getStudentFile(id, now),
+    getAccounts(id),
+    listPayments({ studentId: id }),
+  ]);
   if (!file) notFound();
   const { profile } = file;
+  const statement = await getStatement(id, payments);
+  const account = accounts.get(id);
+  const today = localDateKey(now);
+  // Just recorded or voided: the form sent her back here, with the payment to point at. A
+  // payment recorded then voided no longer reads as recorded.
+  const recorded =
+    typeof query.paiement === "string"
+      ? payments.find((payment) => payment.id === query.paiement && payment.voidedAt === null)
+      : undefined;
+  const voided =
+    typeof query.annule === "string"
+      ? payments.find((payment) => payment.id === query.annule && payment.voidedAt !== null)
+      : undefined;
 
   const workLabel = (work: ExerciseWork) =>
     work.kind === "graded"
@@ -98,7 +138,7 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
         ) : null}
       </header>
 
-      <dl className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage sm:grid-cols-3">
+      <dl className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage sm:grid-cols-2 lg:grid-cols-4">
         <Figure
           term={t("averageHeading")}
           value={
@@ -124,6 +164,20 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
                 })
           }
         />
+        <div className="grid content-start gap-1 bg-surface px-4 py-3">
+          <dt className="text-sm text-encre-douce">{tAccount("balance")}</dt>
+          <dd className="text-lg font-semibold tabular">
+            <a
+              href="#paiements"
+              className="underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+            >
+              {formatHours(account?.balance ?? 0)}
+            </a>
+          </dd>
+          <dd>
+            <AccountStatusChip days={overdueDays(account, today)} />
+          </dd>
+        </div>
         <div className="grid content-start gap-1 bg-surface px-4 py-3">
           <dt className="text-sm text-encre-douce">{t("groupsHeading")}</dt>
           <dd className="grid gap-1">
@@ -217,6 +271,49 @@ async function Student({ params }: { params: Promise<{ id: string }> }) {
                 more={(count) => t("olderHomework", { count })}
               />
             )}
+          </section>
+
+          <section
+            id="paiements"
+            aria-labelledby="student-payments"
+            className="grid scroll-mt-6 gap-4"
+          >
+            <h2 id="student-payments" className="text-lg font-medium">
+              {tAccount("heading")}
+            </h2>
+            {recorded ? (
+              <Flash>
+                <p className="font-medium">
+                  {tAccount("recorded", { number: recorded.receiptNumber })}
+                </p>
+                <ReceiptLink
+                  payment={recorded}
+                  label={tPayments("receiptLink", { number: recorded.receiptNumber })}
+                />
+              </Flash>
+            ) : voided ? (
+              <Flash>
+                <p className="font-medium">
+                  {tAccount("voidedBanner", { number: voided.receiptNumber })}
+                </p>
+              </Flash>
+            ) : null}
+            <AccountPanel
+              account={account}
+              payments={payments}
+              statement={statement}
+              today={today}
+              audience="tutor"
+              actions={
+                <Link
+                  href={`/prof/paiements/nouveau?eleve=${profile.id}`}
+                  className={buttonVariants({ variant: "outline" })}
+                >
+                  {tAccount("record")}
+                </Link>
+              }
+              voidForm={(payment) => <VoidPaymentForm id={payment.id} />}
+            />
           </section>
         </div>
 

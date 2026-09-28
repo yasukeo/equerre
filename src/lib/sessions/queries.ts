@@ -181,7 +181,13 @@ export async function listSessionsBetween(start: Date, end: Date): Promise<Sessi
 
 export type SessionDetail = Session & {
   /** For a group: the members of the day it took place (D-070), with what was recorded. */
-  attendance: { id: string; name: string; status: AttendanceStatus | null }[];
+  attendance: {
+    id: string;
+    name: string;
+    status: AttendanceStatus | null;
+    /** Still following lessons: a paused or stopped member is not expected (D-060, D-088). */
+    expected: boolean;
+  }[];
   /** How many later sessions of the same series are still to come. */
   laterInSeries: number;
 };
@@ -197,7 +203,7 @@ export async function getSessionForTutor(id: string, now: Date): Promise<Session
       ? readAll((from, to) =>
           supabase
             .from("group_members")
-            .select("student_id, joined_at, left_at, student:profiles(full_name)")
+            .select("student_id, joined_at, left_at, student:profiles(full_name, status)")
             .eq("group_id", session.group!.id)
             .lte("joined_at", session.startsAt)
             .or(`left_at.is.null,left_at.gt."${session.startsAt}"`)
@@ -209,7 +215,7 @@ export async function getSessionForTutor(id: string, now: Date): Promise<Session
       ? readAll((from, to) =>
           supabase
             .from("session_attendance")
-            .select("student_id, status, student:profiles(full_name)")
+            .select("student_id, status, student:profiles(full_name, status)")
             .eq("session_id", id)
             .order("student_id")
             .range(from, to),
@@ -234,6 +240,7 @@ export async function getSessionForTutor(id: string, now: Date): Promise<Session
       id: member.student_id,
       name: member.student?.full_name ?? "",
       status: statusOf.get(member.student_id) ?? null,
+      expected: member.student?.status === "actif",
     });
   }
   // Someone marked then taken out of the group's history keeps her line.
@@ -243,6 +250,7 @@ export async function getSessionForTutor(id: string, now: Date): Promise<Session
         id: entry.student_id,
         name: entry.student?.full_name ?? "",
         status: entry.status,
+        expected: entry.student?.status === "actif",
       });
     }
   }

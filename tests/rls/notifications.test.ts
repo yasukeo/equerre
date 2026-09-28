@@ -20,7 +20,8 @@ describe.skipIf(!admin)("notifications", () => {
   let yassine: Client;
   let nour: Client;
   const sessions: string[] = [];
-  let startedAt = "";
+  // Notifications are found by the sessions they are about, not by the time: this machine's
+  // clock and the database's may differ by a second or more.
 
   beforeAll(async () => {
     [tutor, yassine, nour] = await Promise.all([
@@ -28,7 +29,6 @@ describe.skipIf(!admin)("notifications", () => {
       signedInAs("yassine.bennani@equerre.test"),
       signedInAs("nour.fassi@equerre.test"),
     ]);
-    startedAt = new Date(Date.now() - 1000).toISOString();
   });
 
   // The notifications made here go at the end of the run (tests/rls/global-setup.ts).
@@ -58,7 +58,7 @@ describe.skipIf(!admin)("notifications", () => {
       .from("notifications")
       .select("type, payload")
       .eq("type", "session_planned")
-      .gte("created_at", startedAt);
+      .in("payload->>session_id", sessions);
     expect(data).toHaveLength(1);
     expect(data?.[0]?.payload).toMatchObject({ count: 2, session_id: first });
   });
@@ -67,8 +67,7 @@ describe.skipIf(!admin)("notifications", () => {
     const { data: others } = await nour
       .from("notifications")
       .select("id")
-      .eq("type", "session_planned")
-      .gte("created_at", startedAt);
+      .in("payload->>session_id", sessions);
     expect(others).toEqual([]);
 
     const forged = await nour
@@ -79,7 +78,7 @@ describe.skipIf(!admin)("notifications", () => {
     const { data: mine } = await yassine
       .from("notifications")
       .select("id")
-      .gte("created_at", startedAt);
+      .in("payload->>session_id", sessions);
     const target = mine?.[0]?.id ?? "";
     const { data: changed } = await yassine
       .from("notifications")
@@ -108,7 +107,7 @@ describe.skipIf(!admin)("notifications", () => {
       .from("notifications")
       .select("payload")
       .eq("type", "session_moved")
-      .gte("created_at", startedAt);
+      .in("payload->>session_id", sessions);
     expect(data).toHaveLength(1);
     expect(data?.[0]?.payload).toMatchObject({ session_id: sessions[0], what: "place" });
   });
@@ -139,7 +138,7 @@ describe.skipIf(!admin)("notifications", () => {
       .from("notifications")
       .select("payload")
       .eq("type", "session_cancelled")
-      .gte("created_at", startedAt);
+      .in("payload->>session_id", sessions);
     expect(data).toHaveLength(1);
     expect(data?.[0]?.payload).toMatchObject({ count: 2, reason: "Test RLS" });
   });

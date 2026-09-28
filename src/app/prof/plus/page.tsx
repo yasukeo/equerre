@@ -5,6 +5,7 @@ import {
   Tags,
   UserPlus,
   Users,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -19,9 +20,10 @@ export async function generateMetadata(): Promise<Metadata> {
 // On a phone, the places the bottom bar has no room for (DECISIONS.md, D-082).
 const PLACES: {
   href: string;
-  key: "lessons" | "exercises" | "availability" | "sessionTypes" | "groups" | "invite";
+  key: "payments" | "lessons" | "exercises" | "availability" | "sessionTypes" | "groups" | "invite";
   icon: LucideIcon;
 }[] = [
+  { href: "/prof/paiements", key: "payments", icon: Wallet },
   { href: "/prof/lecons", key: "lessons", icon: BookOpen },
   { href: "/prof/exercices", key: "exercises", icon: NotebookPen },
   { href: "/prof/seances/disponibilites", key: "availability", icon: CalendarClock },

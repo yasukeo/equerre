@@ -7,6 +7,7 @@ import {
   MessageCircle,
   NotebookPen,
   Users,
+  Wallet,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -55,6 +56,11 @@ export default async function TutorLayout({ children }: { children: ReactNode })
             </NavLink>
           </li>
           <li className={DESKTOP_ONLY}>
+            <NavLink href="/prof/paiements" icon={<Wallet aria-hidden="true" />}>
+              {t("payments")}
+            </NavLink>
+          </li>
+          <li className={DESKTOP_ONLY}>
             <NavLink href="/prof/lecons" icon={<BookOpen aria-hidden="true" />}>
               {t("lessons")}
             </NavLink>
@@ -67,7 +73,7 @@ export default async function TutorLayout({ children }: { children: ReactNode })
           <li className={PHONE_ONLY}>
             <NavLink
               href="/prof/plus"
-              also={["/prof/lecons", "/prof/exercices"]}
+              also={["/prof/paiements", "/prof/lecons", "/prof/exercices"]}
               icon={<Ellipsis aria-hidden="true" />}
             >
               {t("more")}

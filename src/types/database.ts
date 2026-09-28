@@ -783,6 +783,117 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount_mad: number
+          covers_from: string | null
+          covers_scope: Database["public"]["Enums"]["plan_scope"] | null
+          covers_to: string | null
+          created_at: string
+          hours_credited: number
+          id: string
+          label: string
+          method: Database["public"]["Enums"]["payment_method"]
+          note: string | null
+          paid_on: string
+          plan_id: string | null
+          receipt_number: string
+          student_id: string
+          void_reason: string | null
+          voided_at: string | null
+        }
+        Insert: {
+          amount_mad: number
+          covers_from?: string | null
+          covers_scope?: Database["public"]["Enums"]["plan_scope"] | null
+          covers_to?: string | null
+          created_at?: string
+          hours_credited?: number
+          id?: string
+          label: string
+          method: Database["public"]["Enums"]["payment_method"]
+          note?: string | null
+          paid_on: string
+          plan_id?: string | null
+          receipt_number: string
+          student_id: string
+          void_reason?: string | null
+          voided_at?: string | null
+        }
+        Update: {
+          amount_mad?: number
+          covers_from?: string | null
+          covers_scope?: Database["public"]["Enums"]["plan_scope"] | null
+          covers_to?: string | null
+          created_at?: string
+          hours_credited?: number
+          id?: string
+          label?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          note?: string | null
+          paid_on?: string
+          plan_id?: string | null
+          receipt_number?: string
+          student_id?: string
+          void_reason?: string | null
+          voided_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          created_at: string
+          hours: number | null
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["plan_kind"]
+          name: string
+          period_months: number | null
+          price_mad: number
+          scope: Database["public"]["Enums"]["plan_scope"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hours?: number | null
+          id?: string
+          is_active?: boolean
+          kind: Database["public"]["Enums"]["plan_kind"]
+          name: string
+          period_months?: number | null
+          price_mad: number
+          scope?: Database["public"]["Enums"]["plan_scope"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hours?: number | null
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["plan_kind"]
+          name?: string
+          period_months?: number | null
+          price_mad?: number
+          scope?: Database["public"]["Enums"]["plan_scope"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -838,6 +949,21 @@ export type Database = {
             referencedColumns: ["code"]
           },
         ]
+      }
+      receipt_counters: {
+        Row: {
+          last: number
+          year: number
+        }
+        Insert: {
+          last: number
+          year: number
+        }
+        Update: {
+          last?: number
+          year?: number
+        }
+        Relationships: []
       }
       session_attendance: {
         Row: {
@@ -1282,6 +1408,18 @@ export type Database = {
       }
     }
     Functions: {
+      account_statement: {
+        Args: { p_student_id: string }
+        Returns: {
+          at: string
+          balance_minutes: number
+          covered: boolean
+          minutes: number
+          payment_id: string
+          seq: number
+          session_id: string
+        }[]
+      }
       add_session_reminder: {
         Args: { p_session_id: string }
         Returns: undefined
@@ -1386,10 +1524,28 @@ export type Database = {
         }
         Returns: string
       }
+      record_payment: {
+        Args: {
+          p_amount_mad: number
+          p_covers_from?: string
+          p_hours?: number
+          p_label?: string
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_note?: string
+          p_paid_on: string
+          p_plan_id?: string
+          p_student_id: string
+        }
+        Returns: {
+          id: string
+          receipt_number: string
+        }[]
+      }
       release_message_digest: {
         Args: { p_previous: string; p_profile_id: string; p_up_to: string }
         Returns: undefined
       }
+      remove_test_payments: { Args: { p_ids: string[] }; Returns: number }
       request_session: {
         Args: {
           p_note?: string
@@ -1427,6 +1583,19 @@ export type Database = {
         Returns: string
       }
       stale_message_files: { Args: { p_limit?: number }; Returns: string[] }
+      student_accounts: {
+        Args: { p_student_id?: string }
+        Returns: {
+          balance_minutes: number
+          coverage: Json
+          covered_until: string
+          credited_minutes: number
+          last_paid_on: string
+          overdue_since: string
+          student_id: string
+          used_minutes: number
+        }[]
+      }
       submit_exercise_answer: {
         Args: {
           p_answer?: Json
@@ -1457,6 +1626,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      void_payment: {
+        Args: { p_payment_id: string; p_reason: string }
+        Returns: undefined
+      }
     }
     Enums: {
       answer_type: "upload" | "numeric" | "mcq"
@@ -1475,6 +1648,9 @@ export type Database = {
         | "session_reminder"
         | "assignment_new"
         | "correction_ready"
+      payment_method: "especes" | "virement" | "cheque" | "transfert"
+      plan_kind: "hour_pack" | "subscription"
+      plan_scope: "tous" | "individuel" | "groupe"
       publication_status: "draft" | "published"
       session_mode: "en_ligne" | "domicile" | "chez_prof"
       session_status:
@@ -1632,6 +1808,9 @@ export const Constants = {
         "assignment_new",
         "correction_ready",
       ],
+      payment_method: ["especes", "virement", "cheque", "transfert"],
+      plan_kind: ["hour_pack", "subscription"],
+      plan_scope: ["tous", "individuel", "groupe"],
       publication_status: ["draft", "published"],
       session_mode: ["en_ligne", "domicile", "chez_prof"],
       session_status: [

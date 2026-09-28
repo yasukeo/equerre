@@ -4,7 +4,7 @@ import { publicEnv } from "@/lib/env";
 import type { Database } from "@/types/database";
 
 /** Routes that need a session. Role checks happen on the server, next to the data. */
-const PRIVATE_PREFIXES = ["/prof", "/eleve", "/agenda", "/nouveau-mot-de-passe"];
+const PRIVATE_PREFIXES = ["/prof", "/eleve", "/agenda", "/recus", "/nouveau-mot-de-passe"];
 
 export function isPrivatePath(pathname: string): boolean {
   return PRIVATE_PREFIXES.some(

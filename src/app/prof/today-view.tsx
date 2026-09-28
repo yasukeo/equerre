@@ -7,6 +7,7 @@ import {
   NotebookPen,
   UserPlus,
   Users,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -16,6 +17,7 @@ import { requireViewer } from "@/lib/auth";
 import { RefreshOnReturn } from "@/components/chat/inbox-live";
 import { countUnread } from "@/lib/chat/queries";
 import { countCorrectionQueue } from "@/lib/correction/queries";
+import { getAccounts } from "@/lib/payments/queries";
 import { formatLocal, localDayBounds, localMinutesOfDay, localWeekBounds } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -64,6 +66,7 @@ export async function TodayView() {
     toCorrect,
     toClose,
     unread,
+    accounts,
   ] = await Promise.all([
     supabase
       .from("sessions")
@@ -104,7 +107,10 @@ export async function TodayView() {
       .eq("status", "planifiee")
       .lt("starts_at", now.toISOString()),
     countUnread(),
+    getAccounts(),
   ]);
+  // Accounts that owe hours (D-087): the dashboard names how many, the payments page who.
+  const overdue = [...accounts.values()].filter((account) => account.owes).length;
 
   const sessions: DaySession[] = todayResult.data ?? [];
   const next: DaySession | null = nextResult.data;
@@ -175,6 +181,15 @@ export async function TodayView() {
             >
               <Hourglass aria-hidden="true" className="size-5 text-encre-douce" />
               {t("pendingRequests", { count: pendingResult.count ?? 0 })}
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/prof/paiements"
+              className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+            >
+              <Wallet aria-hidden="true" className="size-5 text-encre-douce" />
+              {t("overdue", { count: overdue })}
             </Link>
           </li>
           {(toClose.count ?? 0) > 0 ? (

@@ -206,12 +206,19 @@ export function CloseForm({
   isGroup: boolean;
   chapters: ChapterOptions;
   initial: { status: "terminee" | "absent"; chapterId: string; homework: string; recap: string };
-  members: { id: string; name: string; status: AttendanceStatus | null }[];
+  members: { id: string; name: string; status: AttendanceStatus | null; expected: boolean }[];
 }) {
   const t = useTranslations("tutor.session");
   const [values, setValues] = useState(initial);
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus | "">>(() =>
-    Object.fromEntries(members.map((member) => [member.id, member.status ?? "present"])),
+    // A paused or stopped member is marked excused until she says otherwise: marked present,
+    // the session would count against her hours (D-088).
+    Object.fromEntries(
+      members.map((member) => [
+        member.id,
+        member.status ?? (member.expected ? "present" : "excuse"),
+      ]),
+    ),
   );
   const [state, action, pending] = useFormAction(closeSession, t("errors.unknown"));
   const set = (key: "chapterId" | "homework" | "recap") => (event: { target: { value: string } }) =>
