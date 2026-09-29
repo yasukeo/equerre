@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { SessionStatusChip } from "@/components/session-status";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
 import { formatLocal } from "@/lib/dates";
 import { googleCalendarUrl } from "@/lib/ics";

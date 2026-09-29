@@ -29,19 +29,6 @@
     "guardianName": "Nom du parent",
     "guardianPhone": "Téléphone du parent"
   },
-  "errors": {
-    "notFound": {
-      "title": "Page introuvable",
-      "lead": "Cette adresse ne correspond à aucune page. Vérifiez le lien, ou repartez de l’accueil.",
-      "home": "Revenir à l’accueil"
-    },
-    "generic": {
-      "title": "Cette page n’a pas pu s’afficher",
-      "lead": "Réessayez. Si le problème continue, repartez de l’accueil.",
-      "retry": "Réessayer",
-      "home": "Revenir à l’accueil"
-    }
-  },
   "auth": {
     "common": {
       "email": "Adresse e-mail",

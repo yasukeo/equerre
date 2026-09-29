@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { RefreshOnReturn } from "@/components/chat/inbox-live";
 import { AccountStatusChip, overdueDays, ReceiptLink } from "@/components/payments/account-panel";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
 import { localDateKey } from "@/lib/dates";
 import { formatDay, formatHours, formatMad } from "@/lib/payments/format";

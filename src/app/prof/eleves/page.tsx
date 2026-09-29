@@ -4,7 +4,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { StudentStatusChip } from "@/components/student-status";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Input, Label, Select } from "@/components/ui/input";
 import { requireViewer } from "@/lib/auth";
 import { formatLocal } from "@/lib/dates";

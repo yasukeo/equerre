@@ -2,7 +2,7 @@ import { MessageCircle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { siteConfig } from "@/config/site";
 import { formatLocalDate, withFirst } from "@/lib/dates";
 import { listPublicCourse } from "@/lib/lesson/queries";

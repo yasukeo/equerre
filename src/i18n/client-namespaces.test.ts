@@ -1,13 +1,16 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { describe, expect, it } from "vitest";
-import messages from "../../messages/fr.json";
+import dictionary from "../../messages/fr.json";
+import errors from "../../messages/fr.errors.json";
 import { CLIENT_NAMESPACES, isCovered, pickMessages, type ClientArea } from "./client-namespaces";
 
 // A client component that asks for a namespace its part of the app does not hand over would
 // show raw keys. This reads every client component and checks its namespaces are listed.
 
 const SRC = join(__dirname, "..");
+// What the request config hands next-intl: the dictionary and the error screens' file.
+const messages = { ...dictionary, ...errors };
 const ALL: ClientArea[] = ["base", "auth", "tutor", "student"];
 
 /** Which parts of the app a client file renders in, from where it lives. */

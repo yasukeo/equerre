@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { BrandMark } from "@/components/brand-mark";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 
 const LINK =
   "inline-flex min-h-11 items-center text-sm underline decoration-transparent underline-offset-4 hover:decoration-encre";

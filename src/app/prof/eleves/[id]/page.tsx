@@ -15,7 +15,7 @@ import {
 import { Flash } from "@/components/ui/flash";
 import { SessionStatusChip } from "@/components/session-status";
 import { StudentStatusChip } from "@/components/student-status";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { WorkChip } from "@/components/work-status";
 import { requireViewer } from "@/lib/auth";
 import { formatLocal, localDateKey } from "@/lib/dates";

@@ -12,7 +12,7 @@ import {
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { SessionStatusChip, type SessionStatus } from "@/components/session-status";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
 import { RefreshOnReturn } from "@/components/chat/inbox-live";
 import { countUnread } from "@/lib/chat/queries";

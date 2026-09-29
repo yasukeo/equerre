@@ -1,6 +1,6 @@
 "use client";
 
-import messages from "../../messages/fr.json";
+import messages from "../../messages/fr.errors.json";
 import "./globals.css";
 
 type GlobalErrorProps = {
@@ -9,7 +9,7 @@ type GlobalErrorProps = {
 };
 
 // Replaces the root layout, so there is no translation provider here: the strings are read
-// from the dictionary file directly.
+// from the error screens' own dictionary file, the only part of it this screen needs (D-092).
 export default function GlobalError({ retry }: GlobalErrorProps) {
   const t = messages.errors.generic;
 
