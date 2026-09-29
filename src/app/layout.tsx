@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Readex_Pro } from "next/font/google";
-import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { siteConfig } from "@/config/site";
+import { ClientMessages } from "@/i18n/client-messages";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang={siteConfig.defaultLocale} dir="ltr" className={readex.variable}>
       <body>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <ClientMessages area="base">{children}</ClientMessages>
       </body>
     </html>
   );

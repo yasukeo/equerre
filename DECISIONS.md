@@ -762,6 +762,17 @@ A parent follows a child without changing anything (`20260928203553`, reviewed i
   - unlinking the parent hides the child at once.
 - **Seed.** A parent, Karim Alaoui, follows Salma (`karim.alaoui@equerre.test`).
 
+**D-092 — The page carries only what the browser needs (end-of-project pass).**
+Lighthouse on the public pages (mobile, simulated 4G, 2026-09-29) scored 90 or more everywhere, but the largest paint came at 2.6 to 3.0 s against the brief's 2.5 s, and three things weighed on every page:
+
+- **The whole dictionary.** `NextIntlClientProvider` in the root layout handed all of `fr.json` (103 KB) to every page, four fifths of `/conseils`. Each part of the app now hands over only the namespaces its client components use (`src/i18n/client-namespaces.ts`): the public site, the lessons and the parent view get `common` and `errors.generic`, the sign-in pages add `auth` and `contact`, and the tutor's and the student's workspaces add theirs. `client-namespaces.test.ts` reads every client component and fails when one asks for a namespace its part of the app does not hand over, or for one built at run time. Server components still read the whole dictionary, on the server. `/conseils` went from 125 KB to 30 KB (31 KB to 5 KB compressed).
+- **A second font file.** Readex Pro preloaded both its `latin` and `latin-ext` files (48 + 41 KB). French needs only `latin`, so only that one is preloaded; the others stay declared and load on the page that uses one of their characters.
+- **A missing icon.** Every page asked for `/favicon.ico` and got a 404, logged as an error. The set square is now `app/icon.svg`, with its colours for dark mode, and `app/apple-icon.tsx` draws the PNG a phone's home screen needs.
+
+KaTeX keeps `font-display: block` on the lesson and blog pages: formulas drawn in a fallback font come out misaligned, which is worse than waiting for them.
+
+The Supabase advisors were run again. The one warning to act on, two select policies on `profiles` that each ran for every row, became one (`20260929025819`). The others are deliberate: the `security definer` functions are the app's API and each checks its caller, `invite_code_is_valid` is open to the sign-up page, two tables are written only by functions, the unused indexes cover the foreign keys the policies join on, and leaked-password protection waits for the Pro plan (D-064).
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
