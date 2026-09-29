@@ -63,7 +63,8 @@ export async function AccountPanel({
   payments: Payment[];
   statement: StatementLine[];
   today: string;
-  audience: "tutor" | "student";
+  /** A parent reads it as the tutor does, without the actions (D-091). */
+  audience: "tutor" | "student" | "parent";
   /** Shown beside the summary: « Enregistrer un paiement », for the tutor. */
   actions?: ReactNode;
   /** For the tutor: how to void each payment still standing. */
@@ -76,7 +77,7 @@ export async function AccountPanel({
   ]);
   const balance = account?.balance ?? 0;
   const owes = account?.owes ?? false;
-  const tutor = audience === "tutor";
+  const tutor = audience !== "student";
   const coverage = account?.coverage ?? [];
 
   const coverLines = coverage.map((cover) => {

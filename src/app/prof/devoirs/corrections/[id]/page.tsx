@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { z } from "zod";
+import { LateBadge } from "@/components/late-badge";
 import { requireViewer } from "@/lib/auth";
 import { arrangeRemarks } from "@/lib/correction/correction";
 import { getCorrection, type Correction } from "@/lib/correction/queries";
@@ -108,8 +109,8 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
             )}
           </li>
           {data.late ? (
-            <li className="rounded-sm border border-stylo-rouge/40 px-1.5 py-0.5 text-xs font-medium text-stylo-rouge">
-              {t("late", { due: date(data.homework.dueAt) })}
+            <li>
+              <LateBadge label={t("late", { due: date(data.homework.dueAt) })} />
             </li>
           ) : null}
           {data.revealedAt ? (

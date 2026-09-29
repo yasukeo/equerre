@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { z } from "zod";
+import { LateBadge } from "@/components/late-badge";
 import { WorkChip } from "@/components/work-status";
 import { requireViewer } from "@/lib/auth";
 import { formatLocal } from "@/lib/dates";
@@ -54,11 +55,7 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
         <h1 className="text-2xl font-semibold">{homework.title}</h1>
         <p className="flex flex-wrap items-center gap-2 text-encre-douce">
           {t("due", { date: formatLocal(homework.dueAt, "EEEE d MMMM 'à' HH:mm") })}
-          {open && homework.progress.late ? (
-            <span className="rounded-sm border border-stylo-rouge/40 px-1.5 py-0.5 text-xs font-medium text-stylo-rouge">
-              {t("late")}
-            </span>
-          ) : null}
+          {open && homework.progress.late ? <LateBadge label={t("late")} /> : null}
         </p>
         {open ? (
           <p className="text-sm text-encre-douce">

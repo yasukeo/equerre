@@ -70,13 +70,19 @@ async function ViewerMenu({ signOutLabel }: { signOutLabel: string }) {
     return null;
   }
 
-  const unread = await countUnreadNotifications();
-  const href = viewer.role === "tutor" ? "/prof/notifications" : "/eleve/notifications";
+  // Parents have no notification centre (D-091): no bell for them.
+  const href =
+    viewer.role === "tutor"
+      ? "/prof/notifications"
+      : viewer.role === "student"
+        ? "/eleve/notifications"
+        : null;
+  const unread = href ? await countUnreadNotifications() : 0;
 
   return (
     <div className="flex min-w-0 items-center gap-1 sm:gap-2">
       <span className="hidden truncate text-sm text-encre-douce sm:inline">{viewer.fullName}</span>
-      <Bell href={href} profileId={viewer.id} initial={unread} />
+      {href ? <Bell href={href} profileId={viewer.id} initial={unread} /> : null}
       <SignOutForm label={signOutLabel} />
     </div>
   );

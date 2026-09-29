@@ -50,7 +50,7 @@
     },
     "signIn": {
       "title": "Se connecter",
-      "lead": "Élèves et professeure se connectent ici.",
+      "lead": "Élèves, parents et professeure se connectent ici.",
       "submit": "Se connecter",
       "submitting": "Connexion…",
       "forgotPassword": "Mot de passe oublié ?",
@@ -156,6 +156,10 @@
       "homework": "Devoirs",
       "sessions": "Séances",
       "messages": "Messages"
+    },
+    "parent": {
+      "label": "Espace parent",
+      "home": "Mes enfants"
     }
   },
   "session": {
@@ -676,7 +680,7 @@
       "saving": "Enregistrement…",
       "saved": "Fiche enregistrée.",
       "notesHeading": "Notes privées",
-      "notesLead": "Visibles par vous seule : l’élève ne les voit jamais.",
+      "notesLead": "Visibles par vous seule : ni l’élève ni ses parents ne les voient.",
       "newNote": "Nouvelle note",
       "addNote": "Ajouter la note",
       "adding": "Ajout…",
@@ -1411,6 +1415,13 @@
       "subject": "Correction prête : {title}",
       "body": "{count, plural, one {Votre professeure a corrigé un exercice de « {title} ».} other {Votre professeure a corrigé # exercices de « {title} ».}}",
       "button": "Voir la correction"
+    },
+    "parentInvite": {
+      "subject": "Suivre {student} sur {brand} : votre accès parent",
+      "greeting": "Bonjour {name},",
+      "body": "{tutor} vous a créé un accès parent sur {brand} pour suivre {student} : séances, devoirs, notes et paiements. Choisissez votre mot de passe avec ce lien :",
+      "button": "Choisir mon mot de passe",
+      "expiry": "Si le lien a expiré, utilisez « Mot de passe oublié » sur la page de connexion."
     }
   },
   "lesson": {
@@ -1958,5 +1969,84 @@
       "notFound": "Ce conseil n’existe plus. Revenez à la liste.",
       "unknown": "Le conseil n’a pas pu être enregistré. Réessayez dans un instant."
     }
+  },
+  "parent": {
+    "home": {
+      "title": "Mes enfants",
+      "none": "Aucun enfant n’est relié à votre compte pour l’instant. Pour suivre votre enfant, demandez l’accès à sa professeure."
+    },
+    "child": {
+      "title": "Suivi de mon enfant",
+      "back": "Mes enfants",
+      "sessionsHeading": "Séances",
+      "upcomingHeading": "À venir",
+      "pastHeading": "Passées",
+      "noUpcoming": "Aucune séance prévue pour l’instant.",
+      "noPast": "Aucune séance passée ces quatre derniers mois.",
+      "olderSessions": "Voir {count, plural, one {la séance plus ancienne} other {les # plus anciennes}}",
+      "attendance": {
+        "present": "Présence",
+        "absent": "Absence",
+        "excuse": "Absence excusée"
+      },
+      "covered": "Chapitre travaillé : {chapter}",
+      "sessionHomework": "À faire : {text}",
+      "homeworkHeading": "Devoirs",
+      "noHomework": "Aucun devoir pour l’instant.",
+      "group": "Groupe {name}",
+      "due": "à rendre le {date}",
+      "left": "{left, plural, =0 {Plus rien à faire} one {# exercice à faire sur {total}} other {# exercices à faire sur {total}}}",
+      "late": "En retard",
+      "average": "Moyenne des exercices corrigés : {average}/20",
+      "accountHeading": "Paiements",
+      "pausedNote": "Cours en pause pour {name} : les séances à venir ne s’affichent pas, comme dans son propre espace.",
+      "stoppedNote": "Cours arrêtés pour {name} : ne restent visibles que les devoirs rendus et les paiements, comme dans son propre espace.",
+      "nextHeading": "Prochaine séance",
+      "noNext": "Aucune de prévue",
+      "lateHeading": "Devoirs en retard",
+      "lateValue": "{count, plural, =0 {Aucun} one {# devoir} other {# devoirs}}",
+      "laterSessions": "Voir {count, plural, one {la séance suivante} other {les # suivantes}}",
+      "unanswered": "Sans réponse",
+      "otherHomework": "Voir {count, plural, one {l’autre devoir} other {les # autres devoirs}}",
+      "accountLead": "Le solde compte les heures payées moins les heures de séance faites ; les séances couvertes par un abonnement n’en retirent rien. Chaque paiement a son reçu en PDF.",
+      "owes": "Il reste {hours} de séances à régler."
+    }
+  },
+  "parentsAdmin": {
+    "heading": "Parents",
+    "lead": "Un parent relié suit les séances, les devoirs, les notes et les paiements de l’élève, sans pouvoir rien modifier.",
+    "none": "Aucun parent relié.",
+    "invite": "Donner un accès à un parent",
+    "fullName": "Nom du parent",
+    "email": "Adresse e-mail du parent",
+    "emailHint": "Un lien pour choisir le mot de passe part à cette adresse. Si elle est déjà celle d’un parent (pour un autre enfant), cet élève s’ajoute simplement à son compte.",
+    "send": "Envoyer l’accès",
+    "inviting": "Envoi…",
+    "sent": "Accès envoyé à {name} ({email}).",
+    "notSent": "Compte créé pour {name}, mais l’e-mail n’est pas parti : copiez ce lien et envoyez-le-lui, par WhatsApp par exemple. Il expire vite, envoyez-le maintenant.",
+    "linked": "C’est fait : {name} peut désormais suivre {student}.",
+    "copyLink": "Copier le lien",
+    "unlink": "Retirer l’accès",
+    "unlinkLabel": "Retirer l’accès du parent {name}",
+    "unlinkConfirm": "Retirer l’accès du parent {name} ? {name} ne pourra plus suivre {student}. Son compte reste : vous pourrez lui redonner l’accès à tout moment.",
+    "keep": "Garder",
+    "unlinked": "Accès retiré : {name} ne suit plus {student}.",
+    "errors": {
+      "fullName": "Indiquez le nom du parent (2 à 120 caractères).",
+      "email": "Indiquez une adresse e-mail valide.",
+      "notParent": "Cette adresse est déjà celle d’un élève ou de la professeure. Utilisez une autre adresse pour le parent.",
+      "secretKeyMissing": "La création de comptes n’est pas configurée : ajoutez SUPABASE_SECRET_KEY aux variables d’environnement, puis relancez l’application.",
+      "linkFailed": "Le compte du parent existe, mais le lien n’a pas pu être créé. Renvoyez le formulaire avec la même adresse pour en obtenir un nouveau.",
+      "gone": "Cet élève ou ce parent n’existe plus. Rechargez la page.",
+      "unknown": "L’opération n’a pas abouti. Réessayez dans un instant.",
+      "alreadyUnlinked": "Ce parent n’est déjà plus relié à cet élève. Rechargez la page."
+    },
+    "resent": "{name} suit désormais {student}. Son compte n’avait pas encore été activé : un nouveau lien a été envoyé à {email}.",
+    "resentNotSent": "{name} suit désormais {student}. Son compte n’avait pas encore été activé : voici un nouveau lien à lui envoyer, par WhatsApp par exemple. Il expire vite, envoyez-le maintenant.",
+    "alreadyLinked": "{name} suit déjà {student} : rien à changer.",
+    "confirmExisting": "Cette adresse appartient à {name}, qui suit déjà {children}. Relier aussi {student} à ce compte ?",
+    "confirmExistingNone": "Cette adresse appartient à {name}, qui a déjà un compte parent. Relier {student} à ce compte ?",
+    "confirmLink": "Relier {student}",
+    "cancel": "Annuler"
   }
 }

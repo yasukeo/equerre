@@ -1,5 +1,5 @@
 -- Development seed for Équerre:
--- 1 tutor, 8 students, 3 groups, 9 chapters, 12 lessons, 30 exercises, 40 sessions,
+-- 1 tutor, 8 students, 1 parent, 3 groups, 9 chapters, 12 lessons, 30 exercises, 40 sessions,
 -- 4 plans, 9 payments and 3 blog posts.
 --
 -- Run it with `pnpm db:seed`, which replaces {{SEED_PASSWORD}} with SEED_PASSWORD from
@@ -112,7 +112,9 @@ as $$
   from generate_subscripts(labels, 1) as i;
 $$;
 
-create or replace function pg_temp.seed_user(p_n integer, p_email text, p_full_name text, p_level text)
+create or replace function pg_temp.seed_user(
+  p_n integer, p_email text, p_full_name text, p_level text, p_role text default null
+)
 returns void
 language plpgsql
 as $$
@@ -133,7 +135,7 @@ begin
       'providers', jsonb_build_array('email'),
       'provisioned_by', 'seed',
       'level_code', p_level
-    ),
+    ) || case when p_role is null then '{}'::jsonb else jsonb_build_object('role', p_role) end,
     jsonb_build_object('full_name', p_full_name),
     now(), now(),
     '', '', '', '', '', '', '', ''
@@ -222,6 +224,12 @@ select pg_temp.seed_user(105, 'yassine.bennani@equerre.test', 'Yassine Bennani',
 select pg_temp.seed_user(106, 'nour.fassi@equerre.test', 'Nour Fassi', '1BAC-SM');
 select pg_temp.seed_user(107, 'hiba.tazi@equerre.test', 'Hiba Tazi', 'TC');
 select pg_temp.seed_user(108, 'adam.berrada@equerre.test', 'Adam Berrada', '3AC');
+
+-- A parent following Salma (D-091): the sign-up trigger makes a seeded « parent » a parent.
+select pg_temp.seed_user(201, 'karim.alaoui@equerre.test', 'Karim Alaoui', null, 'parent');
+insert into public.guardian_links (parent_id, student_id)
+values (pg_temp.uid('00000000', 201), pg_temp.uid('00000000', 101))
+on conflict do nothing;
 
 update public.profiles as p
 set
@@ -1020,7 +1028,7 @@ $seed_posts$;
 -- ─────────────────────────────────────────────────────────────── clean up
 
 drop function pg_temp.seed_exercise(integer, integer, text, integer, public.answer_type, jsonb, jsonb, text[], numeric, numeric, jsonb, text[], public.choice_mode);
-drop function pg_temp.seed_user(integer, text, text, text);
+drop function pg_temp.seed_user(integer, text, text, text, text);
 drop function pg_temp.choices(text[]);
 drop function pg_temp.doc(jsonb[]);
 drop function pg_temp.box(text, jsonb[]);

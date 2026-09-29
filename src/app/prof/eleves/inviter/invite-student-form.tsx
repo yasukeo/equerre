@@ -97,7 +97,7 @@ export function InviteStudentForm({ levels, groups }: Props) {
       <FormMessage state={state}>
         {state.status === "success" && state.detail ? (
           <div className="flex flex-wrap items-center gap-2">
-            <code className="min-w-0 flex-1 truncate rounded-sm border border-quadrillage bg-surface px-2 py-1.5 text-xs">
+            <code className="w-0 min-w-0 flex-1 basis-40 truncate rounded-sm border border-quadrillage bg-surface px-2 py-1.5 text-xs">
               {state.detail}
             </code>
             <CopyButton value={state.detail} label={t("copyLink")} />

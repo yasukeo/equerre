@@ -735,18 +735,46 @@ Kept as they are:
 - An unknown post address answers 200 with the « page introuvable » content, like lesson pages (D-048).
 - The grid does not yet line up with the page's columns.
 
+**D-091 — The parent view.**
+A parent follows a child without changing anything (`20260928203553`, reviewed in `20260929011435`).
+
+- **The tutor gives the access, from the student's file** (« Parents »). She types the parent's name and address.
+  - The tutor's session writes a one-use invitation (`parent_invites`) for that student and that address. It says only who and for which student: the database makes the token (64 random hex characters) and the dates, and an invitation never lasts more than a day.
+  - The account is created with the secret key and the token in its metadata. The sign-up trigger makes it a parent linked to that student only when the invitation is unused, unexpired and made for that very address. Otherwise the student rules apply unchanged: nobody chooses their own role (D-025). The token is then taken out of the account's metadata.
+  - The parent then gets a link to choose a password, by email, or on the tutor's screen when no email can leave, as for students (D-030).
+  - An address already used by a parent links that parent to one more child, but only once the tutor has confirmed, having read whose account it is and which children it already follows: a mistyped address would otherwise hand this child's file to another family. A fresh link goes out if the account was never used. An address used by a student or the tutor is refused.
+  - She can take a parent off a student, after a confirmation; the account stays.
+- **What a parent reads: their linked children, and them only, never more than each child reads about themselves.**
+  - `/parent` lists them, or opens the only one.
+  - A child's page opens on the next session, the homework late and the balance. Then come the sessions to come and past, split as in the child's own list (four months either side, with attendance, the chapter worked and the homework given), the homework (what is left to do first, where the child stands on each exercise, late or not, and the average of corrected exercises), and the account (balance, statement, payments and receipts, D-087).
+  - The child's standing (D-060) applies: a paused child's sessions to come are hidden, and once stopped, their sessions and the homework they handed nothing in for, as in their own space. No meeting link is returned.
+  - The grade in red pen stays in its three places (DESIGN.md): a parent reads the average in ink. Parents have no notification centre and no bell.
+- **Through checked functions rather than wider policies.** Every student policy says « the signed-in person is the student ». Instead of doubling each one, the parent reads through `my_children`, `child_sessions` and `child_homework`. Each checks the link first (`private.is_guardian_of`) and returns what the page shows. For homework, the same rules as the student's own list (D-046) run in `src/lib/homework/work.ts`.
+  - Accounts and payments open to them through the same check (`private.can_see_account`, and the payments policy), so the receipt route serves their child's receipts and no one else's.
+  - A policy lets them read their children's profiles, which the receipt's payer line needs.
+  - The statement now says what each line was from the database (`account_statement.label`). A parent cannot read the sessions table, and a student no longer reads a group's sessions once she has left the group.
+- **Nothing to write.** No policy lets a parent insert, change or delete anything. The links and invitations are the tutor's, and the trigger's.
+- **Tests.** `tests/rls/parents.test.ts` makes a parent through the real invitation, with a password made for the run, then deletes it with the secret key. It checks:
+  - the invitation is used up, and a used, expired or made-up one creates no account, even at its own address; the tutor's session cannot choose the token or the dates;
+  - the parent reads their child's sessions, homework, account and payments, none the child cannot read, and another child's none;
+  - a paused child's sessions to come, and a stopped child's sessions and untouched homework, are hidden;
+  - the parent can write nothing;
+  - unlinking the parent hides the child at once.
+- **Seed.** A parent, Karim Alaoui, follows Salma (`karim.alaoui@equerre.test`).
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
 
-| Where                                    | What for                                                                                                          | Why it needs the secret key                                                                                                                            |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Tutor "add a student" action (phase 0/1) | `auth.admin.createUser`, `auth.admin.getUserById`, `auth.admin.generateLink`                                      | Creating another person's account, checking whether it was ever used, and issuing its set-password link are admin operations by definition.            |
-| `/api/cron/*` route handlers (phase 2)   | Read upcoming sessions and stamp `reminder_*_sent_at` for everyone                                                | A cron job has no signed-in user, so no RLS identity.                                                                                                  |
-| `/api/cron/rappels`, emails (D-085)      | Read notifications and unread messages of everyone, stamp what was emailed                                        | A job has no session, and it writes to others' rows.                                                                                                   |
-| `/api/cron/rappels`, file sweep (D-083)  | Remove message files no message holds, a day after upload                                                         | A job has no session, and the files belong to others.                                                                                                  |
-| Session emails to the tutor (D-077)      | Read the tutor's email address when a student requests, books or cancels                                          | A student may not read the tutor's profile, and the address should not travel through her session.                                                     |
-| `pnpm storage:sweep` (D-054)             | Read every lesson, exercise and solution; delete the lesson files none of them refers to                          | A script has no session. It must read drafts and worked solutions, which only the tutor may, and a reference it cannot read is a file it would delete. |
-| RLS tests' cleanup (D-086, D-088)        | Remove the notifications and payments the run made, and give receipt numbers back (`public.remove_test_payments`) | Nobody signed in may delete a notification or a payment, and the counter has no policy at all.                                                         |
+| Where                                       | What for                                                                                                          | Why it needs the secret key                                                                                                                            |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tutor "add a student" action (phase 0/1)    | `auth.admin.createUser`, `auth.admin.getUserById`, `auth.admin.generateLink`                                      | Creating another person's account, checking whether it was ever used, and issuing its set-password link are admin operations by definition.            |
+| `/api/cron/*` route handlers (phase 2)      | Read upcoming sessions and stamp `reminder_*_sent_at` for everyone                                                | A cron job has no signed-in user, so no RLS identity.                                                                                                  |
+| `/api/cron/rappels`, emails (D-085)         | Read notifications and unread messages of everyone, stamp what was emailed                                        | A job has no session, and it writes to others' rows.                                                                                                   |
+| `/api/cron/rappels`, file sweep (D-083)     | Remove message files no message holds, a day after upload                                                         | A job has no session, and the files belong to others.                                                                                                  |
+| Session emails to the tutor (D-077)         | Read the tutor's email address when a student requests, books or cancels                                          | A student may not read the tutor's profile, and the address should not travel through her session.                                                     |
+| `pnpm storage:sweep` (D-054)                | Read every lesson, exercise and solution; delete the lesson files none of them refers to                          | A script has no session. It must read drafts and worked solutions, which only the tutor may, and a reference it cannot read is a file it would delete. |
+| Parent access from a student's file (D-091) | `auth.admin.createUser` with a one-use invitation, `auth.admin.getUserById`, `auth.admin.generateLink`            | Creating another person's account and issuing its set-password link are admin operations, as for students.                                             |
+| RLS tests' cleanup (D-086, D-088)           | Remove the notifications and payments the run made, and give receipt numbers back (`public.remove_test_payments`) | Nobody signed in may delete a notification or a payment, and the counter has no policy at all.                                                         |
 
 The seed script does not use it (D-028).

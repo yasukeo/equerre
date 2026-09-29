@@ -225,43 +225,18 @@ export async function getStatement(
     if (page.length < PAGE) break;
   }
 
-  const sessionIds = [
-    ...new Set(data.flatMap((line) => (line.session_id ? [line.session_id] : []))),
-  ];
-  const sessions = new Map<string, { label: string; group: string | null }>();
-  // More sessions than one address can name: read them in slices, side by side.
-  const slices = await Promise.all(
-    Array.from({ length: Math.ceil(sessionIds.length / 100) }, (_, index) =>
-      supabase
-        .from("sessions")
-        .select("id, session_type:session_types(name), group:groups(name)")
-        .in("id", sessionIds.slice(index * 100, index * 100 + 100)),
-    ),
-  );
-  for (const { data: rows, error } of slices) {
-    if (error) throw new Error("Could not read the sessions", { cause: error });
-    for (const row of rows) {
-      sessions.set(row.id, { label: row.session_type?.name ?? "", group: row.group?.name ?? null });
-    }
-  }
   const byId = new Map(payments.map((payment) => [payment.id, payment]));
 
   return data.map((line) => {
-    const session = line.session_id ? sessions.get(line.session_id) : undefined;
     const payment = line.payment_id ? byId.get(line.payment_id) : undefined;
     return {
       at: line.at,
       delta: Number(line.minutes) / 60,
       balance: Number(line.balance_minutes) / 60,
       covered: line.covered,
-      // A session she can no longer read (a group she left) still shows as a session.
-      session: line.session_id
-        ? {
-            id: line.session_id,
-            label: session?.label ?? "",
-            group: session?.group ?? null,
-          }
-        : null,
+      // The database names each line (D-091): a parent cannot read the sessions, nor a
+      // student a group's once she has left it.
+      session: line.session_id ? { id: line.session_id, label: line.label, group: null } : null,
       payment: payment
         ? { id: payment.id, label: payment.label, receiptNumber: payment.receiptNumber }
         : null,

@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { Suspense } from "react";
 import { GradeMark } from "@/components/grade-mark";
+import { LateBadge } from "@/components/late-badge";
 import { SessionStatusChip } from "@/components/session-status";
 import { buttonVariants } from "@/components/ui/button";
 import { requireViewer } from "@/lib/auth";
@@ -231,11 +232,7 @@ async function StudentHome() {
                 >
                   <span className="flex flex-wrap items-center gap-2 font-medium">
                     {entry.title}
-                    {entry.progress.late ? (
-                      <span className="rounded-sm border border-stylo-rouge/40 px-1.5 py-0.5 text-xs font-medium text-stylo-rouge">
-                        {tHomework("late")}
-                      </span>
-                    ) : null}
+                    {entry.progress.late ? <LateBadge label={tHomework("late")} /> : null}
                   </span>
                   <span className="text-sm text-encre-douce">
                     {tHomework("due", { date: formatLocal(entry.dueAt, "EEEE d MMMM 'à' HH:mm") })}{" "}

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { LateBadge } from "@/components/late-badge";
 import { requireViewer } from "@/lib/auth";
 import { listCorrectionQueue } from "@/lib/correction/queries";
 import { formatLocal } from "@/lib/dates";
@@ -69,11 +70,7 @@ async function Queue() {
                   <Clock aria-hidden="true" className="size-4" />
                   {t("handedIn", { date: formatLocal(entry.submittedAt, "EEEE d MMMM 'à' HH:mm") })}
                 </span>
-                {entry.late ? (
-                  <span className="rounded-sm border border-stylo-rouge/40 px-1.5 py-0.5 text-xs font-medium text-stylo-rouge">
-                    {t("late")}
-                  </span>
-                ) : null}
+                {entry.late ? <LateBadge label={t("late")} /> : null}
               </span>
             </Link>
           </li>

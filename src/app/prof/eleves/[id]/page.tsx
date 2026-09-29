@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
 import { z } from "zod";
+import { LateBadge } from "@/components/late-badge";
 import {
   AccountPanel,
   AccountStatusChip,
@@ -21,8 +22,10 @@ import { formatLocal, localDateKey } from "@/lib/dates";
 import type { ExerciseWork } from "@/lib/homework/work";
 import { formatHours } from "@/lib/payments/format";
 import { getAccounts, getStatement, listPayments } from "@/lib/payments/queries";
+import { createClient } from "@/lib/supabase/server";
 import { getStudentFile, type StudentSession } from "@/lib/students/queries";
 import { NotesPanel } from "./notes-panel";
+import { ParentsPanel } from "./parents-panel";
 import { StudentForm } from "./student-form";
 import { VoidPaymentForm } from "./void-payment-form";
 
@@ -75,11 +78,22 @@ async function Student({
     getTranslations("payments"),
   ]);
   const now = new Date();
-  const [file, accounts, payments] = await Promise.all([
+  const supabase = await createClient();
+  const [file, accounts, payments, links] = await Promise.all([
     getStudentFile(id, now),
     getAccounts(id),
     listPayments({ studentId: id }),
+    supabase
+      .from("guardian_links")
+      .select("parent_id, parent:profiles!guardian_links_parent_id_fkey(full_name, email)")
+      .eq("student_id", id),
   ]);
+  if (links.error) throw new Error("Could not read the parents", { cause: links.error });
+  const parents = links.data.map((link) => ({
+    id: link.parent_id,
+    name: link.parent?.full_name ?? "",
+    email: link.parent?.email ?? null,
+  }));
   if (!file) notFound();
   const { profile } = file;
   const statement = await getStatement(id, payments);
@@ -240,11 +254,7 @@ async function Student({
                       >
                         {homework.title}
                       </Link>
-                      {homework.progress.late ? (
-                        <span className="rounded-sm border border-stylo-rouge/40 px-1.5 py-0.5 text-xs font-medium text-stylo-rouge">
-                          {t("late")}
-                        </span>
-                      ) : null}
+                      {homework.progress.late ? <LateBadge label={t("late")} /> : null}
                     </p>
                     <p className="text-sm text-encre-douce">
                       {[
@@ -351,6 +361,13 @@ async function Student({
           </section>
 
           <NotesPanel studentId={profile.id} notes={file.notes} />
+
+          <ParentsPanel
+            studentId={profile.id}
+            studentName={profile.name}
+            parents={parents}
+            guardianName={profile.guardianName ?? ""}
+          />
 
           <details className="rounded-md border border-quadrillage p-4">
             <summary className="cursor-pointer py-2.5 font-medium">{t("profileHeading")}</summary>

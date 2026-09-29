@@ -17,7 +17,7 @@ export type Viewer = {
 };
 
 export function homePathFor(role: Role): string {
-  return role === "tutor" ? "/prof" : "/eleve";
+  return role === "tutor" ? "/prof" : role === "parent" ? "/parent" : "/eleve";
 }
 
 /**

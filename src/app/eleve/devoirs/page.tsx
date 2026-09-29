@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { LateBadge } from "@/components/late-badge";
 import { requireViewer } from "@/lib/auth";
 import { formatLocal } from "@/lib/dates";
 import { listMyHomework, type HomeworkEntry } from "@/lib/homework/queries";
@@ -59,11 +60,7 @@ async function HomeworkList() {
               >
                 <span className="flex flex-wrap items-center gap-2 font-medium">
                   {entry.title}
-                  {open && entry.progress.late ? (
-                    <span className="rounded-sm border border-stylo-rouge/40 px-1.5 py-0.5 text-xs font-medium text-stylo-rouge">
-                      {t("late")}
-                    </span>
-                  ) : null}
+                  {open && entry.progress.late ? <LateBadge label={t("late")} /> : null}
                 </span>
                 <span className="text-sm text-encre-douce">
                   {t("due", { date: formatLocal(entry.dueAt, "EEEE d MMMM 'à' HH:mm") })}

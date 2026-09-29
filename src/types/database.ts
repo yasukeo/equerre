@@ -522,6 +522,39 @@ export type Database = {
           },
         ]
       }
+      guardian_links: {
+        Row: {
+          created_at: string
+          parent_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          parent_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          parent_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guardian_links_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guardian_links_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invite_codes: {
         Row: {
           code: string
@@ -777,6 +810,44 @@ export type Database = {
           {
             foreignKeyName: "notifications_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_invites: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          full_name: string
+          student_id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          full_name: string
+          student_id: string
+          token?: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          full_name?: string
+          student_id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_invites_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1483,6 +1554,7 @@ export type Database = {
           at: string
           balance_minutes: number
           covered: boolean
+          label: string
           minutes: number
           payment_id: string
           seq: number
@@ -1504,6 +1576,24 @@ export type Database = {
       cancel_sessions: {
         Args: { p_following?: boolean; p_reason?: string; p_session_id: string }
         Returns: string[]
+      }
+      child_homework: { Args: { p_student_id: string }; Returns: Json }
+      child_sessions: {
+        Args: { p_student_id: string }
+        Returns: {
+          attendance: Database["public"]["Enums"]["attendance_status"]
+          chapter_title: string
+          ends_at: string
+          group_name: string
+          homework: string
+          id: string
+          location: string
+          mode: Database["public"]["Enums"]["session_mode"]
+          recap: string
+          starts_at: string
+          status: Database["public"]["Enums"]["session_status"]
+          type_name: string
+        }[]
       }
       claim_message_digest: {
         Args: { p_profile_id: string; p_up_to: string }
@@ -1561,6 +1651,15 @@ export type Database = {
           is_tutor: boolean
           newest: string
           profile_id: string
+        }[]
+      }
+      my_children: {
+        Args: never
+        Returns: {
+          full_name: string
+          id: string
+          level_label: string
+          status: Database["public"]["Enums"]["student_status"]
         }[]
       }
       my_inbox: {
