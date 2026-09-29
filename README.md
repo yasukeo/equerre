@@ -1,13 +1,13 @@
 # Équerre
 
-A single-tutor workspace for a private maths teacher in Morocco: lessons, homework and corrections, sessions and bookings, chat and payment tracking, for her and her students. French first, built to take Arabic later.
+A single-tutor workspace for a private maths teacher in Morocco: lessons, homework and corrections, sessions and bookings, chat and payment tracking for her and her students, a read-only view for parents, and a public site with a blog. French first, built to take Arabic later.
 
 - **Brief:** [`tutoring-saas-agent-prompt.md`](tutoring-saas-agent-prompt.md)
 - **Design system:** [`DESIGN.md`](DESIGN.md)
 - **Every decision and why:** [`DECISIONS.md`](DECISIONS.md)
 - **Database schema and access rules:** [`docs/schema.md`](docs/schema.md)
 
-**Status:** phase 0 — scaffold, database, auth and roles, workspaces, seed data.
+**Status:** the five phases of the brief (§9) are built and deployed at <https://equerre.vercel.app>. What is left before real students use it is in [Going live](#going-live).
 
 ## Stack
 
@@ -48,11 +48,11 @@ Fill in `.env.local`:
 | `NEXT_PUBLIC_SITE_URL`                 | `http://localhost:3000` locally                                               |
 | `NEXT_PUBLIC_SUPABASE_URL`             | Settings › API                                                                |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…`                                                            |
-| `SUPABASE_SECRET_KEY`                  | `sb_secret_…` — needed for "Inviter un élève"                                 |
+| `SUPABASE_SECRET_KEY`                  | `sb_secret_…` — to invite a student or a parent, and for reminders            |
 | `SUPABASE_DB_URL`                      | Session pooler connection string — needed for `db:seed`                       |
-| `RESEND_API_KEY`                       | Optional. Without it, emails are printed in the terminal                      |
+| `RESEND_API_KEY`                       | Optional. Without it, emails are printed and invitations show their link      |
 | `EMAIL_FROM`                           | Sender shown to students                                                      |
-| `CRON_SECRET`                          | Any random string of 32+ characters (used from phase 2)                       |
+| `CRON_SECRET`                          | Random, 32+ characters; Supabase Cron sends it to `/api/cron/rappels`         |
 | `SEED_PASSWORD`                        | A password for every seed account: letters, digits and dashes, 12+ characters |
 
 ### 5. Create the database
@@ -71,7 +71,7 @@ This applies everything in `supabase/migrations/`.
 pnpm db:seed
 ```
 
-This loads 1 tutor, 8 students, 3 groups, 12 lessons, 30 exercises and 40 sessions around the current week. Every seed account uses `SEED_PASSWORD`:
+This loads 1 tutor, 8 students, 1 parent, 3 groups, 12 lessons, 30 exercises, 40 sessions around the current week, 4 plans, 9 payments and 3 blog posts. Every seed account uses `SEED_PASSWORD`:
 
 | Account                        | Role                             |
 | ------------------------------ | -------------------------------- |
@@ -79,6 +79,7 @@ This loads 1 tutor, 8 students, 3 groups, 12 lessons, 30 exercises and 40 sessio
 | `salma.alaoui@equerre.test`    | Student, 2BAC PC, Tuesday group  |
 | `imane.chraibi@equerre.test`   | Student, 2BAC SM A               |
 | `yassine.bennani@equerre.test` | Student, 1BAC SM, Saturday group |
+| `karim.alaoui@equerre.test`    | Parent, follows Salma            |
 
 The invite code `BACPC2K7` lets you try self sign-up. It is development data: delete that row before real students sign up on the same project.
 
@@ -103,7 +104,8 @@ In the Supabase dashboard, under **Authentication**:
   `/auth/confirm` does not spend a `token_hash` link on the spot: it opens a « Continuer » page whose button does, so a mail scanner that opens the link cannot use it up first. After that, people land on their own home, or on the set-password page for a reset link.
 
 - **Emails › SMTP:** send through Resend. Supabase's built-in mail only reaches your own team and a few messages an hour.
-- **Providers › Email:** turn on leaked password protection, and set the email OTP expiry to 24 hours so a set-password link survives until the student opens it.
+- **Providers › Email:** keep _Confirm email_ and _Secure email change_ on, so nobody can take an address they cannot read. The tutor links an existing parent account by its address (D-091). Set the email OTP expiry to 24 hours so a set-password link survives until the student opens it. Leaked-password protection needs the Pro plan (D-064).
+- **Rate limits:** keep the defaults for sign-ins and sign-ups, or lower them. Messages and booking requests are limited in the database itself.
 
 ## Setting up the real tutor
 
@@ -133,7 +135,7 @@ The database allows only one tutor.
 | `pnpm lint`                 | ESLint                                                                            |
 | `pnpm typecheck`            | Route types, then `tsc` (TypeScript 7)                                            |
 | `pnpm format`               | Prettier                                                                          |
-| `pnpm test`                 | Unit tests: dates and time zones, redirects, invite codes                         |
+| `pnpm test`                 | Unit tests: dates and time zones, grading, homework rules, payments, typography   |
 | `pnpm test:rls`             | Row-level security tests against the Supabase project, signed in as seed accounts |
 | `pnpm test:e2e`             | Playwright on an Android phone profile and desktop Chrome                         |
 | `pnpm db:push`              | Apply migrations to the linked project                                            |
@@ -146,23 +148,33 @@ The database allows only one tutor.
 ```
 src/
   app/
+    (site)/          public site: home, tariffs, blog (/conseils)
+    cours/           public lessons
     (auth)/          sign in, sign up, password reset and the actions behind them
     auth/confirm/    landing route for every email link
     prof/            tutor workspace
     eleve/           student workspace
+    parent/          parent view, read-only
+    recus/[id]/      PDF receipts, for whoever may read the payment
+    api/cron/        reminders and email digests, called by Supabase Cron
   components/        shell, form fields, status chips (ui/ holds shadcn primitives)
   config/site.ts     brand, tutor name, locale, time zone
   i18n/              next-intl request config
-  lib/               auth (data access layer), dates, Supabase clients, email
+  lib/               auth (data access layer), dates, Supabase clients, email, and one
+                     folder per area (homework, sessions, chat, payments, parents, site…)
   proxy.ts           refreshes the Supabase session on every request
 messages/fr.json     every string in the interface
+docs/schema.md       tables, who reads what, functions, storage
 supabase/
   migrations/        schema, policies, triggers
   seed.sql           development data
+  cron.sql           the reminders job, run once by hand when going live
 tests/
   rls/               access-control tests through the API
   e2e/               Playwright
 ```
+
+Unit tests sit next to the code they test (`src/lib/**/*.test.ts`).
 
 ## Deploying to Vercel
 
@@ -171,3 +183,15 @@ tests/
 3. Add every variable from `.env.local` except `SUPABASE_DB_URL` and `SEED_PASSWORD`, with `NEXT_PUBLIC_SITE_URL` set to the deployment URL.
 4. Add `ENABLE_EXPERIMENTAL_COREPACK=1` so Vercel uses pnpm 12 (DECISIONS.md, D-013).
 5. Add `https://<deployment-host>/auth/confirm**` to Supabase's redirect URLs, with the trailing `**` (see "Supabase Auth settings").
+
+## Going live
+
+The app runs, but a few settings wait for the domain and the Pro plan (DECISIONS.md, D-064). In order:
+
+1. **A fresh Supabase project for real students**, or at least: delete the seed accounts and the development invite code `BACPC2K7`. Run the RLS tests (`pnpm test:rls`) only against a development project or a Supabase branch: they create and remove data.
+2. **The domain.** Point it at the Vercel project, set `NEXT_PUBLIC_SITE_URL` to it, and add it to Supabase Auth's site URL and redirect list (see "Supabase Auth settings").
+3. **Email.** Verify the domain in Resend, set `EMAIL_FROM` to an address on it, and point Supabase Auth's SMTP at Resend (`smtp.resend.com`, port 465, user `resend`).
+4. **Secrets in Vercel:** `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` (a fresh one) and `CRON_SECRET`, then redeploy. Without the secret key, inviting a student or a parent answers that account creation is not configured.
+5. **Reminders.** Run [`supabase/cron.sql`](supabase/cron.sql) once in the SQL editor, with the same `CRON_SECRET` and the site's address filled in. It calls `/api/cron/rappels` every 15 minutes.
+6. **On Pro:** turn on leaked-password protection.
+7. **The real tutor:** see "Setting up the real tutor". She then fills in her public profile and WhatsApp number at `/prof/site`, and her plans at `/prof/paiements/formules`.

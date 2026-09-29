@@ -7,9 +7,11 @@ import { siteConfig } from "@/config/site";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
-// One family for everything; the HEXP axis carries the two densities (DESIGN.md).
+// One family for everything; the HEXP axis carries the two densities (DESIGN.md). Only the
+// latin subset is preloaded: it holds all of French. The others (latin-ext, Arabic) are still
+// declared, and load only on a page that uses one of their characters.
 const readex = Readex_Pro({
-  subsets: ["latin", "latin-ext"],
+  subsets: ["latin"],
   axes: ["HEXP"],
   variable: "--font-readex",
   display: "swap",
