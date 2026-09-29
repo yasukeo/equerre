@@ -771,6 +771,8 @@ Lighthouse on the public pages (mobile, simulated 4G, 2026-09-29) scored 90 or m
 
 KaTeX keeps `font-display: block` on the lesson and blog pages: formulas drawn in a fallback font come out misaligned, which is worse than waiting for them.
 
+Measured again after these changes, the public pages score 92 to 99 in performance and 100 in accessibility, best practices and SEO. The simulated largest paint still reads 1.9 to 2.9 s, but most of it is the measuring machine: in headless Chrome on this Windows laptop, the first paint of any page with a `local()` fallback font comes about 2 s after the page has loaded, nextjs.org (2.3 s) and vercel.com (2.3 s) included, while example.com paints in 0.15 to 0.3 s. Lighthouse's simulation builds on that trace. The reference is PageSpeed Insights, which runs on Google's machines: run it on `https://equerre.vercel.app/conseils` once the domain is in place.
+
 The Supabase advisors were run again. The one warning to act on, two select policies on `profiles` that each ran for every row, became one (`20260929025819`). The others are deliberate: the `security definer` functions are the app's API and each checks its caller, `invite_code_is_valid` is open to the sign-up page, two tables are written only by functions, the unused indexes cover the foreign keys the policies join on, and leaked-password protection waits for the Pro plan (D-064).
 
 ## Secret key usage
