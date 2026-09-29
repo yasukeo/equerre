@@ -23,6 +23,8 @@ export default async function EditLessonPage({ params }: PageProps<"/prof/lecons
 
   return (
     <div className="grid max-w-4xl gap-6">
+      {/* The title is a field of the form below: the page's heading says what the page is. */}
+      <h1 className="sr-only">{t("title")}</h1>
       <Link
         href="/prof/lecons"
         className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"

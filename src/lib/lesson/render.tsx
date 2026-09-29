@@ -1,8 +1,10 @@
 // Renders a lesson on the server. Nothing here touches a DOM, so a lesson page can
-// be prerendered and the editor never reaches a reader's phone.
+// be prerendered and the editor never reaches a reader's phone. The one client island is a
+// displayed formula (ScrollableMath), which takes the focus when it has to scroll.
 
 import { renderJSONContentToReactElement } from "@tiptap/static-renderer/json/react";
 import type { ReactNode } from "react";
+import { ScrollableMath } from "@/components/lesson/scrollable-math";
 import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "./document";
 import { formatFileSize } from "./file-size";
 import { renderMath } from "./math";
@@ -62,18 +64,17 @@ export function createLessonRenderer({ calloutLabel, fileHref }: LessonRenderOpt
         />
       ),
       blockMath: ({ node }) => (
-        <div
-          className="lecon-math lecon-math-bloc"
-          dangerouslySetInnerHTML={{ __html: renderMath(stringAttr(node.attrs, "latex"), true) }}
-        />
+        <ScrollableMath html={renderMath(stringAttr(node.attrs, "latex"), true)} />
       ),
       callout: ({ node, children }) => {
         const kind = calloutKind(node.attrs);
         return (
-          <aside className="lecon-encadre" data-kind={kind}>
+          // Not an <aside>: a definition or a theorem is the lesson itself, not a digression,
+          // and its title says what it is.
+          <div className="lecon-encadre" data-kind={kind}>
             <p className="lecon-encadre-titre">{calloutLabel(kind)}</p>
             {children}
-          </aside>
+          </div>
         );
       },
       image: ({ node }) => (

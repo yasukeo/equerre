@@ -782,6 +782,17 @@ The public pages went from 238 KB to 192 KB of compressed script.
 
 The Supabase advisors were run again. The one warning to act on, two select policies on `profiles` that each ran for every row, became one (`20260929025819`). The others are deliberate: the `security definer` functions are the app's API and each checks its caller, `invite_code_is_valid` is open to the sign-up page, two tables are written only by functions, the unused indexes cover the foreign keys the policies join on, and leaked-password protection waits for the Pro plan (D-064).
 
+**D-093 — An accessibility audit of every screen (end-of-project pass).**
+axe-core ran the WCAG 2.2 A and AA rules, and its best practices, on 50 screens: the public site, the sign-in pages, the tutor's 29 screens and the student's 12, each in the light and dark themes on a laptop and in the light theme on a phone (150 runs). The student's screens had nothing to report. What it found, all fixed:
+
+- **A formula too wide for its box could not be scrolled from the keyboard (WCAG 2.1.1).** In the lessons, the blog and the exercises, a displayed formula is now a small client component (`ScrollableMath`) that takes the focus only when it overflows, so the arrow keys scroll it and a formula that fits adds no stop to the tab order. In the editor, the sheet itself scrolls sideways; it already has the focus.
+- **A formula, an image or a document could only be opened with the mouse** in the editor. The arrow keys select one; Enter now opens it, as a click or a double click does, and the editor's tip says so.
+- **Encadrés were `<aside>`s**, which tells a screen reader « complementary content » and made one landmark per definition. A definition or a theorem is the lesson itself: they are `<div>`s with their visible title, and a pasted `<aside>` is still read as one.
+- **Two side columns were `<aside>`s inside `<main>`** (a student's file, a group), and the lesson and exercise editors had no page heading, their title being a field. The columns are plain blocks, and each editor has a heading for screen readers.
+- **The logo on the sign-in pages and the 404 page stood outside any landmark**; it is in a `<header>` now.
+
+After the fixes the 150 runs report nothing. The audit script is not part of the repository: it needs axe-core, which the project does not install, and the end-to-end tests cover the flows.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.

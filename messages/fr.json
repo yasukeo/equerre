@@ -1424,7 +1424,7 @@
     "allLessons": "Toutes les leçons"
   },
   "editor": {
-    "mathShortcut": "Astuce : tapez $$x^2$$ dans le texte pour une formule, et $$$x^2$$$ seul sur une ligne pour une formule centrée.",
+    "mathShortcut": "Astuce : tapez $$x^2$$ dans le texte pour une formule, et $$$x^2$$$ seul sur une ligne pour une formule centrée. Au clavier, les flèches sélectionnent une formule, une image ou un document, et Entrée l’ouvre.",
     "toolbar": {
       "label": "Mise en forme · {field}",
       "paragraph": "Texte",

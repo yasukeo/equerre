@@ -327,7 +327,7 @@ async function Student({
           </section>
         </div>
 
-        <aside className="grid gap-8">
+        <div className="grid gap-8">
           <section aria-labelledby="student-contact" className="grid gap-2">
             <h2 id="student-contact" className="text-lg font-medium">
               {t("contactHeading")}
@@ -389,7 +389,7 @@ async function Student({
               />
             </div>
           </details>
-        </aside>
+        </div>
       </div>
     </article>
   );

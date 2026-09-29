@@ -79,7 +79,7 @@ async function Group({ params }: { params: Promise<{ id: string }> }) {
           </section>
         </div>
 
-        <aside className="grid gap-8">
+        <div className="grid gap-8">
           <section aria-labelledby="group-details" className="grid gap-4">
             <h2 id="group-details" className="text-lg font-medium">
               {t("detailsHeading")}
@@ -100,7 +100,7 @@ async function Group({ params }: { params: Promise<{ id: string }> }) {
             </h2>
             <DeleteGroup id={group.id} hasHistory={group.hasHistory} />
           </section>
-        </aside>
+        </div>
       </div>
     </article>
   );

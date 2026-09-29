@@ -76,9 +76,12 @@
     background: var(--quadrillage);
   }
 
+  /* A formula too wide for the sheet makes the sheet scroll sideways, not the formula: the
+     sheet takes the keyboard focus, so it scrolls with it (WCAG 2.1.1). */
   .editeur-page {
     min-height: 22rem;
     padding: 1.25rem;
+    overflow-x: auto;
     outline: none;
   }
 
@@ -120,7 +123,6 @@
   }
 
   .editeur-page [data-type="block-math"] {
-    overflow-x: auto;
     padding-block: 0.25rem;
   }
 

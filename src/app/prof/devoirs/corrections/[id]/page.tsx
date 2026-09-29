@@ -146,7 +146,7 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
         </section>
 
         {/* Scrolls on its own when the statement and the solution are both open. */}
-        <aside className="grid gap-6 lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto">
+        <div className="grid gap-6 lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto">
           <section
             aria-labelledby="correction-heading"
             className="grid gap-4 rounded-md border border-quadrillage bg-surface p-4"
@@ -176,7 +176,7 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
               <div className="lecon-corps mt-3">{draw(data.solution.document)}</div>
             </details>
           ) : null}
-        </aside>
+        </div>
       </div>
 
       <nav className="flex flex-wrap items-center justify-between gap-2 border-t border-quadrillage pt-4 text-sm">

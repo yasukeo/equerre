@@ -101,13 +101,14 @@ export const Callout = Node.create<CalloutOptions>({
   },
 
   parseHTML() {
-    return [{ tag: "aside[data-kind]" }];
+    // Pasted from an older copy of a lesson, an encadré may still be an <aside>.
+    return [{ tag: "div[data-kind]" }, { tag: "aside[data-kind]" }];
   },
 
   renderHTML({ node, HTMLAttributes }) {
     const kind = asKind(node.attrs.kind);
     return [
-      "aside",
+      "div",
       mergeAttributes(HTMLAttributes, {
         class: "lecon-encadre",
         "data-label": this.options.labels[kind] ?? kind,

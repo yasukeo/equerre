@@ -124,6 +124,33 @@ export function DocumentEditor({
         "aria-multiline": "true",
         role: "textbox",
       },
+      // From the keyboard, the arrow keys select a formula, an image or a document, and
+      // Enter opens it, as a click or a double click does (WCAG 2.1.1).
+      handleKeyDown: (view, event) => {
+        if (event.key !== "Enter" || event.shiftKey || event.altKey || event.ctrlKey) return false;
+        const { selection } = view.state;
+        if (!(selection instanceof NodeSelection)) return false;
+        const { node, from } = selection;
+        const latex = typeof node.attrs.latex === "string" ? node.attrs.latex : "";
+        switch (node.type.name) {
+          case "blockMath":
+          case "inlineMath":
+            setMath({ display: node.type.name === "blockMath", latex, pos: from });
+            return true;
+          case "image":
+            setImage({
+              pos: from,
+              src: stringAttr(node.attrs.src),
+              alt: stringAttr(node.attrs.alt),
+            });
+            return true;
+          case "fileAttachment":
+            setFile({ pos: from, name: stringAttr(node.attrs.name) });
+            return true;
+          default:
+            return false;
+        }
+      },
       // A double click on an image or a document opens it, as a click on a formula does.
       handleDoubleClickOn: (_view, _pos, node, nodePos, _event, direct) => {
         if (!direct) return false;
