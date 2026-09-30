@@ -8,7 +8,7 @@ export async function SiteFooter() {
   const link =
     "inline-flex min-h-11 items-center text-sm underline decoration-quadrillage underline-offset-4 hover:decoration-encre";
   return (
-    <footer className="border-t border-quadrillage">
+    <footer className="border-t border-quadrillage print:hidden">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 gap-y-2 px-4 py-6 sm:px-8">
         <p className="text-sm text-encre-douce">
           {t("about", { brand: siteConfig.brand, tutor: siteConfig.tutorName })}

@@ -34,7 +34,11 @@ const nextConfig: NextConfig = {
   // published after the build draws its picture on the server, which needs the files there.
   outputFileTracingIncludes: {
     "/**/opengraph-image*": ["./assets/fonts/*.ttf"],
+    // The PDF route unpacks Chromium from these files at run time (D-096).
+    "/pdf/**": ["./node_modules/@sparticuz/chromium/bin/**"],
   },
+  // Loaded from node_modules as they are: Chromium finds its binary next to its own code.
+  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
   experimental: {
     useOffline: true,
   },

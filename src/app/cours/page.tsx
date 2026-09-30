@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { listProgrammes, type Cycle, type ProgrammeSummary } from "@/lib/lesson/queries";
+import { programmeName } from "@/lib/lesson/streams";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("coursesIndex");
@@ -16,7 +17,6 @@ const CYCLES: readonly Cycle[] = ["college", "tronc_commun", "1bac", "2bac"];
  */
 export default async function CoursesPage() {
   const [t, programmes] = await Promise.all([getTranslations("coursesIndex"), listProgrammes()]);
-  const list = new Intl.ListFormat("fr", { type: "conjunction" });
 
   return (
     <main id="contenu" className="mx-auto w-full max-w-4xl px-4 py-12 sm:px-8">
@@ -41,7 +41,7 @@ export default async function CoursesPage() {
                   streams={
                     // A programme followed by one stream of the same name says nothing more.
                     programme.streams.length > 1
-                      ? t("streams", { list: list.format(programme.streams) })
+                      ? t("streams", { list: programme.streams.join("\u00a0· ") })
                       : null
                   }
                   progress={t("progress", {
@@ -73,10 +73,11 @@ function ProgrammeCard({
         href={`/cours/${programme.slug}`}
         className="grid min-h-24 content-start gap-1 rounded-md border border-quadrillage bg-surface px-4 py-3 hover:border-encre"
       >
+        {/* The cycle is the section's heading: the card leads with what sets it apart. */}
         <span className="font-semibold underline decoration-trait underline-offset-4">
-          {programme.label}
+          {programmeName(programme.label)}
         </span>
-        {streams ? <span className="text-sm text-encre-douce">{streams}</span> : null}
+        {streams ? <span className="text-sm">{streams}</span> : null}
         <span className="text-sm text-encre-douce">{progress}</span>
       </Link>
     </li>

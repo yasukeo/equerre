@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import {
-  DOCUMENT_KINDS,
-  getProgrammeCourse,
-  listChapterParams,
-  programmeSlugForLevel,
-} from "@/lib/lesson/queries";
+import { PdfLinks } from "@/components/pdf-links";
+import { DOCUMENT_KINDS, getProgrammeCourse, listChapterParams } from "@/lib/lesson/queries";
+import { frenchSpaces } from "@/lib/typography";
 
 type ChapterParams = { niveau: string; chapitre: string };
 
@@ -52,43 +49,58 @@ export default function ChapterPage({ params }: PageProps<"/cours/[niveau]/[chap
 
 /** A chapter and its documents, by kind: the course, its summary, the series, the tests. */
 async function Chapter({ params }: { params: Promise<ChapterParams> }) {
-  const resolved = await params;
-  const [t, tProgramme, tKind, found] = await Promise.all([
+  // A stream's old address (`/cours/2bac-pc/…`) never gets here: next.config.ts redirects it.
+  const [t, tProgramme, tKind, tLesson, found] = await Promise.all([
     getTranslations("chapterPage"),
     getTranslations("programmePage"),
     getTranslations("documentKind"),
-    findChapter(resolved),
+    getTranslations("lesson"),
+    params.then(findChapter),
   ]);
-  if (!found) {
-    const moved = await programmeSlugForLevel(resolved.niveau);
-    if (moved) permanentRedirect(`/cours/${moved}/${resolved.chapitre}`);
-    notFound();
-  }
+  if (!found) notFound();
   const { programme, chapter } = found;
   const base = `/cours/${programme.slug}/${chapter.slug}`;
+  const link =
+    "inline-flex min-h-11 items-center underline decoration-trait underline-offset-4 hover:decoration-encre";
 
   return (
     <article className="grid gap-8">
       <header className="grid gap-3">
-        <Link
-          href={`/cours/${programme.slug}`}
-          className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-        >
-          {programme.label}
-        </Link>
+        <nav aria-label={tLesson("breadcrumb")} className="text-sm text-encre-douce print:hidden">
+          <ol role="list" className="flex flex-wrap items-center gap-x-2">
+            <li>
+              <Link href="/cours" className={link}>
+                {tLesson("courses")}
+              </Link>
+            </li>
+            <li className="flex items-center gap-x-2">
+              <span aria-hidden="true">›</span>
+              <Link href={`/cours/${programme.slug}`} className={link}>
+                {programme.label}
+              </Link>
+            </li>
+          </ol>
+        </nav>
         {chapter.semester ? (
           <p className="text-sm text-encre-douce">
             {tProgramme("semester", { semester: String(chapter.semester) })}
           </p>
         ) : null}
         <h1 className="text-[clamp(1.75rem,1.4rem+2vw,2.5rem)] leading-tight font-semibold [font-variation-settings:'HEXP'_90]">
-          {chapter.title}
+          {frenchSpaces(chapter.title)}
         </h1>
-        {chapter.description ? <p className="text-encre-douce">{chapter.description}</p> : null}
+        {chapter.description ? (
+          <p className="text-encre-douce">{frenchSpaces(chapter.description)}</p>
+        ) : null}
       </header>
 
       {chapter.documents.length === 0 ? (
-        <p className="rounded-md border border-dashed border-trait px-4 py-5">{t("empty")}</p>
+        <div className="grid gap-1 rounded-md border border-dashed border-trait px-4 py-4">
+          <p>{t("empty")}</p>
+          <Link href={`/cours/${programme.slug}`} className={`${link} justify-self-start`}>
+            {t("emptyLink")}
+          </Link>
+        </div>
       ) : (
         DOCUMENT_KINDS.map((kind) => {
           const documents = chapter.documents.filter((document) => document.kind === kind);
@@ -96,23 +108,29 @@ async function Chapter({ params }: { params: Promise<ChapterParams> }) {
           return (
             <section key={kind} aria-labelledby={`documents-${kind}`} className="grid gap-3">
               <h2 id={`documents-${kind}`} className="text-lg font-semibold">
-                {tKind(`many.${kind}`)}
+                {documents.length === 1 ? tKind(`one.${kind}`) : tKind(`many.${kind}`)}
               </h2>
               <ul
                 role="list"
                 className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage"
               >
                 {documents.map((document) => (
-                  <li key={document.slug} className="grid gap-1 bg-surface px-4 py-3">
+                  <li key={document.slug} className="grid bg-surface px-4 py-2">
                     <Link
                       href={`${base}/${document.slug}`}
-                      className="font-semibold underline decoration-trait underline-offset-4 hover:decoration-encre"
+                      className={`${link} justify-self-start font-semibold`}
                     >
-                      {document.title}
+                      {frenchSpaces(document.title)}
                     </Link>
                     {document.summary ? (
-                      <p className="text-sm text-encre-douce">{document.summary}</p>
+                      <p className="text-sm text-encre-douce">{frenchSpaces(document.summary)}</p>
                     ) : null}
+                    <PdfLinks
+                      id={document.id}
+                      version={document.version}
+                      kind={document.kind}
+                      title={document.title}
+                    />
                   </li>
                 ))}
               </ul>

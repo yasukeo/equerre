@@ -5,6 +5,7 @@ import { unstable_rethrow } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { DocumentEditor } from "@/components/editor/document-editor";
+import { PdfLinks } from "@/components/pdf-links";
 import {
   PublicationChip,
   type LessonVisibility,
@@ -42,6 +43,8 @@ type Props = {
     content: StoredLesson;
     context: string;
     publicPath: string;
+    /** The version it was opened at, for its PDF's address (D-096). */
+    version: string;
   };
 };
 
@@ -125,14 +128,20 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
           <PublicationChip status={status} label={tLessons(`status.${status}`)} />
           {dirty ? (
             <span className="text-sm text-encre-douce">{t("unsaved")}</span>
-          ) : status === "published" && visibility === "public" ? (
-            <Link
-              href={lesson.publicPath}
-              className="text-sm text-stylo-bleu underline underline-offset-2"
-            >
-              {tLessons("open")}
-            </Link>
-          ) : null}
+          ) : (
+            <>
+              {status === "published" && visibility === "public" ? (
+                <Link
+                  href={lesson.publicPath}
+                  className="text-sm text-stylo-bleu underline underline-offset-2"
+                >
+                  {tLessons("open")}
+                </Link>
+              ) : null}
+              {/* The PDF of what is saved, drafts included, to read it over as a reader will. */}
+              <PdfLinks id={lesson.id} version={lesson.version} kind={kind} />
+            </>
+          )}
         </div>
       </div>
 

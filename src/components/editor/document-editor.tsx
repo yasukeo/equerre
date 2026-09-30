@@ -414,12 +414,14 @@ function Toolbar({
     onClick: () => void,
     pressed?: boolean,
     disabled?: boolean,
+    /** What a click does now, when the name alone does not say it. */
+    hint?: string,
   ) => (
     <button
       type="button"
       className="editeur-bouton"
       aria-label={name}
-      title={name}
+      title={hint ?? name}
       aria-pressed={pressed}
       disabled={disabled}
       // Keep the selection in the text while the button is pressed.
@@ -494,17 +496,21 @@ function Toolbar({
       <span className="editeur-separateur" aria-hidden="true" />
       {exercises ? (
         <>
+          {/* A toggle, like bold: its name stays, its pressed state says where the cursor is. */}
           {tool(
-            active.inExercise ? t("exerciseRemove") : t("exercise"),
+            t("exercise"),
             <ClipboardList {...icon} />,
             run((c) => (active.inExercise ? c.unsetExercise() : c.setExercise())),
             active.inExercise,
+            false,
+            active.inExercise ? t("exerciseRemove") : undefined,
           )}
+          {/* An action, not a toggle: it adds the correction, or goes to the one there is. */}
           {tool(
             t("solution"),
             <SquareCheckBig {...icon} />,
             run((c) => c.addSolution()),
-            active.inSolution,
+            undefined,
             !active.inExercise,
           )}
           <span className="editeur-separateur" aria-hidden="true" />

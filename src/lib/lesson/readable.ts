@@ -3,6 +3,8 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import { readStoredLesson, type StoredLesson } from "./document";
+import { DOCUMENT_KINDS } from "./kinds";
+import { documentVersion } from "@/lib/pdf/links";
 
 // Lessons read through the visitor's own session, so the lessons select policy decides what
 // comes back (DECISIONS.md, D-050, D-060): her programme’s lessons and those shared with her
@@ -12,6 +14,10 @@ import { readStoredLesson, type StoredLesson } from "./document";
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export type ReadableLesson = {
+  id: string;
+  kind: Database["public"]["Enums"]["document_kind"];
+  /** Its last change, which names its PDF (D-096). */
+  version: string;
   title: string;
   summary: string | null;
   publishedAt: string | null;
@@ -27,7 +33,7 @@ export const getReadableLesson = cache(async (slug: string): Promise<ReadableLes
   const { data } = await supabase
     .from("lessons")
     .select(
-      "title, summary, content, published_at, chapter:chapters!inner(title, programme:programmes!inner(label))",
+      "id, kind, updated_at, title, summary, content, published_at, chapter:chapters!inner(title, updated_at, programme:programmes!inner(label))",
     )
     .eq("slug", slug)
     .eq("status", "published")
@@ -35,10 +41,69 @@ export const getReadableLesson = cache(async (slug: string): Promise<ReadableLes
   if (!data) return null;
 
   return {
+    id: data.id,
+    kind: data.kind,
+    version: documentVersion(
+      data.updated_at,
+      data.chapter.updated_at,
+      data.chapter.programme.label,
+    ),
     title: data.title,
     summary: data.summary,
     publishedAt: data.published_at,
     context: `${data.chapter.programme.label} · ${data.chapter.title}`,
+    content: readStoredLesson(data.content),
+  };
+});
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+export type PrintableLesson = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  kind: Database["public"]["Enums"]["document_kind"];
+  /** Only a published, public document may be cached by anyone between here and the reader. */
+  isPublic: boolean;
+  /** The version a PDF is made from: its address changes when the document does. */
+  version: string;
+  chapterTitle: string;
+  programmeLabel: string;
+  content: StoredLesson;
+};
+
+/**
+ * One document this visitor may print (D-096): what she may read, drafts included for the
+ * tutor, who reviews them. Deduplicated per request.
+ */
+export const getPrintableLesson = cache(async (id: string): Promise<PrintableLesson | null> => {
+  if (!UUID.test(id)) return null;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("lessons")
+    .select(
+      "id, slug, title, summary, kind, status, visibility, updated_at, content, chapter:chapters!inner(title, updated_at, programme:programmes!inner(label))",
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (!data) return null;
+
+  return {
+    id: data.id,
+    slug: data.slug,
+    title: data.title,
+    summary: data.summary,
+    kind: data.kind,
+    isPublic: data.status === "published" && data.visibility === "public",
+    version: documentVersion(
+      data.updated_at,
+      data.chapter.updated_at,
+      data.chapter.programme.label,
+    ),
+    chapterTitle: data.chapter.title,
+    programmeLabel: data.chapter.programme.label,
     content: readStoredLesson(data.content),
   };
 });
@@ -50,7 +115,10 @@ export type ReadableLessonEntry = {
   summary: string | null;
   kind: Database["public"]["Enums"]["document_kind"];
   shared: boolean;
+  chapterId: string;
   chapterTitle: string;
+  /** The programme, when not hers: a lesson shared from another one (« Statistiques » is in 34). */
+  otherProgramme: string | null;
 };
 
 /**
@@ -63,7 +131,7 @@ export async function listReadableLessons(
 ): Promise<ReadableLessonEntry[]> {
   const supabase = await createClient();
   const fields =
-    "id, slug, title, summary, kind, visibility, position, chapter:chapters!inner(title, semester, position, programme_code, programme:programmes!inner(position))" as const;
+    "id, slug, title, summary, kind, visibility, position, chapter:chapters!inner(id, title, semester, position, programme_code, programme:programmes!inner(position, label))" as const;
   const [own, shared] = await Promise.all([
     programmeCode
       ? supabase
@@ -82,6 +150,7 @@ export async function listReadableLessons(
         a.chapter.programme.position - b.chapter.programme.position ||
         (a.chapter.semester ?? 3) - (b.chapter.semester ?? 3) ||
         a.chapter.position - b.chapter.position ||
+        DOCUMENT_KINDS.indexOf(a.kind) - DOCUMENT_KINDS.indexOf(b.kind) ||
         a.position - b.position,
     )
     .map((lesson) => ({
@@ -91,6 +160,9 @@ export async function listReadableLessons(
       summary: lesson.summary,
       kind: lesson.kind,
       shared: lesson.visibility === "specific",
+      chapterId: lesson.chapter.id,
       chapterTitle: lesson.chapter.title,
+      otherProgramme:
+        lesson.chapter.programme_code === programmeCode ? null : lesson.chapter.programme.label,
     }));
 }

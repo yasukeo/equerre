@@ -271,7 +271,7 @@
         "kind": "Choisissez le type de document."
       },
       "kind": "Type de document",
-      "kindHint": "Un cours, son résumé, une série d’exercices avec leurs corrigés, ou un devoir."
+      "kindHint": "Un cours, son résumé, une série d’exercices avec leurs corrigés ou un devoir."
     },
     "lessonEditor": {
       "title": "Modifier la leçon",
@@ -1119,12 +1119,13 @@
     "lessons": {
       "title": "Cours",
       "mine": "Mes cours",
-      "others": "Les autres programmes",
-      "othersHint": "Les cours publics de tous les niveaux, pour réviser ou prendre de l’avance.",
-      "empty": "Aucun document publié pour votre programme pour l’instant.",
+      "others": "Les cours en accès libre",
+      "othersHint": "Les cours publics de tous les niveaux et de toutes les filières, pour réviser ou prendre de l’avance.",
+      "empty": "Rien n’est encore publié pour votre filière.",
       "shared": "Partagé avec vous",
       "back": "Tous les cours",
-      "browse": "Parcourir tous les programmes"
+      "browse": "Parcourir tous les cours",
+      "myProgramme": "Voir tout le programme de votre filière"
     },
     "homework": {
       "title": "Devoirs",
@@ -1429,7 +1430,11 @@
     "allLessons": "Toutes les leçons",
     "exercise": "Exercice {number}",
     "solution": "Corrigé",
-    "showSolution": "Voir le corrigé"
+    "showSolution": "Voir le corrigé",
+    "hideSolution": "Masquer le corrigé",
+    "breadcrumb": "Fil d’Ariane",
+    "courses": "Cours",
+    "solutionOf": "de l’exercice {number}"
   },
   "editor": {
     "mathShortcut": "Astuce : tapez $$x^2$$ dans le texte pour une formule, et $$$x^2$$$ seul sur une ligne pour une formule centrée. Au clavier, les flèches sélectionnent une formule, une image ou un document, et Entrée l’ouvre.",
@@ -1887,7 +1892,7 @@
       "2bac": "2e année du bac"
     },
     "streams": "Filières : {list}",
-    "progress": "{ready, plural, =0 {En préparation} one {# chapitre disponible sur {total}} other {# chapitres disponibles sur {total}}}",
+    "progress": "{ready, plural, =0 {{total} chapitres · rédaction en cours} other {{total} chapitres · # en ligne}}",
     "home": "Retour à l’accueil"
   },
   "siteAdmin": {
@@ -2056,16 +2061,17 @@
     "cancel": "Annuler"
   },
   "programmePage": {
-    "back": "Tous les programmes",
-    "streams": "Pour les filières : {list}",
+    "back": "Tous les cours",
+    "streams": "Filières : {list}",
     "semester": "{semester, select, 1 {Premier semestre} 2 {Deuxième semestre} other {Hors semestre}}",
-    "chapter": "Chapitre {number}",
     "inPreparation": "En préparation",
-    "metaDescription": "{programme} : le programme officiel de mathématiques, chapitre par chapitre, avec cours, résumés et séries d’exercices corrigés."
+    "metaDescription": "{programme} : le programme officiel de mathématiques, chapitre par chapitre, avec cours, résumés et séries d’exercices corrigés.",
+    "progress": "{ready, plural, =0 {Les chapitres sont en cours de rédaction et arrivent au fil de l’année.} one {# chapitre sur {total} est en ligne ; les autres arrivent au fil de l’année.} other {{complete, select, yes {Les {ready} chapitres sont en ligne.} other {{ready} chapitres sur {total} sont en ligne ; les autres arrivent au fil de l’année.}}}}"
   },
   "chapterPage": {
-    "empty": "Les documents de ce chapitre sont en préparation. Revenez bientôt, ou demandez-les à la professeure.",
-    "metaDescription": "{chapter} ({programme}) : cours, résumé et exercices corrigés, en ligne et en PDF."
+    "empty": "Ce chapitre est en cours de rédaction.",
+    "metaDescription": "{chapter} ({programme}) : cours, résumé et exercices corrigés, en ligne et en PDF.",
+    "emptyLink": "Voir tous les chapitres du programme"
   },
   "documentKind": {
     "one": {
@@ -2080,5 +2086,16 @@
       "serie": "Séries d’exercices",
       "devoir": "Devoirs"
     }
+  },
+  "pdf": {
+    "download": "Télécharger en PDF",
+    "statements": "énoncés",
+    "withSolutions": "avec corrigés",
+    "downloadStatements": "Énoncés en PDF",
+    "downloadWithSolutions": "Énoncés et corrigés en PDF",
+    "preparing": "Préparation du PDF…",
+    "tooMany": "Vous avez demandé plusieurs PDF d’affilée. Réessayez dans une minute.",
+    "failed": "Le PDF n’a pas pu être préparé. Réessayez dans un instant.",
+    "busy": "Beaucoup de PDF sont demandés en ce moment. Réessayez dans une minute."
   }
 }

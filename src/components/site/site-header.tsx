@@ -13,7 +13,7 @@ const LINK =
 export async function SiteHeader() {
   const t = await getTranslations("site.nav");
   return (
-    <header className="border-b border-quadrillage bg-papier">
+    <header className="border-b border-quadrillage bg-papier print:hidden">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 px-4 py-2 sm:px-8">
         <Link href="/" className="inline-flex min-h-11 items-center rounded-sm">
           <BrandMark />

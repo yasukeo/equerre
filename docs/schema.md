@@ -318,6 +318,7 @@ signed-out visitors unless noted.
 | Notifications | `mark_notifications_read()`, `notifications_to_email()`, `claim_notification_email()`, `message_digests_due()`, `claim_message_digest()`, `release_message_digest()` |
 | Payments      | `record_payment()`, `void_payment()`, `student_accounts()`, `account_statement()`, `remove_test_payments()` (secret key only)                                        |
 | Parents       | `my_children()`, `child_sessions()`, `child_homework()`                                                                                                              |
+| Documents     | `take_print_quota()` before a PDF of a document that is not public, `take_public_print_quota()` (signed-out visitors too) before one of a public document (D-096)    |
 
 ## Storage
 

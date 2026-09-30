@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { LessonArticle } from "@/components/lesson-article";
-import {
-  getPublicLesson,
-  listPublicLessons,
-  programmeSlugForLevel,
-  type LessonParams,
-} from "@/lib/lesson/queries";
+import { PdfLinks } from "@/components/pdf-links";
+import { getPublicLesson, listPublicLessons, type LessonParams } from "@/lib/lesson/queries";
 
 export async function generateStaticParams(): Promise<LessonParams[]> {
   const lessons = await listPublicLessons();
@@ -50,32 +47,37 @@ export default function LessonPage({ params }: PageProps<"/cours/[niveau]/[chapi
 }
 
 async function Lesson({ params }: { params: Promise<LessonParams> }) {
-  const resolved = await params;
-  const lesson = await getPublicLesson(resolved);
-  if (!lesson) {
-    // Before programmes, a course address named a stream: `/cours/2bac-pc/…`.
-    const moved = await programmeSlugForLevel(resolved.niveau);
-    if (moved) permanentRedirect(`/cours/${moved}/${resolved.chapitre}/${resolved.lecon}`);
-    notFound();
-  }
+  // A stream's old address (`/cours/2bac-pc/…`) never gets here: next.config.ts redirects it.
+  const [t, lesson] = await Promise.all([getTranslations("lesson"), params.then(getPublicLesson)]);
+  if (!lesson) notFound();
 
-  const crumb = "underline decoration-trait underline-offset-4 hover:decoration-encre";
+  const crumb =
+    "inline-flex min-h-11 items-center underline decoration-trait underline-offset-4 hover:decoration-encre";
+  const trail = [
+    { href: "/cours", label: t("courses") },
+    { href: `/cours/${lesson.programmeSlug}`, label: lesson.programmeLabel },
+    { href: `/cours/${lesson.programmeSlug}/${lesson.chapterSlug}`, label: lesson.chapterTitle },
+  ];
   return (
     <LessonArticle
       title={lesson.title}
       summary={lesson.summary}
       publishedAt={lesson.publishedAt}
       context={
-        <nav aria-label={lesson.chapterTitle} className="flex flex-wrap gap-x-2">
-          <Link href={`/cours/${lesson.programmeSlug}`} className={crumb}>
-            {lesson.programmeLabel}
-          </Link>
-          <span aria-hidden="true">·</span>
-          <Link href={`/cours/${lesson.programmeSlug}/${lesson.chapterSlug}`} className={crumb}>
-            {lesson.chapterTitle}
-          </Link>
+        <nav aria-label={t("breadcrumb")} className="print:hidden">
+          <ol role="list" className="flex flex-wrap items-center gap-x-2">
+            {trail.map((step, index) => (
+              <li key={step.href} className="flex items-center gap-x-2">
+                {index > 0 ? <span aria-hidden="true">›</span> : null}
+                <Link href={step.href} className={crumb}>
+                  {step.label}
+                </Link>
+              </li>
+            ))}
+          </ol>
         </nav>
       }
+      downloads={<PdfLinks id={lesson.id} version={lesson.version} kind={lesson.kind} />}
       content={lesson.content}
     />
   );

@@ -1,5 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import { publicStreamName } from "@/lib/lesson/streams";
 import { publicClient } from "@/lib/supabase/public";
 import type { Database } from "@/types/database";
 
@@ -94,8 +95,11 @@ export async function listLevelsByCycle(): Promise<LevelGroup[]> {
   // By cycle, in the order each cycle first appears, whatever the positions in between.
   const groups = new Map<string, LevelGroup>();
   for (const row of data) {
+    // Under its cycle's heading, by the name students use; one kept only for records is left out.
+    const name = publicStreamName(row);
+    if (name === null) continue;
     const group = groups.get(row.cycle) ?? { cycle: row.cycle, levels: [] };
-    group.levels.push({ code: row.code, label: row.label });
+    group.levels.push({ code: row.code, label: name });
     groups.set(row.cycle, group);
   }
   return [...groups.values()];

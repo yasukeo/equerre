@@ -103,39 +103,114 @@
     font-size: 1.25rem;
   }
 
+  /* Under the author's own heading, an exercise is a level below it, and smaller. */
+  .lecon-corps :is(h3, h4).lecon-exercice-titre {
+    font-size: 1.125rem;
+  }
+
   .lecon-exercice-sujet {
     font-weight: 400;
     color: var(--encre-douce);
   }
 
-  /* The correction: folded until asked for on a page, the worked answer when printed. */
+  /* The correction, in the red of everything the tutor marks (DESIGN.md): folded until asked
+     for on a page, the worked answer in the PDF with corrections. */
   .lecon-corrige {
-    border-inline-start: 3px solid var(--trait);
+    border-inline-start: 3px solid var(--stylo-rouge);
     border-radius: 0 0.5rem 0.5rem 0;
     background: var(--sunken);
     padding: 0.25rem 1.25rem;
   }
 
-  .lecon-corrige > * + * {
+  .lecon-corrige > * + *,
+  .lecon-corrige-texte > * + * {
     margin-top: 0.75em;
   }
 
   .lecon-corrige-titre {
     font-size: 0.9375rem;
     font-weight: 600;
-    color: var(--encre);
+    color: var(--stylo-rouge);
   }
 
-  /* The fold's handle is a full-width, 44 px target (brief §8). */
+  /* The fold's handle is a full-width, 44 px target (brief §8), with a chevron that turns as it
+     opens: the browser's own triangle goes with `display: flex`. */
   summary.lecon-corrige-titre {
     display: flex;
     align-items: center;
+    gap: 0.625rem;
     min-height: 2.75rem;
     cursor: pointer;
+    list-style: none;
+  }
+
+  summary.lecon-corrige-titre::-webkit-details-marker {
+    display: none;
+  }
+
+  summary.lecon-corrige-titre::before {
+    content: "";
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-block-end: 2px solid currentColor;
+    border-inline-end: 2px solid currentColor;
+    transform: translateY(-0.125rem) rotate(45deg);
+    transition: transform 180ms ease-out;
+  }
+
+  details.lecon-corrige[open] > summary.lecon-corrige-titre::before {
+    transform: translateY(0.125rem) rotate(225deg);
+  }
+
+  details.lecon-corrige:not([open]) .lecon-corrige-masquer,
+  details.lecon-corrige[open] .lecon-corrige-voir,
+  .lecon-corrige-imprime {
+    display: none;
   }
 
   details.lecon-corrige[open] {
     padding-bottom: 1rem;
+  }
+
+  /* A solution revealing: fade and slide, 180 ms (DESIGN.md, motion). */
+  details.lecon-corrige[open] > .lecon-corrige-texte {
+    animation: corrige-ouvert 180ms ease-out;
+  }
+
+  @keyframes corrige-ouvert {
+    from {
+      opacity: 0;
+      transform: translateY(-0.25rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    summary.lecon-corrige-titre::before {
+      transition: none;
+    }
+
+    details.lecon-corrige[open] > .lecon-corrige-texte {
+      animation: none;
+    }
+  }
+
+  /* A page printed from the browser: a folded correction would print as an empty bar. The
+     PDF (D-096) is the way to print a series with its corrections. */
+  @media print {
+    details.lecon-corrige:not([open]) {
+      display: none;
+    }
+
+    /* An open one prints as « Corrigé », without the handle's chevron and verb. */
+    summary.lecon-corrige-titre::before,
+    details.lecon-corrige[open] .lecon-corrige-masquer {
+      display: none;
+    }
+
+    .lecon-corrige-imprime {
+      display: inline;
+    }
   }
 
   /* A long displayed formula scrolls on its own rather than widening the page. */

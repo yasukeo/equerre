@@ -1845,6 +1845,11 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      take_print_quota: { Args: never; Returns: boolean }
+      take_public_print_quota: {
+        Args: { p_lesson_id: string }
+        Returns: boolean
+      }
       void_payment: {
         Args: { p_payment_id: string; p_reason: string }
         Returns: undefined

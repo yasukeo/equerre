@@ -8,6 +8,7 @@ import { ScrollableMath } from "@/components/lesson/scrollable-math";
 import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "./document";
 import { formatFileSize } from "./file-size";
 import { renderMath } from "./math";
+import { frenchSpaces } from "@/lib/typography";
 
 type Attrs = Record<string, unknown> | undefined;
 
@@ -17,10 +18,17 @@ export type LessonRenderOptions = {
   /** Where an attachment points, so the renderer stays free of the routing table. */
   fileHref: (path: string) => string;
   /**
-   * Exercises of a series or a test (D-095): « Exercice 3 », « Corrigé », « Voir le corrigé ».
-   * Only documents with exercises need them.
+   * Exercises of a series or a test (D-095): « Exercice 3 », « Corrigé », « Voir le corrigé »,
+   * « Masquer le corrigé », and « de l’exercice 3 », which a screen reader hears after the last
+   * two. Only documents with exercises need them.
    */
-  exerciseLabels?: { exercise: (number: number) => string; solution: string; show: string };
+  exerciseLabels?: {
+    exercise: (number: number) => string;
+    solution: string;
+    show: string;
+    hide: string;
+    of: (number: number) => string;
+  };
   /**
    * What becomes of corrections: folded under « Voir le corrigé » on a page, left out of the
    * statements' PDF, printed after each exercise in the PDF with corrections.
@@ -32,21 +40,33 @@ const DEFAULT_EXERCISE_LABELS = {
   exercise: (number: number) => `Exercice ${number}`,
   solution: "Corrigé",
   show: "Voir le corrigé",
+  hide: "Masquer le corrigé",
+  of: (number: number) => `de l’exercice ${number}`,
 };
 
 /**
  * The document with each top-level exercise numbered in order: « Exercice 1, 2, 3 » follow
- * the page, whatever was moved or deleted while writing.
+ * the page, whatever was moved or deleted while writing. Its correction carries the same
+ * number. An exercise under one of the author's own headings (« Exercices d’application ») is
+ * a level below it.
  */
 export function numberExercises(content: StoredLesson): StoredLesson {
   let number = 0;
+  let headingLevel = 1;
   return {
     ...content,
-    content: content.content?.map((block) =>
-      block.type === "exercise"
-        ? { ...block, attrs: { ...block.attrs, number: (number += 1) } }
-        : block,
-    ),
+    content: content.content?.map((block) => {
+      if (block.type === "heading") headingLevel = numberAttr(block.attrs, "level") ?? 2;
+      if (block.type !== "exercise") return block;
+      number += 1;
+      return {
+        ...block,
+        attrs: { ...block.attrs, number, level: Math.min(headingLevel + 1, 4) },
+        content: block.content?.map((part) =>
+          part.type === "solution" ? { ...part, attrs: { ...part.attrs, number } } : part,
+        ),
+      };
+    }),
   };
 }
 
@@ -116,28 +136,51 @@ export function createLessonRenderer({
       },
       exercise: ({ node, children }) => {
         const title = stringAttr(node.attrs, "title").trim();
+        const level = numberAttr(node.attrs, "level");
+        const Heading = level === 4 ? "h4" : level === 3 ? "h3" : "h2";
         return (
           <section className="lecon-exercice">
-            <h2 className="lecon-exercice-titre">
+            <Heading className="lecon-exercice-titre">
               {exerciseLabels.exercise(numberAttr(node.attrs, "number") ?? 1)}
-              {title ? <span className="lecon-exercice-sujet"> · {title}</span> : null}
-            </h2>
+              {title ? (
+                <span className="lecon-exercice-sujet"> · {frenchSpaces(title)}</span>
+              ) : null}
+            </Heading>
             {children}
           </section>
         );
       },
-      solution: ({ children }) =>
-        solutions === "hide" ? null : solutions === "show" ? (
-          <div className="lecon-corrige">
-            <p className="lecon-corrige-titre">{exerciseLabels.solution}</p>
-            {children}
-          </div>
-        ) : (
+      solution: ({ node, children }) => {
+        if (solutions === "hide") return null;
+        if (solutions === "show") {
+          return (
+            <div className="lecon-corrige">
+              <p className="lecon-corrige-titre">{exerciseLabels.solution}</p>
+              {children}
+            </div>
+          );
+        }
+        const number = numberAttr(node.attrs, "number");
+        const of = number ? <span className="sr-only"> {exerciseLabels.of(number)}</span> : null;
+        return (
           <details className="lecon-corrige">
-            <summary className="lecon-corrige-titre">{exerciseLabels.show}</summary>
-            {children}
+            {/* The handle says what a tap will do: one of the first two is shown, and paper gets
+                the third (lecon.css). */}
+            <summary className="lecon-corrige-titre">
+              <span className="lecon-corrige-voir">
+                {exerciseLabels.show}
+                {of}
+              </span>{" "}
+              <span className="lecon-corrige-masquer">
+                {exerciseLabels.hide}
+                {of}
+              </span>{" "}
+              <span className="lecon-corrige-imprime">{exerciseLabels.solution}</span>
+            </summary>
+            <div className="lecon-corrige-texte">{children}</div>
           </details>
-        ),
+        );
+      },
       image: ({ node }) => (
         // A lesson image is already the right size in a public bucket, and a signed
         // URL would defeat the optimizer's cache, so it is served as it is stored.

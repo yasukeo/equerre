@@ -194,6 +194,8 @@ describe("exercises on a page and in the PDFs", () => {
       exercise: (number: number) => `Exercice ${number}`,
       solution: "Corrigé",
       show: "Voir le corrigé",
+      hide: "Masquer le corrigé",
+      of: (number: number) => `de l’exercice ${number}`,
     },
   };
   const draw = (solutions?: "fold" | "hide" | "show") =>
@@ -209,10 +211,31 @@ describe("exercises on a page and in the PDFs", () => {
 
   it("folds a correction on a page", () => {
     const output = draw("fold");
-    expect(output).toMatch(
-      /<details class="lecon-corrige"><summary[^>]*>Voir le corrigé<\/summary>/,
-    );
+    const summary = /<details class="lecon-corrige"><summary[^>]*>(.*?)<\/summary>/.exec(output);
+    expect(summary?.[1]).toBeDefined();
+    // Both verbs, each naming its exercise for a screen reader, apart even without CSS.
+    const text = summary![1]!.replace(/<[^>]+>/g, "");
+    expect(text).toBe("Voir le corrigé de l’exercice 1 Masquer le corrigé de l’exercice 1 Corrigé");
     expect(output).toContain("la limite vaut 2");
+  });
+
+  it("puts an exercise a level below the author's own heading", () => {
+    expect(draw()).toMatch(/<h2 class="lecon-exercice-titre">Exercice 1/);
+    const under = (level: 2 | 3) =>
+      renderToStaticMarkup(
+        renderLesson(
+          {
+            ...series,
+            content: [
+              { type: "heading", attrs: { level }, content: [{ type: "text", text: "Exercices" }] },
+              ...series.content,
+            ],
+          } as StoredLesson,
+          options,
+        ),
+      );
+    expect(under(2)).toMatch(/<h3 class="lecon-exercice-titre">Exercice 1/);
+    expect(under(3)).toMatch(/<h4 class="lecon-exercice-titre">Exercice 1/);
   });
 
   it("leaves corrections out of the statements' PDF", () => {

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { LessonArticle } from "@/components/lesson-article";
+import { PdfLinks } from "@/components/pdf-links";
 import { requireViewer } from "@/lib/auth";
 import { getReadableLesson } from "@/lib/lesson/readable";
 // The same page as the public site: same maths, same encadrés.
@@ -42,7 +43,12 @@ async function Reader({ params }: { params: Promise<{ slug: string }> }) {
   const lesson = await getReadableLesson((await params).slug);
   if (!lesson) notFound();
 
-  return <LessonArticle {...lesson} />;
+  return (
+    <LessonArticle
+      {...lesson}
+      downloads={<PdfLinks id={lesson.id} version={lesson.version} kind={lesson.kind} />}
+    />
+  );
 }
 
 function ReaderSkeleton() {

@@ -6,8 +6,8 @@
 
 type Messages = { [key: string]: string | Messages };
 
-/** Everywhere: the offline banner, the copy button, the error screens. */
-const BASE = ["common", "errors.generic"];
+/** Everywhere: the offline banner, the copy button, the error screens, the PDF links. */
+const BASE = ["common", "errors.generic", "pdf"];
 
 /** The signed-in workspaces: the chat and the bell. */
 const WORKSPACE = [...BASE, "chat", "notifications"];

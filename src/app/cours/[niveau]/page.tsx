@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import {
   getProgrammeCourse,
   listProgrammes,
-  programmeSlugForLevel,
   type ProgrammeChapter,
+  type PublicDocument,
 } from "@/lib/lesson/queries";
+import { frenchSpaces } from "@/lib/typography";
 
 export async function generateStaticParams(): Promise<{ niveau: string }[]> {
   const programmes = await listProgrammes();
-  return programmes.map((programme) => ({ niveau: programme.slug }));
+  // As on the pages below: Cache Components fails the build on an empty list.
+  return programmes.length > 0
+    ? programmes.map((programme) => ({ niveau: programme.slug }))
+    : [{ niveau: "tronc-commun-sciences" }];
 }
 
 export async function generateMetadata({
@@ -46,22 +50,18 @@ export default function ProgrammePage({ params }: PageProps<"/cours/[niveau]">) 
 }
 
 async function Programme({ params }: { params: Promise<{ niveau: string }> }) {
+  // A stream's old address (`/cours/2bac-pc`) never gets here: next.config.ts redirects it.
   const { niveau } = await params;
   const [t, tKind, programme] = await Promise.all([
     getTranslations("programmePage"),
     getTranslations("documentKind"),
     getProgrammeCourse(niveau),
   ]);
-  if (!programme) {
-    // Before programmes, a course address named a stream: `/cours/2bac-pc`.
-    const moved = await programmeSlugForLevel(niveau);
-    if (moved) permanentRedirect(`/cours/${moved}`);
-    notFound();
-  }
+  if (!programme) notFound();
 
-  const list = new Intl.ListFormat("fr", { type: "conjunction" });
   const semesters = [1, 2, null] as const;
   const numbered = programme.chapters.map((chapter, index) => ({ ...chapter, number: index + 1 }));
+  const ready = programme.chapters.filter((chapter) => chapter.documents.length > 0).length;
 
   return (
     <article className="grid gap-10">
@@ -76,10 +76,15 @@ async function Programme({ params }: { params: Promise<{ niveau: string }> }) {
           {programme.label}
         </h1>
         {programme.streams.length > 1 ? (
-          <p className="text-encre-douce">
-            {t("streams", { list: list.format(programme.streams) })}
-          </p>
+          <p>{t("streams", { list: programme.streams.join("\u00a0· ") })}</p>
         ) : null}
+        <p className="text-encre-douce">
+          {t("progress", {
+            ready,
+            total: programme.chapters.length,
+            complete: ready === programme.chapters.length ? "yes" : "no",
+          })}
+        </p>
       </header>
 
       {semesters.map((semester) => {
@@ -100,7 +105,6 @@ async function Programme({ params }: { params: Promise<{ niveau: string }> }) {
                   key={chapter.slug}
                   programmeSlug={programme.slug}
                   chapter={chapter}
-                  numberLabel={t("chapter", { number: chapter.number })}
                   pendingLabel={t("inPreparation")}
                   kindLabel={(kind) => tKind(`one.${kind}`)}
                 />
@@ -116,48 +120,56 @@ async function Programme({ params }: { params: Promise<{ niveau: string }> }) {
 function ChapterRow({
   programmeSlug,
   chapter,
-  numberLabel,
   pendingLabel,
   kindLabel,
 }: {
   programmeSlug: string;
   chapter: ProgrammeChapter & { number: number };
-  numberLabel: string;
   pendingLabel: string;
-  kindLabel: (kind: ProgrammeChapter["documents"][number]["kind"]) => string;
+  kindLabel: (kind: PublicDocument["kind"]) => string;
 }) {
   const ready = chapter.documents.length > 0;
+  // A document alone of its kind is named by its kind (« Cours », « Résumé »); two of a kind
+  // are told apart by their titles.
+  const named = (document: PublicDocument) =>
+    chapter.documents.filter((other) => other.kind === document.kind).length === 1
+      ? kindLabel(document.kind)
+      : frenchSpaces(document.title);
+
   return (
-    <li className="grid gap-2 bg-surface px-4 py-3">
-      <p className="grid gap-0.5">
-        <span className="text-sm text-encre-douce">{numberLabel}</span>
-        {ready ? (
-          <Link
-            href={`/cours/${programmeSlug}/${chapter.slug}`}
-            className="font-semibold underline decoration-trait underline-offset-4 hover:decoration-encre"
-          >
-            {chapter.title}
-          </Link>
-        ) : (
-          <span className="font-semibold">{chapter.title}</span>
-        )}
-      </p>
+    <li className="grid gap-1 bg-surface px-4 py-2">
+      <div className="flex flex-wrap items-baseline gap-x-3">
+        <h3 className="font-semibold">
+          {ready ? (
+            <Link
+              href={`/cours/${programmeSlug}/${chapter.slug}`}
+              className="inline-flex min-h-11 items-center underline decoration-trait underline-offset-4 hover:decoration-encre"
+            >
+              {chapter.number}. {frenchSpaces(chapter.title)}
+            </Link>
+          ) : (
+            <span className="inline-flex min-h-11 items-center">
+              {chapter.number}. {frenchSpaces(chapter.title)}
+            </span>
+          )}
+        </h3>
+        {ready ? null : <span className="text-sm text-encre-douce">{pendingLabel}</span>}
+      </div>
       {ready ? (
-        <ul role="list" className="flex flex-wrap gap-x-4 gap-y-1">
+        <ul role="list" className="flex flex-wrap gap-x-4">
           {chapter.documents.map((document) => (
             <li key={document.slug}>
               <Link
                 href={`/cours/${programmeSlug}/${chapter.slug}/${document.slug}`}
                 className="inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
               >
-                {document.kind === "cours" ? kindLabel(document.kind) : document.title}
+                {named(document)}
+                <span className="sr-only">, {chapter.title}</span>
               </Link>
             </li>
           ))}
         </ul>
-      ) : (
-        <p className="text-sm text-encre-douce">{pendingLabel}</p>
-      )}
+      ) : null}
     </li>
   );
 }

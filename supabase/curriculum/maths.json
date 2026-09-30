@@ -112,8 +112,12 @@
       "label": "Tronc commun scientifique et technologique",
       "cycle": "tronc_commun",
       "levels": [
-        { "code": "TC", "label": "Tronc commun Sciences" },
-        { "code": "TC-TECH", "label": "Tronc commun Technologique" }
+        { "code": "TC", "label": "Tronc commun Sciences", "name": "Sciences (TCS)" },
+        {
+          "code": "TC-TECH",
+          "label": "Tronc commun Technologique",
+          "name": "Technologique (TCT)"
+        }
       ],
       "chapters": [
         [1, "ensembles-de-nombres", "Les ensembles de nombres ℕ, ℤ, 𝔻, ℚ et ℝ"],
@@ -185,10 +189,22 @@
       "label": "1re bac Sciences expérimentales et technologiques",
       "cycle": "1bac",
       "levels": [
-        { "code": "1BAC-SE", "label": "1re bac Sciences expérimentales" },
-        { "code": "1BAC-SVT", "label": "1re bac SVT" },
-        { "code": "1BAC-STE", "label": "1re bac Sciences et technologies électriques" },
-        { "code": "1BAC-STM", "label": "1re bac Sciences et technologies mécaniques" }
+        {
+          "code": "1BAC-SE",
+          "label": "1re bac Sciences expérimentales",
+          "name": "Sciences expérimentales"
+        },
+        { "code": "1BAC-SVT", "label": "1re bac SVT", "name": null },
+        {
+          "code": "1BAC-STE",
+          "label": "1re bac Sciences et technologies électriques",
+          "name": "Sciences et technologies électriques (STE)"
+        },
+        {
+          "code": "1BAC-STM",
+          "label": "1re bac Sciences et technologies mécaniques",
+          "name": "Sciences et technologies mécaniques (STM)"
+        }
       ],
       "chapters": [
         [1, "logique", "Notions de logique"],
@@ -247,8 +263,16 @@
       "label": "2e bac Sciences mathématiques",
       "cycle": "2bac",
       "levels": [
-        { "code": "2BAC-SMA", "label": "2e bac Sciences mathématiques A" },
-        { "code": "2BAC-SMB", "label": "2e bac Sciences mathématiques B" }
+        {
+          "code": "2BAC-SMA",
+          "label": "2e bac Sciences mathématiques A",
+          "name": "Sciences mathématiques A"
+        },
+        {
+          "code": "2BAC-SMB",
+          "label": "2e bac Sciences mathématiques B",
+          "name": "Sciences mathématiques B"
+        }
       ],
       "chapters": [
         [1, "limites-et-continuite", "Limites et continuité"],
@@ -273,11 +297,31 @@
       "label": "2e bac Sciences expérimentales et technologiques",
       "cycle": "2bac",
       "levels": [
-        { "code": "2BAC-PC", "label": "2e bac Sciences physiques" },
-        { "code": "2BAC-SVT", "label": "2e bac SVT" },
-        { "code": "2BAC-SAGRO", "label": "2e bac Sciences agronomiques" },
-        { "code": "2BAC-STE", "label": "2e bac Sciences et technologies électriques" },
-        { "code": "2BAC-STM", "label": "2e bac Sciences et technologies mécaniques" }
+        {
+          "code": "2BAC-PC",
+          "label": "2e bac Sciences physiques",
+          "name": "Sciences physiques (PC)"
+        },
+        {
+          "code": "2BAC-SVT",
+          "label": "2e bac SVT",
+          "name": "Sciences de la vie et de la Terre (SVT)"
+        },
+        {
+          "code": "2BAC-SAGRO",
+          "label": "2e bac Sciences agronomiques",
+          "name": "Sciences agronomiques"
+        },
+        {
+          "code": "2BAC-STE",
+          "label": "2e bac Sciences et technologies électriques",
+          "name": "Sciences et technologies électriques (STE)"
+        },
+        {
+          "code": "2BAC-STM",
+          "label": "2e bac Sciences et technologies mécaniques",
+          "name": "Sciences et technologies mécaniques (STM)"
+        }
       ],
       "chapters": [
         [1, "limites-et-continuite", "Limites et continuité"],
@@ -300,8 +344,16 @@
       "label": "2e bac Sciences économiques et gestion",
       "cycle": "2bac",
       "levels": [
-        { "code": "2BAC-ECO", "label": "2e bac Sciences économiques" },
-        { "code": "2BAC-SGC", "label": "2e bac Sciences de gestion comptable" }
+        {
+          "code": "2BAC-ECO",
+          "label": "2e bac Sciences économiques",
+          "name": "Sciences économiques"
+        },
+        {
+          "code": "2BAC-SGC",
+          "label": "2e bac Sciences de gestion comptable",
+          "name": "Sciences de gestion comptable (SGC)"
+        }
       ],
       "chapters": [
         [1, "limites-et-continuite", "Limites et continuité"],
@@ -319,8 +371,8 @@
       "label": "2e bac Lettres et sciences humaines",
       "cycle": "2bac",
       "levels": [
-        { "code": "2BAC-LET", "label": "2e bac Lettres" },
-        { "code": "2BAC-SH", "label": "2e bac Sciences humaines" }
+        { "code": "2BAC-LET", "label": "2e bac Lettres", "name": "Lettres" },
+        { "code": "2BAC-SH", "label": "2e bac Sciences humaines", "name": "Sciences humaines" }
       ],
       "chapters": [
         [1, "suites-numeriques", "Suites numériques"],

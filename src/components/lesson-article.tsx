@@ -11,6 +11,8 @@ type Props = {
   publishedAt: string | null;
   /** « Tronc commun · Arithmétique dans ℕ », or the same as links back up the course. */
   context: ReactNode;
+  /** Its PDF, under the title (D-096). */
+  downloads?: ReactNode;
   content: StoredLesson;
 };
 
@@ -19,7 +21,14 @@ type Props = {
  * so what the tutor checks in one is what the other shows. Pages that use it import
  * katex.min.css and src/app/cours/lecon.css.
  */
-export async function LessonArticle({ title, summary, publishedAt, context, content }: Props) {
+export async function LessonArticle({
+  title,
+  summary,
+  publishedAt,
+  context,
+  downloads,
+  content,
+}: Props) {
   const t = await getTranslations("lesson");
   const callout = Object.fromEntries(
     CALLOUT_KINDS.map((kind) => [kind, t(`callout.${kind}`)]),
@@ -43,6 +52,8 @@ export async function LessonArticle({ title, summary, publishedAt, context, cont
         </p>
       )}
 
+      {downloads ? <div className="mt-4">{downloads}</div> : null}
+
       <div className="lecon-corps mt-10">
         {renderLesson(content, {
           calloutLabel: (kind) => callout[kind],
@@ -51,6 +62,8 @@ export async function LessonArticle({ title, summary, publishedAt, context, cont
             exercise: (number) => t("exercise", { number }),
             solution: t("solution"),
             show: t("showSolution"),
+            hide: t("hideSolution"),
+            of: (number) => t("solutionOf", { number }),
           },
         })}
       </div>

@@ -14,6 +14,9 @@ export default function robots(): MetadataRoute.Robots {
         "/parent",
         "/agenda",
         "/recus",
+        // A PDF or a print sheet repeats a page that is indexed already.
+        "/pdf",
+        "/imprimer",
         "/api",
         "/auth",
         "/connexion",

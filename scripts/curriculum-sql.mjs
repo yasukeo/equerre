@@ -6,6 +6,11 @@
 //
 // Every statement is an upsert keyed on codes and slugs: a chapter keeps its id, so its
 // lessons and exercises stay attached, and a stream keeps its code, so its students stay.
+//
+// A chapter whose slug changes says so with a fourth entry, `{ "renamedFrom": "old-slug" }`,
+// and is renamed in place. A chapter taken out of the file is deleted if nothing uses it; if a
+// lesson, an exercise or a session still does, the migration stops and names it, since
+// deleting it would take its lessons and exercises with it.
 
 import { readFileSync } from "node:fs";
 
@@ -18,6 +23,8 @@ const quote = (value) => `'${String(value).replaceAll("'", "''")}'`;
 const programmes = [];
 const levels = [];
 const chapters = [];
+const renames = [];
+const listed = [];
 let levelPosition = 0;
 
 curriculum.programmes.forEach((programme, programmeIndex) => {
@@ -30,10 +37,22 @@ curriculum.programmes.forEach((programme, programmeIndex) => {
       `  (${quote(level.code)}, ${quote(level.label)}, ${quote(programme.cycle)}, ${levelPosition}, ${quote(programme.code)})`,
     );
   }
-  programme.chapters.forEach(([semester, slug, title], index) => {
+  programme.chapters.forEach(([semester, slug, title, change], index) => {
     chapters.push(
       `  (${quote(programme.code)}, ${quote(slug)}, ${quote(title)}, ${semester}, ${index + 1})`,
     );
+    listed.push(`    ${quote(`${programme.code}/${slug}`)}`);
+    if (change?.renamedFrom) {
+      renames.push(
+        `update public.chapters set slug = ${quote(slug)}
+where programme_code = ${quote(programme.code)}
+  and slug = ${quote(change.renamedFrom)}
+  and not exists (
+    select 1 from public.chapters
+    where programme_code = ${quote(programme.code)} and slug = ${quote(slug)}
+  );`,
+      );
+    }
   });
 });
 
@@ -48,9 +67,9 @@ on conflict (code) do update set
   cycle = excluded.cycle,
   position = excluded.position;
 
--- Positions are unique: moved out of the way first, so the new order can be written in any
--- sequence.
-update public.levels set position = position + 10000;
+-- Positions are unique: every stream is moved out of the way first (below zero, each to its
+-- own place), so the new order can be written in any sequence.
+update public.levels set position = -position - 1;
 
 insert into public.levels (code, label, cycle, position, programme_code) values
 ${levels.join(",\n")}
@@ -60,6 +79,18 @@ on conflict (code) do update set
   position = excluded.position,
   programme_code = excluded.programme_code;
 
+-- A stream the file no longer lists keeps its students: it follows the others, in its old order.
+with leftover as (
+  select code, row_number() over (order by position desc) as n
+  from public.levels
+  where position < 0
+)
+update public.levels l
+set position = (select coalesce(max(position), 0) from public.levels where position > 0)
+  + leftover.n * 10
+from leftover
+where l.code = leftover.code;
+
 -- A chapter made before programmes existed follows its level's programme, so the upsert
 -- below finds it by its slug instead of adding a second one.
 update public.chapters c
@@ -67,11 +98,36 @@ set programme_code = l.programme_code
 from public.levels l
 where c.programme_code is null
   and l.code = c.level_code;
-
+${renames.length > 0 ? `\n-- Renamed chapters keep their id, and so their lessons and exercises.\n${renames.join("\n\n")}\n` : ""}
 insert into public.chapters (programme_code, slug, title, semester, position) values
 ${chapters.join(",\n")}
 on conflict (programme_code, slug) do update set
   title = excluded.title,
   semester = excluded.semester,
   position = excluded.position;
+
+-- Chapters the file no longer lists: gone if unused, a stop if anything still points to them.
+do $curriculum$
+declare
+  -- Every chapter the file lists, as « programme/slug ».
+  v_listed text[] := array[
+${listed.join(",\n")}
+  ];
+  v_in_use text;
+begin
+  select string_agg(c.programme_code || '/' || c.slug, ', ') into v_in_use
+  from public.chapters c
+  where c.programme_code || '/' || c.slug <> all (v_listed)
+    and (
+      exists (select 1 from public.lessons where chapter_id = c.id)
+      or exists (select 1 from public.exercises where chapter_id = c.id)
+      or exists (select 1 from public.sessions where covered_chapter_id = c.id)
+    );
+  if v_in_use is not null then
+    raise exception 'Chapters left out of maths.json are still in use: %. Rename them with renamedFrom, or move what uses them first.', v_in_use;
+  end if;
+
+  delete from public.chapters c where c.programme_code || '/' || c.slug <> all (v_listed);
+end;
+$curriculum$;
 `);

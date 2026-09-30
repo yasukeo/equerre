@@ -1,0 +1,102 @@
+/* A document on A4 (D-096): black on white whatever the reader's theme, the page's own type,
+   and nothing split where it would stop making sense: an encadré, a formula, a heading left
+   alone at the foot of a page. */
+
+@page {
+  size: A4;
+  margin: 16mm 16mm 18mm;
+}
+
+/* The sheet is white to its edges: the site's tinted page must not show under a short document. */
+html:has(.impression),
+body:has(.impression) {
+  background: #fff;
+}
+
+@layer components {
+  /* Paper is the light theme, whatever the reader's: the tokens are set back to it here, so the
+     encadrés and corrections drawn by lecon.css stay legible when the page is opened in dark. */
+  .impression {
+    --papier: #ffffff;
+    --surface: #ffffff;
+    --sunken: #eef3f8;
+    --encre: #132033;
+    --encre-douce: #4e5d73;
+    --quadrillage: #d3deea;
+    --trait: #6b7e94;
+    --stylo-bleu: #1f4fb5;
+    --stylo-rouge: #be2f26;
+    --lavis-bleu: #e8eefb;
+    --lavis-rouge: #fcedea;
+
+    color-scheme: light;
+    max-width: 178mm;
+    margin: 0 auto;
+    padding: 8mm 0;
+    color: var(--encre);
+    background: #fff;
+    font-size: 11pt;
+  }
+
+  @media print {
+    .impression {
+      padding: 0;
+    }
+  }
+
+  .impression-entete {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    border-bottom: 1px solid var(--quadrillage);
+    padding-bottom: 0.5rem;
+    font-size: 9pt;
+    color: var(--encre-douce);
+  }
+
+  .impression-marque {
+    font-weight: 600;
+    color: var(--encre);
+  }
+
+  .impression-type {
+    margin-top: 1.5rem;
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--encre-douce);
+  }
+
+  .impression-titre {
+    margin-top: 0.25rem;
+    font-size: 20pt;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .impression-resume {
+    margin-top: 0.5rem;
+    color: var(--encre-douce);
+  }
+
+  .impression .lecon-corps {
+    margin-top: 1.5rem;
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+
+  .impression :is(.lecon-encadre, .lecon-math-bloc, img, .lecon-corrige-titre) {
+    break-inside: avoid;
+  }
+
+  .impression :is(h2, h3, h4, .lecon-exercice-titre, .lecon-corrige-titre) {
+    break-after: avoid;
+  }
+
+  /* Paper does not scroll: a formula is printed whole. */
+  .impression .lecon-math-bloc {
+    overflow: visible;
+  }
+}

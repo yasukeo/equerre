@@ -33,7 +33,7 @@ export async function AppShell({ homeHref, navLabel, nav, children }: AppShellPr
 
       <nav
         aria-label={navLabel}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-quadrillage bg-papier pb-[env(safe-area-inset-bottom)] md:sticky md:top-0 md:flex md:h-dvh md:flex-col md:gap-6 md:border-e md:border-t-0 md:px-3 md:py-5"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-quadrillage bg-papier pb-[env(safe-area-inset-bottom)] md:sticky md:top-0 md:flex md:h-dvh md:flex-col md:gap-6 md:border-e md:border-t-0 md:px-3 md:py-5 print:hidden"
       >
         <Link
           href={homeHref}
@@ -48,7 +48,7 @@ export async function AppShell({ homeHref, navLabel, nav, children }: AppShellPr
 
       <div className="flex min-w-0 flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
         <OfflineBanner />
-        <header className="flex min-h-14 items-center justify-between gap-4 border-b border-quadrillage px-4 md:justify-end md:px-8">
+        <header className="flex min-h-14 items-center justify-between gap-4 border-b border-quadrillage px-4 md:justify-end md:px-8 print:hidden">
           <Link href={homeHref} className="inline-flex min-h-11 items-center rounded-md md:hidden">
             <BrandMark />
           </Link>
