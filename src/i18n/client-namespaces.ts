@@ -21,6 +21,7 @@ export const CLIENT_NAMESPACES = {
     "account",
     "blog.category",
     "contact",
+    "documentKind",
     "editor",
     "parentsAdmin",
     "payments.kind",

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, SelectField } from "@/components/ui/field";
 import { FormMessage } from "@/components/ui/form-message";
 import { fieldError, initialFormState, submittedValue } from "@/lib/form-state";
+import { DOCUMENT_KINDS } from "@/lib/lesson/kinds";
 import { createLesson } from "../actions";
 
 type Props = {
@@ -16,6 +17,8 @@ export function NewLessonForm({ levels }: Props) {
   const t = useTranslations("tutor.newLesson");
   const [state, action, pending] = useActionState(createLesson, initialFormState);
   const submittedChapter = submittedValue(state, "chapterId") ?? "";
+  const submittedKind = submittedValue(state, "kind") ?? "cours";
+  const tKind = useTranslations("documentKind");
 
   return (
     <form action={action} className="grid gap-4" noValidate>
@@ -40,6 +43,21 @@ export function NewLessonForm({ levels }: Props) {
               </option>
             ))}
           </optgroup>
+        ))}
+      </SelectField>
+      <SelectField
+        key={`kind-${submittedKind}`}
+        id="lesson-kind"
+        name="kind"
+        label={t("kind")}
+        hint={t("kindHint")}
+        defaultValue={submittedKind}
+        error={fieldError(state, "kind")}
+      >
+        {DOCUMENT_KINDS.map((kind) => (
+          <option key={kind} value={kind}>
+            {tKind(`one.${kind}`)}
+          </option>
         ))}
       </SelectField>
       <Field

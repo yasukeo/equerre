@@ -1,7 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { publicClient } from "@/lib/supabase/public";
-import type { Database } from "@/types/database";
+import { DOCUMENT_KINDS, type DocumentKind } from "./kinds";
 import { readStoredLesson, type StoredLesson } from "./document";
 
 /** Every public lesson page carries this, so publishing one refreshes the listings. */
@@ -9,11 +9,8 @@ export const COURSE_INDEX_TAG = "cours:index";
 
 export const lessonTag = (slug: string) => `lecon:${slug}`;
 
-export type DocumentKind = Database["public"]["Enums"]["document_kind"];
 export type Cycle = "college" | "tronc_commun" | "1bac" | "2bac";
-
-/** The order a chapter's documents are listed in: the course first, the tests last. */
-export const DOCUMENT_KINDS: readonly DocumentKind[] = ["cours", "resume", "serie", "devoir"];
+export { DOCUMENT_KINDS, type DocumentKind } from "./kinds";
 
 /** `niveau` in a URL is a programme's slug: `2bac-sciences-experimentales` (D-094). */
 export type LessonParams = { niveau: string; chapitre: string; lecon: string };

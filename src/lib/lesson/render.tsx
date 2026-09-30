@@ -12,11 +12,43 @@ import { renderMath } from "./math";
 type Attrs = Record<string, unknown> | undefined;
 
 export type LessonRenderOptions = {
-  /** "Définition", "Théorème"… so the renderer stays free of the message catalogue. */
+  /** « Définition », « Théorème »… so the renderer stays free of the message catalogue. */
   calloutLabel: (kind: CalloutKind) => string;
   /** Where an attachment points, so the renderer stays free of the routing table. */
   fileHref: (path: string) => string;
+  /**
+   * Exercises of a series or a test (D-095): « Exercice 3 », « Corrigé », « Voir le corrigé ».
+   * Only documents with exercises need them.
+   */
+  exerciseLabels?: { exercise: (number: number) => string; solution: string; show: string };
+  /**
+   * What becomes of corrections: folded under « Voir le corrigé » on a page, left out of the
+   * statements' PDF, printed after each exercise in the PDF with corrections.
+   */
+  solutions?: "fold" | "hide" | "show";
 };
+
+const DEFAULT_EXERCISE_LABELS = {
+  exercise: (number: number) => `Exercice ${number}`,
+  solution: "Corrigé",
+  show: "Voir le corrigé",
+};
+
+/**
+ * The document with each top-level exercise numbered in order: « Exercice 1, 2, 3 » follow
+ * the page, whatever was moved or deleted while writing.
+ */
+export function numberExercises(content: StoredLesson): StoredLesson {
+  let number = 0;
+  return {
+    ...content,
+    content: content.content?.map((block) =>
+      block.type === "exercise"
+        ? { ...block, attrs: { ...block.attrs, number: (number += 1) } }
+        : block,
+    ),
+  };
+}
 
 function stringAttr(attrs: Attrs, name: string): string {
   const value = attrs?.[name];
@@ -40,7 +72,12 @@ function readableSize(attrs: Attrs): string | null {
   return bytes === undefined ? null : formatFileSize(bytes);
 }
 
-export function createLessonRenderer({ calloutLabel, fileHref }: LessonRenderOptions) {
+export function createLessonRenderer({
+  calloutLabel,
+  fileHref,
+  exerciseLabels = DEFAULT_EXERCISE_LABELS,
+  solutions = "fold",
+}: LessonRenderOptions) {
   return renderJSONContentToReactElement({
     nodeMapping: {
       doc: ({ children }) => <>{children}</>,
@@ -77,6 +114,30 @@ export function createLessonRenderer({ calloutLabel, fileHref }: LessonRenderOpt
           </div>
         );
       },
+      exercise: ({ node, children }) => {
+        const title = stringAttr(node.attrs, "title").trim();
+        return (
+          <section className="lecon-exercice">
+            <h2 className="lecon-exercice-titre">
+              {exerciseLabels.exercise(numberAttr(node.attrs, "number") ?? 1)}
+              {title ? <span className="lecon-exercice-sujet"> · {title}</span> : null}
+            </h2>
+            {children}
+          </section>
+        );
+      },
+      solution: ({ children }) =>
+        solutions === "hide" ? null : solutions === "show" ? (
+          <div className="lecon-corrige">
+            <p className="lecon-corrige-titre">{exerciseLabels.solution}</p>
+            {children}
+          </div>
+        ) : (
+          <details className="lecon-corrige">
+            <summary className="lecon-corrige-titre">{exerciseLabels.show}</summary>
+            {children}
+          </details>
+        ),
       image: ({ node }) => (
         // A lesson image is already the right size in a public bucket, and a signed
         // URL would defeat the optimizer's cache, so it is served as it is stored.
@@ -114,5 +175,5 @@ export function createLessonRenderer({ calloutLabel, fileHref }: LessonRenderOpt
 }
 
 export function renderLesson(content: StoredLesson, options: LessonRenderOptions): ReactNode {
-  return createLessonRenderer(options)({ content });
+  return createLessonRenderer(options)({ content: numberExercises(content) });
 }

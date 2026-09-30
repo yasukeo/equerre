@@ -267,8 +267,11 @@
         "fields": "Vérifiez le chapitre et le titre.",
         "chapter": "Choisissez un chapitre.",
         "title": "Donnez un titre de 1 à 160 caractères.",
-        "unknown": "La leçon n’a pas pu être créée. Réessayez."
-      }
+        "unknown": "La leçon n’a pas pu être créée. Réessayez.",
+        "kind": "Choisissez le type de document."
+      },
+      "kind": "Type de document",
+      "kindHint": "Un cours, son résumé, une série d’exercices avec leurs corrigés, ou un devoir."
     },
     "lessonEditor": {
       "title": "Modifier la leçon",
@@ -279,7 +282,8 @@
         "summary": "Résumé",
         "summaryHint": "Une phrase, affichée sous le titre et dans les partages.",
         "visibility": "Qui peut la lire",
-        "body": "Contenu"
+        "body": "Contenu",
+        "kind": "Type de document"
       },
       "save": "Enregistrer",
       "saving": "Enregistrement…",
@@ -1422,7 +1426,10 @@
     },
     "loading": "Chargement de la leçon…",
     "publishedOn": "Publié le {date}",
-    "allLessons": "Toutes les leçons"
+    "allLessons": "Toutes les leçons",
+    "exercise": "Exercice {number}",
+    "solution": "Corrigé",
+    "showSolution": "Voir le corrigé"
   },
   "editor": {
     "mathShortcut": "Astuce : tapez $$x^2$$ dans le texte pour une formule, et $$$x^2$$$ seul sur une ligne pour une formule centrée. Au clavier, les flèches sélectionnent une formule, une image ou un document, et Entrée l’ouvre.",
@@ -1444,7 +1451,10 @@
       "image": "Ajouter une image",
       "imageEdit": "Modifier l’image",
       "file": "Joindre un PDF",
-      "fileEdit": "Modifier le document"
+      "fileEdit": "Modifier le document",
+      "exercise": "Exercice",
+      "exerciseRemove": "Retirer l’exercice, garder son texte",
+      "solution": "Corrigé de l’exercice"
     },
     "math": {
       "titleInline": "Formule dans le texte",
@@ -1497,7 +1507,9 @@
         "tooLarge": "Ce PDF dépasse 20 Mo.",
         "upload": "L’envoi a échoué. Vérifiez la connexion puis réessayez."
       }
-    }
+    },
+    "exerciseLabel": "Exercice",
+    "solutionLabel": "Corrigé"
   },
   "chat": {
     "title": "Messages",

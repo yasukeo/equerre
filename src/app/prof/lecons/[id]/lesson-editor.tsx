@@ -15,12 +15,19 @@ import { Field, SelectField, TextareaField } from "@/components/ui/field";
 import { FormMessage } from "@/components/ui/form-message";
 import { fieldError, initialFormState, type FormState } from "@/lib/form-state";
 import type { CalloutKind, StoredLesson } from "@/lib/lesson/document";
+import { DOCUMENT_KINDS, type DocumentKind } from "@/lib/lesson/kinds";
 import { saveLesson } from "../actions";
 
 const VISIBILITIES: LessonVisibility[] = ["enrolled", "specific", "public"];
 
-function snapshotOf(title: string, summary: string, visibility: string, content: string) {
-  return [title, summary, visibility, content].join("\u0000");
+function snapshotOf(
+  title: string,
+  summary: string,
+  kind: string,
+  visibility: string,
+  content: string,
+) {
+  return [title, summary, kind, visibility, content].join("\u0000");
 }
 
 type Props = {
@@ -30,6 +37,7 @@ type Props = {
     title: string;
     summary: string;
     status: PublicationStatus;
+    kind: DocumentKind;
     visibility: LessonVisibility;
     content: StoredLesson;
     context: string;
@@ -41,17 +49,19 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
   const t = useTranslations("tutor.lessonEditor");
   const tLessons = useTranslations("tutor.lessons");
   const tEditor = useTranslations("editor");
+  const tKind = useTranslations("documentKind");
 
   // Controlled on purpose: React resets uncontrolled fields after a form action, which
   // would put the old title back on screen right after it was saved.
   const [title, setTitle] = useState(lesson.title);
   const [summary, setSummary] = useState(lesson.summary);
+  const [kind, setKind] = useState(lesson.kind);
   const [visibility, setVisibility] = useState(lesson.visibility);
   const [status, setStatus] = useState(lesson.status);
   // The body as the editor writes it; empty until the editor exists.
   const [content, setContent] = useState("");
 
-  const snapshot = snapshotOf(title, summary, visibility, content);
+  const snapshot = snapshotOf(title, summary, kind, visibility, content);
   // The lesson as last saved, in the editor's own form. Null until the editor exists:
   // the stored JSON comes back from jsonb with its keys reordered, so it never compares
   // equal to what the editor writes and every lesson would open as « unsaved ».
@@ -148,6 +158,19 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
         error={fieldError(state, "summary")}
       />
       <SelectField
+        id="lesson-kind"
+        name="kind"
+        label={t("fields.kind")}
+        value={kind}
+        onChange={(event) => setKind(event.target.value as DocumentKind)}
+      >
+        {DOCUMENT_KINDS.map((value) => (
+          <option key={value} value={value}>
+            {tKind(`one.${value}`)}
+          </option>
+        ))}
+      </SelectField>
+      <SelectField
         id="lesson-visibility"
         name="visibility"
         label={t("fields.visibility")}
@@ -173,9 +196,12 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
           folderId={lesson.id}
           attachments
           calloutLabels={calloutLabels}
+          exercises={{ exercise: tEditor("exerciseLabel"), solution: tEditor("solutionLabel") }}
           onReady={(written) => {
             setContent(written);
-            setSavedSnapshot(snapshotOf(lesson.title, lesson.summary, lesson.visibility, written));
+            setSavedSnapshot(
+              snapshotOf(lesson.title, lesson.summary, lesson.kind, lesson.visibility, written),
+            );
           }}
           onChange={setContent}
         />

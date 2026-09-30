@@ -87,6 +87,57 @@
     color: var(--encre-douce);
   }
 
+  /* An exercise of a series or a test (D-095): a numbered part of the sheet, set off by a rule
+     like the next exercise on a photocopied « série ». */
+  .lecon-exercice {
+    border-top: 1px solid var(--quadrillage);
+    padding-top: 1.25rem;
+  }
+
+  .lecon-exercice > * + * {
+    margin-top: 1em;
+  }
+
+  .lecon-corps .lecon-exercice-titre {
+    margin-top: 0;
+    font-size: 1.25rem;
+  }
+
+  .lecon-exercice-sujet {
+    font-weight: 400;
+    color: var(--encre-douce);
+  }
+
+  /* The correction: folded until asked for on a page, the worked answer when printed. */
+  .lecon-corrige {
+    border-inline-start: 3px solid var(--trait);
+    border-radius: 0 0.5rem 0.5rem 0;
+    background: var(--sunken);
+    padding: 0.25rem 1.25rem;
+  }
+
+  .lecon-corrige > * + * {
+    margin-top: 0.75em;
+  }
+
+  .lecon-corrige-titre {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--encre);
+  }
+
+  /* The fold's handle is a full-width, 44 px target (brief §8). */
+  summary.lecon-corrige-titre {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    cursor: pointer;
+  }
+
+  details.lecon-corrige[open] {
+    padding-bottom: 1rem;
+  }
+
   /* A long displayed formula scrolls on its own rather than widening the page. */
   .lecon-math-bloc {
     overflow-x: auto;

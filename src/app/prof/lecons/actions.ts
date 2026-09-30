@@ -13,8 +13,11 @@ import { createClient } from "@/lib/supabase/server";
 
 // ─────────────────────────────────────────────────────────────── create
 
+const KINDS = ["cours", "resume", "serie", "devoir"] as const;
+
 const newLessonSchema = z.object({
   chapterId: z.uuid(),
+  kind: z.enum(KINDS),
   title: z.string().trim().min(1).max(160),
 });
 
@@ -27,6 +30,7 @@ export async function createLesson(_previous: FormState, formData: FormData): Pr
 
   const values = {
     chapterId: textField(formData, "chapterId"),
+    kind: textField(formData, "kind") || "cours",
     title: textField(formData, "title"),
   };
   const parsed = newLessonSchema.safeParse(values);
@@ -36,6 +40,7 @@ export async function createLesson(_previous: FormState, formData: FormData): Pr
       message: t("errors.fields"),
       fieldErrors: fieldErrorsFor(parsed.error, {
         chapterId: t("errors.chapter"),
+        kind: t("errors.kind"),
         title: t("errors.title"),
       }),
       values,
@@ -77,6 +82,7 @@ export async function createLesson(_previous: FormState, formData: FormData): Pr
       .from("lessons")
       .insert({
         chapter_id: parsed.data.chapterId,
+        kind: parsed.data.kind,
         title: parsed.data.title,
         slug: candidate,
         content: FIRST_PARAGRAPH,
@@ -108,6 +114,7 @@ const saveLessonSchema = z.object({
   id: z.uuid(),
   title: z.string().trim().min(1).max(160),
   summary: z.string().trim().max(300),
+  kind: z.enum(KINDS),
   visibility: z.enum(["public", "enrolled", "specific"]),
   intent: z.enum(["save", "publish", "unpublish"]),
 });
@@ -132,6 +139,7 @@ export async function saveLesson(_previous: FormState, formData: FormData): Prom
     id: textField(formData, "id"),
     title: textField(formData, "title"),
     summary: textField(formData, "summary"),
+    kind: textField(formData, "kind"),
     visibility: textField(formData, "visibility"),
     intent: textField(formData, "intent"),
   });
@@ -177,6 +185,7 @@ export async function saveLesson(_previous: FormState, formData: FormData): Prom
     .update({
       title: parsed.data.title,
       summary: parsed.data.summary || null,
+      kind: parsed.data.kind,
       visibility: parsed.data.visibility,
       content,
       status,

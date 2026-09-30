@@ -47,6 +47,11 @@ export async function LessonArticle({ title, summary, publishedAt, context, cont
         {renderLesson(content, {
           calloutLabel: (kind) => callout[kind],
           fileHref: (path) => `/cours/fichiers/${path}`,
+          exerciseLabels: {
+            exercise: (number) => t("exercise", { number }),
+            solution: t("solution"),
+            show: t("showSolution"),
+          },
         })}
       </div>
     </article>

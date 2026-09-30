@@ -1,4 +1,4 @@
-// The lesson vocabulary, as recorded in DECISIONS.md, D-040. It is deliberately
+// The lesson vocabulary, as recorded in DECISIONS.md, D-040 and D-095. It is deliberately
 // small: everything the tutor can write, and nothing the renderer cannot draw.
 //
 // Callouts do not nest. A list item opens with a paragraph and may hold lists of its
@@ -115,6 +115,37 @@ const calloutSchema = z.object({
   content: z.array(calloutContentSchema).min(1),
 });
 
+// An exercise of a series or a practice test (D-095): its statement, then at most one
+// correction, last. No headings (its number and title are its heading), no attached
+// documents, no exercise inside an exercise.
+const exercisePartSchema = z.discriminatedUnion("type", [
+  paragraphSchema,
+  blockMathSchema,
+  bulletListSchema,
+  orderedListSchema,
+  calloutSchema,
+  imageSchema,
+]);
+
+const solutionSchema = z.object({
+  type: z.literal("solution"),
+  content: z.array(exercisePartSchema).min(1),
+});
+
+const exerciseSchema = z.object({
+  type: z.literal("exercise"),
+  attrs: z.object({ title: z.string().trim().max(160).nullish() }).optional(),
+  content: z
+    .array(z.union([exercisePartSchema, solutionSchema]))
+    .min(1)
+    .refine(
+      (parts) =>
+        parts.every((part, index) => part.type !== "solution" || index === parts.length - 1) &&
+        parts[0]?.type !== "solution",
+      { message: "exercise_solution_last" },
+    ),
+});
+
 export const lessonBlockSchema = z.discriminatedUnion("type", [
   paragraphSchema,
   headingSchema,
@@ -124,6 +155,7 @@ export const lessonBlockSchema = z.discriminatedUnion("type", [
   calloutSchema,
   imageSchema,
   fileAttachmentSchema,
+  exerciseSchema,
 ]);
 
 export const lessonDocumentSchema = z.object({

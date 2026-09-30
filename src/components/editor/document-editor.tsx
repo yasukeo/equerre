@@ -4,6 +4,7 @@ import { NodeSelection } from "@tiptap/pm/state";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import {
   Bold,
+  ClipboardList,
   Heading2,
   Heading3,
   ImagePlus,
@@ -14,6 +15,7 @@ import {
   Pilcrow,
   Redo2,
   Sigma,
+  SquareCheckBig,
   SquareSigma,
   Undo2,
 } from "lucide-react";
@@ -67,6 +69,8 @@ export type DocumentEditorProps = {
   /** Images, for lessons and exercises; the blog's posts have none in v1 (D-089). */
   images?: boolean;
   calloutLabels: Record<CalloutKind, string>;
+  /** Exercises and their corrections, for lessons (D-095): their labels while editing. */
+  exercises?: { exercise: string; solution: string };
   /**
    * Called once, with the document as the editor first writes it. The stored JSON comes back
    * from jsonb with its keys reordered, so only this can serve as the « saved » baseline.
@@ -84,6 +88,7 @@ export function DocumentEditor({
   attachments,
   images = true,
   calloutLabels,
+  exercises,
   onReady,
   onChange,
   size = "page",
@@ -101,6 +106,7 @@ export function DocumentEditor({
       lessonExtensions({
         calloutLabels,
         attachments,
+        exercises,
         onMathClick: (kind, node, pos) => {
           setMath({
             display: kind === "block",
@@ -109,7 +115,7 @@ export function DocumentEditor({
           });
         },
       }),
-    [calloutLabels, attachments],
+    [calloutLabels, attachments, exercises],
   );
 
   const editor = useEditor({
@@ -277,6 +283,7 @@ export function DocumentEditor({
           onMath={(display) => setMath({ display, latex: "", pos: null })}
           onImage={images ? openImage : null}
           onFile={attachments ? openFile : null}
+          exercises={exercises !== undefined}
         />
         <EditorContent editor={editor} />
       </div>
@@ -356,6 +363,8 @@ function readToolbarState(editor: Editor) {
       : "",
     image: editor.isActive("image"),
     file: editor.isActive("fileAttachment"),
+    inExercise: editor.isActive("exercise"),
+    inSolution: editor.isActive("solution"),
     canUndo: editor.can().undo(),
     canRedo: editor.can().redo(),
   };
@@ -368,6 +377,7 @@ function Toolbar({
   onMath,
   onImage,
   onFile,
+  exercises,
 }: {
   editor: Editor | null;
   label: string;
@@ -375,6 +385,7 @@ function Toolbar({
   onMath: (display: boolean) => void;
   onImage: (() => void) | null;
   onFile: (() => void) | null;
+  exercises: boolean;
 }) {
   const t = useTranslations("editor.toolbar");
 
@@ -390,7 +401,8 @@ function Toolbar({
     return <div className="editeur-barre" aria-hidden="true" />;
   }
   const active = tracked ?? readToolbarState(editor);
-  const headingsBlocked = active.callout !== "" || active.inList;
+  // An exercise holds no headings: its number and title are its heading.
+  const headingsBlocked = active.callout !== "" || active.inList || active.inExercise;
 
   const run =
     (command: (chain: ReturnType<Editor["chain"]>) => ReturnType<Editor["chain"]>) => () =>
@@ -480,6 +492,24 @@ function Toolbar({
         ? tool(active.file ? t("fileEdit") : t("file"), <Paperclip {...icon} />, onFile)
         : null}
       <span className="editeur-separateur" aria-hidden="true" />
+      {exercises ? (
+        <>
+          {tool(
+            active.inExercise ? t("exerciseRemove") : t("exercise"),
+            <ClipboardList {...icon} />,
+            run((c) => (active.inExercise ? c.unsetExercise() : c.setExercise())),
+            active.inExercise,
+          )}
+          {tool(
+            t("solution"),
+            <SquareCheckBig {...icon} />,
+            run((c) => c.addSolution()),
+            active.inSolution,
+            !active.inExercise,
+          )}
+          <span className="editeur-separateur" aria-hidden="true" />
+        </>
+      ) : null}
       <select
         aria-label={t("callout")}
         className="editeur-choix"

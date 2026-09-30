@@ -9,6 +9,7 @@ import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
 import { Callout } from "./callout-extension";
 import type { CalloutKind } from "./document";
+import { Exercise, Solution } from "./exercise-extension";
 import { FileAttachment, LessonImage } from "./media-extensions";
 
 export type LessonEditorOptions = {
@@ -17,6 +18,11 @@ export type LessonEditorOptions = {
   calloutLabels?: Partial<Record<CalloutKind, string>>;
   /** Attached PDFs: lessons only, since the lesson-files bucket follows lesson visibility. */
   attachments?: boolean;
+  /**
+   * Exercises and their corrections (D-095): lessons only, for series and practice tests. Their
+   * labels while editing; absent, the editor has neither.
+   */
+  exercises?: { exercise: string; solution: string };
 };
 
 export function lessonExtensions(options: LessonEditorOptions = {}): Extensions {
@@ -47,5 +53,11 @@ export function lessonExtensions(options: LessonEditorOptions = {}): Extensions 
     Callout.configure({ labels: options.calloutLabels ?? {} }),
     LessonImage,
     ...(options.attachments === false ? [] : [FileAttachment]),
+    ...(options.exercises
+      ? [
+          Exercise.configure({ labels: options.exercises }),
+          Solution.configure({ labels: options.exercises }),
+        ]
+      : []),
   ];
 }

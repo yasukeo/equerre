@@ -46,7 +46,7 @@ async function EditLesson({ params }: { params: Promise<{ id: string }> }) {
   const { data } = await supabase
     .from("lessons")
     .select(
-      "id, title, summary, slug, status, visibility, content, chapter:chapters!inner(title, slug, programme:programmes!inner(slug, label))",
+      "id, title, summary, slug, kind, status, visibility, content, chapter:chapters!inner(title, slug, programme:programmes!inner(slug, label))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -65,6 +65,7 @@ async function EditLesson({ params }: { params: Promise<{ id: string }> }) {
         title: data.title,
         summary: data.summary ?? "",
         status: data.status,
+        kind: data.kind,
         visibility: data.visibility,
         content: readStoredLesson(data.content),
         context: `${data.chapter.programme.label} · ${data.chapter.title}`,

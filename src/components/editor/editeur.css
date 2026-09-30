@@ -90,6 +90,34 @@
     min-height: 10rem;
   }
 
+  /* Exercises are numbered while editing as the page numbers them: in order (D-095). */
+  .editeur-page {
+    counter-reset: exercice;
+  }
+
+  .editeur-page .lecon-exercice {
+    counter-increment: exercice;
+  }
+
+  .editeur-page .lecon-exercice::before {
+    content: attr(data-label) " " counter(exercice);
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .editeur-page .lecon-exercice[data-title]::before {
+    content: attr(data-label) " " counter(exercice) " · " attr(data-title);
+  }
+
+  .editeur-page .lecon-corrige::before {
+    content: attr(data-label);
+    display: block;
+    margin-block: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+
   /* An encadré shows its kind above it while editing, as the page does. */
   .editeur-page .lecon-encadre::before {
     content: attr(data-label);
