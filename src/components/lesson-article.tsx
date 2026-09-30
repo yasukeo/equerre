@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import type { ReactNode } from "react";
 import { formatLocalDate, withFirst } from "@/lib/dates";
 import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "@/lib/lesson/document";
 import { renderLesson } from "@/lib/lesson/render";
@@ -8,8 +9,8 @@ type Props = {
   title: string;
   summary: string | null;
   publishedAt: string | null;
-  /** « Tronc commun · Arithmétique dans ℕ » */
-  context: string;
+  /** « Tronc commun · Arithmétique dans ℕ », or the same as links back up the course. */
+  context: ReactNode;
   content: StoredLesson;
 };
 
@@ -26,7 +27,7 @@ export async function LessonArticle({ title, summary, publishedAt, context, cont
 
   return (
     <article>
-      <p className="text-sm text-encre-douce">{context}</p>
+      <div className="text-sm text-encre-douce">{context}</div>
 
       <h1 className="mt-2 text-[clamp(1.875rem,1.5rem+1.6vw,2.75rem)] leading-tight font-semibold text-balance [font-variation-settings:'HEXP'_100]">
         {frenchSpaces(title)}

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { requireViewer } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { listChapterOptions } from "@/lib/chapters";
 import { NewLessonForm } from "./new-lesson-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,25 +28,6 @@ export default async function NewLessonPage() {
 
 async function NewLesson() {
   await requireViewer("tutor");
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("chapters")
-    .select("id, title, position, level:levels!inner(code, label, position)");
-
-  // Grouped by level, in teaching order, for the chapter picker.
-  const chapters = [...(data ?? [])].sort(
-    (a, b) => a.level.position - b.level.position || a.position - b.position,
-  );
-  const levels: { label: string; chapters: { id: string; title: string }[] }[] = [];
-  for (const chapter of chapters) {
-    const last = levels.at(-1);
-    const entry = { id: chapter.id, title: chapter.title };
-    if (last?.label === chapter.level.label) {
-      last.chapters.push(entry);
-    } else {
-      levels.push({ label: chapter.level.label, chapters: [entry] });
-    }
-  }
-
-  return <NewLessonForm levels={levels} />;
+  // Grouped by programme, in teaching order, for the chapter picker (D-094).
+  return <NewLessonForm levels={await listChapterOptions()} />;
 }

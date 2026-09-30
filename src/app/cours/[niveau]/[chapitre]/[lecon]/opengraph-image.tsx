@@ -13,14 +13,16 @@ export const contentType = shareImageType;
 export async function generateStaticParams(): Promise<LessonParams[]> {
   const lessons = await listPublicLessons();
   // As on the page: the route needs one entry even before the first lesson is public.
-  return lessons.length > 0 ? lessons : [{ niveau: "tc", chapitre: "-", lecon: "-" }];
+  return lessons.length > 0
+    ? lessons
+    : [{ niveau: "tronc-commun-sciences", chapitre: "-", lecon: "-" }];
 }
 
 export default async function Image({ params }: { params: Promise<LessonParams> }) {
   const [lesson, t] = await Promise.all([getPublicLesson(await params), getTranslations("share")]);
   return shareImage(
     lesson
-      ? { eyebrow: `${lesson.levelLabel} · ${lesson.chapterTitle}`, title: lesson.title }
+      ? { eyebrow: `${lesson.programmeLabel} · ${lesson.chapterTitle}`, title: lesson.title }
       : { eyebrow: t("eyebrow"), title: t("lesson") },
   );
 }

@@ -1,0 +1,335 @@
+{
+  "source": "Programmes officiels de mathématiques du ministère de l'Éducation nationale (orientations pédagogiques 2007 pour le secondaire qualifiant, 2009 pour le collège), dans l'ordre et le découpage par semestre des progressions courantes (relevé du 30 septembre 2026). À faire vérifier par la professeure.",
+  "programmes": [
+    {
+      "code": "1AC",
+      "slug": "1ac",
+      "label": "1re année collège",
+      "cycle": "college",
+      "levels": [{ "code": "1AC", "label": "1re année collège" }],
+      "chapters": [
+        [1, "operations-entiers-decimaux", "Opérations sur les nombres entiers et décimaux"],
+        [1, "ecriture-fractionnaire", "Nombres en écriture fractionnaire"],
+        [
+          1,
+          "operations-ecriture-fractionnaire",
+          "Opérations sur les nombres en écriture fractionnaire"
+        ],
+        [1, "notions-de-base-geometrie", "Notions de base de la géométrie dans le plan"],
+        [
+          1,
+          "inegalite-triangulaire-mediatrice",
+          "Inégalité triangulaire et médiatrice d'un segment"
+        ],
+        [1, "angles", "Angles"],
+        [1, "nombres-relatifs", "Nombres relatifs : présentation et comparaison"],
+        [1, "relatifs-addition-soustraction", "Nombres relatifs : addition et soustraction"],
+        [1, "relatifs-multiplication-division", "Nombres relatifs : multiplication et division"],
+        [1, "puissances", "Puissances"],
+        [2, "triangles", "Triangles"],
+        [2, "bissectrice-hauteur", "Bissectrice et hauteur d'un triangle"],
+        [2, "developpement-factorisation", "Développement et factorisation"],
+        [2, "symetrie-centrale", "Symétrie centrale"],
+        [2, "equations", "Équations"],
+        [2, "parallelogramme", "Parallélogramme"],
+        [2, "quadrilateres-particuliers", "Quadrilatères particuliers"],
+        [
+          2,
+          "angles-paralleles-secante",
+          "Angles formés par deux droites parallèles et une sécante"
+        ],
+        [2, "droite-graduee-reperage", "Droite graduée et repérage dans le plan"],
+        [2, "cercle", "Cercle"],
+        [2, "proportionnalite", "Proportionnalité"],
+        [2, "statistiques", "Statistiques"],
+        [2, "prisme-cylindre", "Prisme droit et cylindre de révolution"]
+      ]
+    },
+    {
+      "code": "2AC",
+      "slug": "2ac",
+      "label": "2e année collège",
+      "cycle": "college",
+      "levels": [{ "code": "2AC", "label": "2e année collège" }],
+      "chapters": [
+        [1, "operations-nombres-relatifs", "Opérations sur les nombres relatifs"],
+        [1, "nombres-rationnels", "Les nombres rationnels"],
+        [1, "rationnels-addition-soustraction", "Nombres rationnels : addition et soustraction"],
+        [1, "symetrie-axiale", "Symétrie axiale"],
+        [
+          1,
+          "rationnels-multiplication-division",
+          "Nombres rationnels : multiplication et division"
+        ],
+        [1, "triangle-droites-paralleles", "Triangle et droites parallèles"],
+        [1, "quatre-operations-rationnels", "Les quatre opérations sur les nombres rationnels"],
+        [1, "puissances", "Puissances"],
+        [1, "droites-remarquables", "Droites remarquables d'un triangle"],
+        [2, "calcul-litteral", "Calcul littéral"],
+        [2, "triangle-rectangle-cercle", "Triangle rectangle et cercle"],
+        [2, "pythagore-cosinus", "Théorème de Pythagore et cosinus d'un angle aigu"],
+        [2, "equations", "Équations"],
+        [2, "vecteurs-translation", "Vecteurs et translation"],
+        [2, "ordre-operations", "Ordre et opérations"],
+        [2, "proportionnalite", "Proportionnalité"],
+        [2, "statistiques", "Statistiques"],
+        [2, "prisme-pyramide-cone", "Prisme droit, pyramide et cône de révolution"]
+      ]
+    },
+    {
+      "code": "3AC",
+      "slug": "3ac",
+      "label": "3e année collège",
+      "cycle": "college",
+      "levels": [{ "code": "3AC", "label": "3e année collège" }],
+      "chapters": [
+        [
+          1,
+          "developpement-factorisation",
+          "Développement, factorisation et identités remarquables"
+        ],
+        [1, "puissances", "Puissances"],
+        [1, "racines-carrees", "Racines carrées"],
+        [1, "theoreme-de-thales", "Théorème de Thalès"],
+        [1, "theoreme-de-pythagore", "Théorème de Pythagore"],
+        [1, "ordre-operations", "Ordre et opérations"],
+        [1, "trigonometrie", "Triangle rectangle et trigonométrie"],
+        [1, "angles-inscrits", "Angles inscrits et angles au centre"],
+        [1, "triangles-isometriques-semblables", "Triangles isométriques et triangles semblables"],
+        [2, "equations-et-inequations", "Équations et inéquations du premier degré à une inconnue"],
+        [2, "vecteurs-translation", "Vecteurs et translation"],
+        [2, "repere-plan", "Repère dans le plan"],
+        [2, "equation-droite", "Équation d'une droite"],
+        [2, "fonctions-lineaire-affine", "Fonction linéaire et fonction affine"],
+        [2, "systemes", "Systèmes de deux équations à deux inconnues"],
+        [2, "geometrie-espace", "Géométrie dans l'espace"],
+        [2, "statistiques", "Statistiques"]
+      ]
+    },
+    {
+      "code": "TC-ST",
+      "slug": "tronc-commun-sciences",
+      "label": "Tronc commun scientifique et technologique",
+      "cycle": "tronc_commun",
+      "levels": [
+        { "code": "TC", "label": "Tronc commun Sciences" },
+        { "code": "TC-TECH", "label": "Tronc commun Technologique" }
+      ],
+      "chapters": [
+        [1, "ensembles-de-nombres", "Les ensembles de nombres ℕ, ℤ, 𝔻, ℚ et ℝ"],
+        [1, "arithmetique", "Arithmétique dans ℕ"],
+        [1, "calcul-vectoriel", "Calcul vectoriel dans le plan"],
+        [1, "projection", "La projection dans le plan"],
+        [1, "ordre", "L'ordre dans ℝ"],
+        [1, "droite", "La droite dans le plan"],
+        [1, "polynomes", "Les polynômes"],
+        [1, "equations-inequations-systemes", "Équations, inéquations et systèmes"],
+        [1, "trigonometrie", "Trigonométrie : règles du calcul trigonométrique"],
+        [
+          2,
+          "equations-trigonometriques",
+          "Trigonométrie : équations et inéquations trigonométriques"
+        ],
+        [2, "generalites-fonctions", "Généralités sur les fonctions"],
+        [2, "transformations", "Transformations du plan"],
+        [2, "produit-scalaire", "Le produit scalaire"],
+        [2, "geometrie-espace", "Géométrie dans l'espace"],
+        [2, "statistiques", "Statistiques"]
+      ]
+    },
+    {
+      "code": "TC-LSH",
+      "slug": "tronc-commun-lettres",
+      "label": "Tronc commun Lettres et sciences humaines",
+      "cycle": "tronc_commun",
+      "levels": [{ "code": "TC-LSH", "label": "Tronc commun Lettres et sciences humaines" }],
+      "chapters": [
+        [1, "operations-reels", "Opérations dans ℝ"],
+        [1, "ordre", "L'ordre dans ℝ"],
+        [1, "equations-inequations-systemes", "Équations, inéquations et systèmes"],
+        [1, "statistiques", "Statistiques"],
+        [2, "fonctions", "Fonctions numériques"],
+        [2, "repere", "Le repère dans le plan"],
+        [2, "droite", "La droite dans le plan"]
+      ]
+    },
+    {
+      "code": "1BAC-SM",
+      "slug": "1bac-sciences-maths",
+      "label": "1re bac Sciences mathématiques",
+      "cycle": "1bac",
+      "levels": [{ "code": "1BAC-SM", "label": "1re bac Sciences mathématiques" }],
+      "chapters": [
+        [1, "logique", "Logique mathématique"],
+        [1, "ensembles-applications", "Ensembles et applications"],
+        [1, "generalites-fonctions", "Généralités sur les fonctions"],
+        [1, "barycentre", "Le barycentre dans le plan"],
+        [1, "produit-scalaire", "Le produit scalaire dans le plan"],
+        [1, "trigonometrie", "Calcul trigonométrique"],
+        [1, "suites", "Les suites numériques"],
+        [1, "limites", "Limites d'une fonction"],
+        [1, "rotation", "La rotation dans le plan"],
+        [2, "derivation", "La dérivation"],
+        [2, "etude-fonctions", "Étude des fonctions"],
+        [2, "vecteurs-espace", "Vecteurs de l'espace"],
+        [2, "geometrie-espace", "Géométrie analytique de l'espace"],
+        [2, "denombrement", "Dénombrement"],
+        [2, "produit-scalaire-espace", "Le produit scalaire dans l'espace"],
+        [2, "arithmetique", "Arithmétique dans ℤ"],
+        [2, "produit-vectoriel", "Le produit vectoriel"]
+      ]
+    },
+    {
+      "code": "1BAC-SEXP",
+      "slug": "1bac-sciences-experimentales",
+      "label": "1re bac Sciences expérimentales et technologiques",
+      "cycle": "1bac",
+      "levels": [
+        { "code": "1BAC-SE", "label": "1re bac Sciences expérimentales" },
+        { "code": "1BAC-SVT", "label": "1re bac SVT" },
+        { "code": "1BAC-STE", "label": "1re bac Sciences et technologies électriques" },
+        { "code": "1BAC-STM", "label": "1re bac Sciences et technologies mécaniques" }
+      ],
+      "chapters": [
+        [1, "logique", "Notions de logique"],
+        [1, "generalites-fonctions", "Généralités sur les fonctions"],
+        [1, "barycentre", "Le barycentre dans le plan"],
+        [1, "produit-scalaire", "Le produit scalaire dans le plan"],
+        [1, "suites", "Les suites numériques"],
+        [1, "trigonometrie", "Calcul trigonométrique"],
+        [2, "rotation", "La rotation dans le plan"],
+        [2, "limites", "Limites d'une fonction numérique"],
+        [2, "derivation", "Dérivation d'une fonction numérique"],
+        [2, "etude-fonctions", "Représentation graphique d'une fonction"],
+        [2, "vecteurs-espace", "Vecteurs de l'espace"],
+        [2, "geometrie-espace", "Géométrie analytique de l'espace"]
+      ]
+    },
+    {
+      "code": "1BAC-ECO",
+      "slug": "1bac-economie",
+      "label": "1re bac Sciences économiques et gestion",
+      "cycle": "1bac",
+      "levels": [{ "code": "1BAC-ECO", "label": "1re bac Sciences économiques et gestion" }],
+      "chapters": [
+        [1, "logique", "Notions de logique"],
+        [1, "equations-inequations-systemes", "Équations, inéquations et systèmes"],
+        [1, "generalites-fonctions", "Généralités sur les fonctions numériques"],
+        [1, "suites", "Les suites numériques"],
+        [1, "denombrement", "Dénombrement"],
+        [2, "logarithme-decimal", "Le logarithme décimal"],
+        [2, "limites", "Limites d'une fonction"],
+        [2, "derivation", "La dérivation"],
+        [2, "etude-fonctions", "Étude et représentation graphique des fonctions"],
+        [2, "barycentre", "Le barycentre"]
+      ]
+    },
+    {
+      "code": "1BAC-LSH",
+      "slug": "1bac-lettres",
+      "label": "1re bac Lettres et sciences humaines",
+      "cycle": "1bac",
+      "levels": [{ "code": "1BAC-LSH", "label": "1re bac Lettres et sciences humaines" }],
+      "chapters": [
+        [1, "logique", "Notions de logique"],
+        [1, "calcul-numerique", "Calcul numérique : proportionnalité et pourcentages"],
+        [1, "generalites-fonctions", "Généralités sur les fonctions numériques"],
+        [1, "suites", "Les suites numériques"],
+        [2, "denombrement", "Dénombrement"],
+        [2, "limites", "Limite d'une fonction numérique"],
+        [2, "derivation", "La dérivation"],
+        [2, "etude-fonctions", "Étude et représentation des fonctions numériques"]
+      ]
+    },
+    {
+      "code": "2BAC-SM",
+      "slug": "2bac-sciences-maths",
+      "label": "2e bac Sciences mathématiques",
+      "cycle": "2bac",
+      "levels": [
+        { "code": "2BAC-SMA", "label": "2e bac Sciences mathématiques A" },
+        { "code": "2BAC-SMB", "label": "2e bac Sciences mathématiques B" }
+      ],
+      "chapters": [
+        [1, "limites-et-continuite", "Limites et continuité"],
+        [1, "derivation", "Dérivation et étude des fonctions"],
+        [1, "accroissements-finis", "Théorème des accroissements finis"],
+        [1, "suites-numeriques", "Suites numériques"],
+        [1, "logarithmes", "Fonctions logarithmiques"],
+        [1, "exponentielles", "Fonctions exponentielles"],
+        [1, "equations-differentielles", "Équations différentielles"],
+        [1, "nombres-complexes", "Nombres complexes (1re partie)"],
+        [2, "primitives-integrales", "Fonctions primitives et calcul intégral"],
+        [2, "nombres-complexes-2", "Nombres complexes (2e partie)"],
+        [2, "arithmetique", "Arithmétique dans ℤ"],
+        [2, "structures-algebriques", "Structures algébriques"],
+        [2, "probabilites", "Dénombrement et probabilités"],
+        [2, "espaces-vectoriels", "Espaces vectoriels"]
+      ]
+    },
+    {
+      "code": "2BAC-SEXP",
+      "slug": "2bac-sciences-experimentales",
+      "label": "2e bac Sciences expérimentales et technologiques",
+      "cycle": "2bac",
+      "levels": [
+        { "code": "2BAC-PC", "label": "2e bac Sciences physiques" },
+        { "code": "2BAC-SVT", "label": "2e bac SVT" },
+        { "code": "2BAC-SAGRO", "label": "2e bac Sciences agronomiques" },
+        { "code": "2BAC-STE", "label": "2e bac Sciences et technologies électriques" },
+        { "code": "2BAC-STM", "label": "2e bac Sciences et technologies mécaniques" }
+      ],
+      "chapters": [
+        [1, "limites-et-continuite", "Limites et continuité"],
+        [1, "derivation", "Dérivation et étude des fonctions"],
+        [1, "suites-numeriques", "Suites numériques"],
+        [1, "primitives", "Fonctions primitives"],
+        [1, "logarithmes", "Fonctions logarithmiques"],
+        [1, "nombres-complexes", "Nombres complexes (1re partie)"],
+        [2, "exponentielles", "Fonctions exponentielles"],
+        [2, "nombres-complexes-2", "Nombres complexes (2e partie)"],
+        [2, "calcul-integral", "Calcul intégral"],
+        [2, "equations-differentielles", "Équations différentielles"],
+        [2, "geometrie-espace", "Géométrie dans l'espace : produit scalaire et produit vectoriel"],
+        [2, "probabilites", "Dénombrement et probabilités"]
+      ]
+    },
+    {
+      "code": "2BAC-ECO",
+      "slug": "2bac-economie",
+      "label": "2e bac Sciences économiques et gestion",
+      "cycle": "2bac",
+      "levels": [
+        { "code": "2BAC-ECO", "label": "2e bac Sciences économiques" },
+        { "code": "2BAC-SGC", "label": "2e bac Sciences de gestion comptable" }
+      ],
+      "chapters": [
+        [1, "limites-et-continuite", "Limites et continuité"],
+        [1, "derivation", "Dérivation et étude des fonctions"],
+        [1, "suites-numeriques", "Suites numériques"],
+        [1, "logarithmes", "Fonctions logarithmiques"],
+        [2, "exponentielles", "Fonctions exponentielles"],
+        [2, "primitives-integrales", "Fonctions primitives et calcul intégral"],
+        [2, "probabilites", "Dénombrement et probabilités"]
+      ]
+    },
+    {
+      "code": "2BAC-LSH",
+      "slug": "2bac-lettres",
+      "label": "2e bac Lettres et sciences humaines",
+      "cycle": "2bac",
+      "levels": [
+        { "code": "2BAC-LET", "label": "2e bac Lettres" },
+        { "code": "2BAC-SH", "label": "2e bac Sciences humaines" }
+      ],
+      "chapters": [
+        [1, "suites-numeriques", "Suites numériques"],
+        [1, "limite-suite", "Limite d'une suite"],
+        [1, "derivation", "Dérivation et étude des fonctions"],
+        [1, "logarithmes", "Fonctions logarithmiques"],
+        [2, "exponentielles", "Fonctions exponentielles"],
+        [2, "probabilites", "Probabilités"]
+      ]
+    }
+  ]
+}

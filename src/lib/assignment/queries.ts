@@ -3,8 +3,14 @@ import { isRowReady, type AnswerType } from "@/lib/exercise/exercise";
 import { createClient } from "@/lib/supabase/server";
 
 export type RecipientOptions = {
-  groups: { id: string; name: string; levelCode: string | null; members: number }[];
-  students: { id: string; name: string; levelCode: string | null; levelLabel: string | null }[];
+  groups: { id: string; name: string; programmeCode: string | null; members: number }[];
+  students: {
+    id: string;
+    name: string;
+    /** The maths programme her stream follows (D-094), to narrow the exercises to. */
+    programmeCode: string | null;
+    levelLabel: string | null;
+  }[];
 };
 
 /** Whom homework can go to: every group, and every student whose account is active (D-060). */
@@ -12,10 +18,12 @@ export async function listRecipients(): Promise<RecipientOptions> {
   const supabase = await createClient();
   const [groups, students] = await Promise.all([
     // Members today: those who left keep what fell due before, not what is given now (D-070).
-    supabase.from("groups").select("id, name, level_code, members:group_members(left_at)"),
+    supabase
+      .from("groups")
+      .select("id, name, level:levels(programme_code), members:group_members(left_at)"),
     supabase
       .from("profiles")
-      .select("id, full_name, level_code, level:levels(label, position)")
+      .select("id, full_name, level:levels(label, position, programme_code)")
       .eq("role", "student")
       .eq("status", "actif"),
   ]);
@@ -25,7 +33,7 @@ export async function listRecipients(): Promise<RecipientOptions> {
       .map((group) => ({
         id: group.id,
         name: group.name,
-        levelCode: group.level_code,
+        programmeCode: group.level?.programme_code ?? null,
         members: group.members.filter((member) => member.left_at === null).length,
       }))
       .sort((a, b) => a.name.localeCompare(b.name, "fr")),
@@ -38,7 +46,7 @@ export async function listRecipients(): Promise<RecipientOptions> {
       .map((student) => ({
         id: student.id,
         name: student.full_name,
-        levelCode: student.level_code,
+        programmeCode: student.level?.programme_code ?? null,
         levelLabel: student.level?.label ?? null,
       })),
   };
@@ -51,8 +59,8 @@ export type AssignableExercise = {
   answerType: AnswerType;
   tags: string[];
   chapterTitle: string;
-  levelCode: string;
-  levelLabel: string;
+  programmeCode: string;
+  programmeLabel: string;
 };
 
 /**
@@ -64,14 +72,15 @@ export async function listAssignableExercises(): Promise<AssignableExercise[]> {
   const { data } = await supabase
     .from("exercises")
     .select(
-      "id, title, difficulty, answer_type, tags, statement, chapter:chapters!inner(title, position, level_code, level:levels!inner(label, position)), solution:exercise_solutions(correct_numeric, correct_choice_ids)",
+      "id, title, difficulty, answer_type, tags, statement, chapter:chapters!inner(title, semester, position, programme:programmes!inner(code, label, position)), solution:exercise_solutions(correct_numeric, correct_choice_ids)",
     );
 
   return [...(data ?? [])]
     .filter(isRowReady)
     .sort(
       (a, b) =>
-        a.chapter.level.position - b.chapter.level.position ||
+        a.chapter.programme.position - b.chapter.programme.position ||
+        (a.chapter.semester ?? 3) - (b.chapter.semester ?? 3) ||
         a.chapter.position - b.chapter.position ||
         a.title.localeCompare(b.title, "fr"),
     )
@@ -82,7 +91,7 @@ export async function listAssignableExercises(): Promise<AssignableExercise[]> {
       answerType: exercise.answer_type,
       tags: exercise.tags,
       chapterTitle: exercise.chapter.title,
-      levelCode: exercise.chapter.level_code,
-      levelLabel: exercise.chapter.level.label,
+      programmeCode: exercise.chapter.programme.code,
+      programmeLabel: exercise.chapter.programme.label,
     }));
 }

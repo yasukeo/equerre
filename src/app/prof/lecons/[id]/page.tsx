@@ -6,7 +6,6 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { requireViewer } from "@/lib/auth";
 import { CALLOUT_KINDS, type CalloutKind, readStoredLesson } from "@/lib/lesson/document";
-import { levelSlug } from "@/lib/lesson/queries";
 import { createClient } from "@/lib/supabase/server";
 import { LessonEditor } from "./lesson-editor";
 // The editor draws the lesson as the page will: same maths, same encadrés.
@@ -47,7 +46,7 @@ async function EditLesson({ params }: { params: Promise<{ id: string }> }) {
   const { data } = await supabase
     .from("lessons")
     .select(
-      "id, title, summary, slug, status, visibility, content, chapter:chapters!inner(title, slug, level:levels!inner(code, label))",
+      "id, title, summary, slug, status, visibility, content, chapter:chapters!inner(title, slug, programme:programmes!inner(slug, label))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -68,8 +67,8 @@ async function EditLesson({ params }: { params: Promise<{ id: string }> }) {
         status: data.status,
         visibility: data.visibility,
         content: readStoredLesson(data.content),
-        context: `${data.chapter.level.label} · ${data.chapter.title}`,
-        publicPath: `/cours/${levelSlug(data.chapter.level.code)}/${data.chapter.slug}/${data.slug}`,
+        context: `${data.chapter.programme.label} · ${data.chapter.title}`,
+        publicPath: `/cours/${data.chapter.programme.slug}/${data.chapter.slug}/${data.slug}`,
       }}
     />
   );

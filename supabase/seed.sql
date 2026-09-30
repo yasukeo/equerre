@@ -1,6 +1,6 @@
 -- Development seed for Équerre:
--- 1 tutor, 8 students, 1 parent, 3 groups, 9 chapters, 12 lessons, 30 exercises, 40 sessions,
--- 4 plans, 9 payments and 3 blog posts.
+-- 1 tutor, 8 students, 1 parent, 3 groups, 12 lessons and 30 exercises in 9 of the official
+-- chapters, 40 sessions, 4 plans, 9 payments and 3 blog posts.
 --
 -- Run it with `pnpm db:seed`, which replaces {{SEED_PASSWORD}} with SEED_PASSWORD from
 -- .env.local. Seed accounts use the reserved .test domain: sign in with the password.
@@ -29,6 +29,32 @@ language sql
 immutable
 as $$
   select (prefix || '-0000-4000-8000-' || lpad(n::text, 12, '0'))::uuid;
+$$;
+
+-- The demo chapters by number, as the rest of this file names them: each is an official
+-- chapter of its programme (supabase/curriculum/maths.json), whatever its id.
+create or replace function pg_temp.chapter(n integer)
+returns uuid
+language sql
+stable
+as $$
+  select c.id
+  from public.chapters c
+  where (c.programme_code, c.slug) = (
+    select v.programme_code, v.slug
+    from (values
+      (1, '2BAC-SEXP', 'limites-et-continuite'),
+      (2, '2BAC-SEXP', 'derivation'),
+      (3, '2BAC-SEXP', 'suites-numeriques'),
+      (4, '2BAC-SM', 'nombres-complexes'),
+      (5, '1BAC-SM', 'barycentre'),
+      (6, '1BAC-SM', 'produit-scalaire'),
+      (7, 'TC-ST', 'arithmetique'),
+      (8, '3AC', 'theoreme-de-thales'),
+      (9, '3AC', 'equations-et-inequations')
+    ) as v(n, programme_code, slug)
+    where v.n = chapter.n
+  );
 $$;
 
 -- Splits "text $latex$ text" into Tiptap text and inlineMath nodes.
@@ -179,7 +205,7 @@ as $$
 begin
   insert into public.exercises (id, chapter_id, title, statement, difficulty, answer_type, choices, choice_mode, tags)
   values (
-    pg_temp.uid('40000000', p_n), pg_temp.uid('20000000', p_chapter),
+    pg_temp.uid('40000000', p_n), pg_temp.chapter(p_chapter),
     p_title, p_statement, p_difficulty, p_type, p_choices,
     -- Whether the student sees radio buttons or checkboxes must not be read off
     -- the number of correct answers, so it is stated here rather than derived.
@@ -300,39 +326,30 @@ on conflict (code) do update set
 
 -- ─────────────────────────────────────────────────────────────── chapters
 
-insert into public.chapters (id, level_code, title, slug, position, description)
-values
-  (pg_temp.uid('20000000', 1), '2BAC-PC', 'Limites et continuité', 'limites-et-continuite', 1,
-   'Limites, opérations, formes indéterminées, continuité et théorème des valeurs intermédiaires.'),
-  (pg_temp.uid('20000000', 2), '2BAC-PC', 'Dérivation et étude de fonctions', 'derivation', 2,
-   'Nombre dérivé, tangente, signe de la dérivée et variations.'),
-  (pg_temp.uid('20000000', 3), '2BAC-PC', 'Suites numériques', 'suites-numeriques', 3,
-   'Suites arithmétiques et géométriques, récurrence, convergence.'),
-  (pg_temp.uid('20000000', 4), '2BAC-SMA', 'Nombres complexes', 'nombres-complexes', 1,
-   'Forme algébrique, conjugué, module et équations du second degré dans ℂ.'),
-  (pg_temp.uid('20000000', 5), '1BAC-SM', 'Barycentre dans le plan', 'barycentre', 1,
-   'Barycentre de deux ou trois points pondérés et lignes de niveau.'),
-  (pg_temp.uid('20000000', 6), '1BAC-SM', 'Produit scalaire', 'produit-scalaire', 2,
-   'Définitions, expression analytique, Al-Kashi et équations de cercles.'),
-  (pg_temp.uid('20000000', 7), 'TC', 'Arithmétique dans ℕ', 'arithmetique', 1,
-   'Divisibilité, nombres premiers, PGCD et PPCM.'),
-  (pg_temp.uid('20000000', 8), '3AC', 'Théorème de Thalès', 'theoreme-de-thales', 1,
-   'Le théorème, sa réciproque et les calculs de longueurs.'),
-  (pg_temp.uid('20000000', 9), '3AC', 'Équations et inéquations', 'equations-et-inequations', 2,
-   'Équations et inéquations du premier degré à une inconnue.')
-on conflict (id) do update set
-  level_code = excluded.level_code,
-  title = excluded.title,
-  slug = excluded.slug,
-  position = excluded.position,
-  description = excluded.description;
+-- The chapters are the official programmes', made by their migration (D-094); the demo
+-- content below sits in nine of them, found by programme and slug.
+update public.chapters c
+set description = v.description
+from (values
+  ('2BAC-SEXP', 'limites-et-continuite', 'Limites, opérations, formes indéterminées, continuité et théorème des valeurs intermédiaires.'),
+  ('2BAC-SEXP', 'derivation', 'Nombre dérivé, tangente, signe de la dérivée et variations.'),
+  ('2BAC-SEXP', 'suites-numeriques', 'Suites arithmétiques et géométriques, récurrence, convergence.'),
+  ('2BAC-SM', 'nombres-complexes', 'Forme algébrique, conjugué, module et équations du second degré dans ℂ.'),
+  ('1BAC-SM', 'barycentre', 'Barycentre de deux ou trois points pondérés et lignes de niveau.'),
+  ('1BAC-SM', 'produit-scalaire', 'Définitions, expression analytique, Al-Kashi et équations de cercles.'),
+  ('TC-ST', 'arithmetique', 'Divisibilité, nombres premiers, PGCD et PPCM.'),
+  ('3AC', 'theoreme-de-thales', 'Le théorème, sa réciproque et les calculs de longueurs.'),
+  ('3AC', 'equations-et-inequations', 'Équations et inéquations du premier degré à une inconnue.')
+) as v(programme_code, slug, description)
+where c.programme_code = v.programme_code
+  and c.slug = v.slug;
 
 -- ─────────────────────────────────────────────────────────────── lessons
 
 insert into public.lessons (id, chapter_id, title, slug, summary, content, position, status, visibility, published_at)
 values
   (
-    pg_temp.uid('30000000', 1), pg_temp.uid('20000000', 1),
+    pg_temp.uid('30000000', 1), pg_temp.chapter(1),
     'Limite d''une fonction', 'limite-d-une-fonction',
     'Limite finie en un point, opérations sur les limites et formes indéterminées.',
     pg_temp.doc(
@@ -352,7 +369,7 @@ values
     1, 'published', 'enrolled', now() - interval '21 days'
   ),
   (
-    pg_temp.uid('30000000', 2), pg_temp.uid('20000000', 1),
+    pg_temp.uid('30000000', 2), pg_temp.chapter(1),
     'Continuité et théorème des valeurs intermédiaires', 'continuite-et-tvi',
     'Continuité en un point, sur un intervalle, et existence de solutions d''une équation.',
     pg_temp.doc(
@@ -370,7 +387,7 @@ values
     2, 'published', 'public', now() - interval '18 days'
   ),
   (
-    pg_temp.uid('30000000', 3), pg_temp.uid('20000000', 2),
+    pg_temp.uid('30000000', 3), pg_temp.chapter(2),
     'Dérivabilité et nombre dérivé', 'nombre-derive',
     'Taux d''accroissement, nombre dérivé et équation de la tangente.',
     pg_temp.doc(
@@ -388,7 +405,7 @@ values
     1, 'published', 'enrolled', now() - interval '14 days'
   ),
   (
-    pg_temp.uid('30000000', 4), pg_temp.uid('20000000', 2),
+    pg_temp.uid('30000000', 4), pg_temp.chapter(2),
     'Étude des variations d''une fonction', 'etude-des-variations',
     'Signe de la dérivée, tableau de variations et extremums.',
     pg_temp.doc(
@@ -400,7 +417,7 @@ values
     2, 'draft', 'enrolled', null
   ),
   (
-    pg_temp.uid('30000000', 5), pg_temp.uid('20000000', 3),
+    pg_temp.uid('30000000', 5), pg_temp.chapter(3),
     'Suites arithmétiques et géométriques', 'suites-arithmetiques-et-geometriques',
     'Définitions, termes généraux et sommes de termes consécutifs.',
     pg_temp.doc(
@@ -419,7 +436,7 @@ values
     1, 'published', 'enrolled', now() - interval '10 days'
   ),
   (
-    pg_temp.uid('30000000', 6), pg_temp.uid('20000000', 3),
+    pg_temp.uid('30000000', 6), pg_temp.chapter(3),
     'Limite d''une suite', 'limite-d-une-suite',
     'Convergence, suites monotones et bornées.',
     pg_temp.doc(
@@ -434,7 +451,7 @@ values
     2, 'published', 'specific', now() - interval '4 days'
   ),
   (
-    pg_temp.uid('30000000', 7), pg_temp.uid('20000000', 4),
+    pg_temp.uid('30000000', 7), pg_temp.chapter(4),
     'Forme algébrique d''un nombre complexe', 'forme-algebrique',
     'Partie réelle, partie imaginaire, conjugué et module.',
     pg_temp.doc(
@@ -451,7 +468,7 @@ values
     1, 'published', 'enrolled', now() - interval '12 days'
   ),
   (
-    pg_temp.uid('30000000', 8), pg_temp.uid('20000000', 5),
+    pg_temp.uid('30000000', 8), pg_temp.chapter(5),
     'Barycentre de deux points', 'barycentre-de-deux-points',
     'Définition, construction et réduction d''une somme vectorielle.',
     pg_temp.doc(
@@ -468,7 +485,7 @@ values
     1, 'published', 'enrolled', now() - interval '9 days'
   ),
   (
-    pg_temp.uid('30000000', 9), pg_temp.uid('20000000', 6),
+    pg_temp.uid('30000000', 9), pg_temp.chapter(6),
     'Produit scalaire dans le plan', 'produit-scalaire-dans-le-plan',
     'Expression analytique, orthogonalité et théorème d''Al-Kashi.',
     pg_temp.doc(
@@ -485,7 +502,7 @@ values
     1, 'published', 'enrolled', now() - interval '7 days'
   ),
   (
-    pg_temp.uid('30000000', 10), pg_temp.uid('20000000', 7),
+    pg_temp.uid('30000000', 10), pg_temp.chapter(7),
     'Nombres premiers et PGCD', 'nombres-premiers-et-pgcd',
     'Décomposition en facteurs premiers et calcul du PGCD.',
     pg_temp.doc(
@@ -501,7 +518,7 @@ values
     1, 'published', 'public', now() - interval '25 days'
   ),
   (
-    pg_temp.uid('30000000', 11), pg_temp.uid('20000000', 8),
+    pg_temp.uid('30000000', 11), pg_temp.chapter(8),
     'Théorème de Thalès et sa réciproque', 'thales-et-reciproque',
     'Calculer une longueur, montrer que deux droites sont parallèles.',
     pg_temp.doc(
@@ -518,7 +535,7 @@ values
     1, 'published', 'enrolled', now() - interval '16 days'
   ),
   (
-    pg_temp.uid('30000000', 12), pg_temp.uid('20000000', 9),
+    pg_temp.uid('30000000', 12), pg_temp.chapter(9),
     'Équations du premier degré', 'equations-du-premier-degre',
     'Résoudre une équation et une inéquation à une inconnue.',
     pg_temp.doc(
@@ -806,7 +823,7 @@ select
     when 'domicile' then 'Au domicile de l''élève'
   end,
   case when mode = 'en_ligne' then 'https://meet.jit.si/equerre-' || coalesce(student_n, group_n) end,
-  case when starts_at < now() and not is_cancelled and not is_no_show then pg_temp.uid('20000000', chapter_n) end,
+  case when starts_at < now() and not is_cancelled and not is_no_show then pg_temp.chapter(chapter_n) end,
   case when starts_at < now() and not is_cancelled and not is_no_show
     then 'Exercices 2 et 3 de la série du chapitre.' end,
   case when starts_at < now() and not is_cancelled and not is_no_show
@@ -1036,6 +1053,7 @@ drop function pg_temp.m(text);
 drop function pg_temp.h(text);
 drop function pg_temp.p(text);
 drop function pg_temp.inline(text);
+drop function pg_temp.chapter(integer);
 drop function pg_temp.uid(text, integer);
 
 commit;

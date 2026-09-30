@@ -13,6 +13,8 @@ export type Viewer = {
   role: Role;
   fullName: string;
   levelCode: string | null;
+  /** The maths programme her stream follows (D-094): what « her lessons » are. */
+  programmeCode: string | null;
   status: Database["public"]["Enums"]["student_status"];
 };
 
@@ -37,7 +39,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role, full_name, level_code, status")
+    .select("id, role, full_name, level_code, status, level:levels(programme_code)")
     .eq("id", userId)
     .maybeSingle();
 
@@ -50,6 +52,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
     role: profile.role,
     fullName: profile.full_name,
     levelCode: profile.level_code,
+    programmeCode: profile.level?.programme_code ?? null,
     status: profile.status,
   };
 });

@@ -51,7 +51,7 @@ async function EditExercise({ params }: { params: Promise<{ id: string }> }) {
       .select(
         // Numbers are read as text: PostgREST hands `numeric` over as a JSON number, and a
         // double cannot hold every decimal the tutor may have typed (D-044).
-        "id, title, chapter_id, difficulty, tags, answer_type, choices, choice_mode, statement, chapter:chapters!inner(title, level:levels!inner(label)), solution:exercise_solutions(solution, correct_numeric::text, tolerance::text, tolerance_kind, correct_choice_ids)",
+        "id, title, chapter_id, difficulty, tags, answer_type, choices, choice_mode, statement, chapter:chapters!inner(title, programme:programmes!inner(label)), solution:exercise_solutions(solution, correct_numeric::text, tolerance::text, tolerance_kind, correct_choice_ids)",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -78,7 +78,7 @@ async function EditExercise({ params }: { params: Promise<{ id: string }> }) {
         id: data.id,
         title: data.title,
         chapterId: data.chapter_id,
-        context: `${data.chapter.level.label} · ${data.chapter.title}`,
+        context: `${data.chapter.programme.label} · ${data.chapter.title}`,
         difficulty: data.difficulty,
         tags: data.tags,
         answerType: data.answer_type,

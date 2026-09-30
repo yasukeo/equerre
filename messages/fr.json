@@ -461,8 +461,8 @@
         "remove": "Retirer « {title} »",
         "bank": "Banque d’exercices",
         "bankHint": "Seuls les exercices prêts à être donnés apparaissent : ceux qui ont un énoncé et une réponse attendue.",
-        "level": "Niveau",
-        "allLevels": "Tous les niveaux",
+        "level": "Programme",
+        "allLevels": "Tous les programmes",
         "search": "Chercher",
         "searchPlaceholder": "Titre, chapitre ou mot-clé",
         "none": "Aucun exercice prêt ne correspond.",
@@ -1115,11 +1115,12 @@
     "lessons": {
       "title": "Cours",
       "mine": "Mes cours",
-      "others": "Ouverts à tous",
-      "othersHint": "Des cours publics d’autres niveaux, pour réviser ou prendre de l’avance.",
-      "empty": "Aucun cours publié pour vous pour l’instant.",
+      "others": "Les autres programmes",
+      "othersHint": "Les cours publics de tous les niveaux, pour réviser ou prendre de l’avance.",
+      "empty": "Aucun document publié pour votre programme pour l’instant.",
       "shared": "Partagé avec vous",
-      "back": "Tous les cours"
+      "back": "Tous les cours",
+      "browse": "Parcourir tous les programmes"
     },
     "homework": {
       "title": "Devoirs",
@@ -1865,10 +1866,16 @@
     "toCourses": "Lire les cours en accès libre"
   },
   "coursesIndex": {
-    "title": "Cours en accès libre",
-    "lead": "Les leçons publiées pour tous : définitions, théorèmes et exemples corrigés, classés par niveau.",
-    "empty": "Aucune leçon publique pour l’instant.",
-    "lessons": "{count, plural, one {# leçon} other {# leçons}}",
+    "title": "Cours de mathématiques",
+    "lead": "Le programme officiel marocain, du collège au 2e bac, pour toutes les filières : cours, résumés, séries d’exercices corrigés et devoirs, à lire en ligne ou à télécharger en PDF.",
+    "cycle": {
+      "college": "Collège",
+      "tronc_commun": "Tronc commun",
+      "1bac": "1re année du bac",
+      "2bac": "2e année du bac"
+    },
+    "streams": "Filières : {list}",
+    "progress": "{ready, plural, =0 {En préparation} one {# chapitre disponible sur {total}} other {# chapitres disponibles sur {total}}}",
     "home": "Retour à l’accueil"
   },
   "siteAdmin": {
@@ -2035,5 +2042,31 @@
     "confirmExistingNone": "Cette adresse appartient à {name}, qui a déjà un compte parent. Relier {student} à ce compte ?",
     "confirmLink": "Relier {student}",
     "cancel": "Annuler"
+  },
+  "programmePage": {
+    "back": "Tous les programmes",
+    "streams": "Pour les filières : {list}",
+    "semester": "{semester, select, 1 {Premier semestre} 2 {Deuxième semestre} other {Hors semestre}}",
+    "chapter": "Chapitre {number}",
+    "inPreparation": "En préparation",
+    "metaDescription": "{programme} : le programme officiel de mathématiques, chapitre par chapitre, avec cours, résumés et séries d’exercices corrigés."
+  },
+  "chapterPage": {
+    "empty": "Les documents de ce chapitre sont en préparation. Revenez bientôt, ou demandez-les à la professeure.",
+    "metaDescription": "{chapter} ({programme}) : cours, résumé et exercices corrigés, en ligne et en PDF."
+  },
+  "documentKind": {
+    "one": {
+      "cours": "Cours",
+      "resume": "Résumé",
+      "serie": "Série d’exercices",
+      "devoir": "Devoir"
+    },
+    "many": {
+      "cours": "Cours",
+      "resume": "Résumés",
+      "serie": "Séries d’exercices",
+      "devoir": "Devoirs"
+    }
   }
 }

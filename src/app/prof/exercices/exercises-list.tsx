@@ -6,7 +6,7 @@ import { isRowReady } from "@/lib/exercise/exercise";
 import { createClient } from "@/lib/supabase/server";
 
 const FIELDS =
-  "id, title, difficulty, answer_type, tags, statement, chapter:chapters!inner(title, slug, position, level:levels!inner(code, label, position)), solution:exercise_solutions(correct_numeric, correct_choice_ids)" as const;
+  "id, title, difficulty, answer_type, tags, statement, chapter:chapters!inner(title, slug, semester, position, programme:programmes!inner(code, label, position)), solution:exercise_solutions(correct_numeric, correct_choice_ids)" as const;
 
 export async function ExercisesList() {
   await requireViewer("tutor");
@@ -17,7 +17,8 @@ export async function ExercisesList() {
 
   const exercises = [...(data ?? [])].sort(
     (a, b) =>
-      a.chapter.level.position - b.chapter.level.position ||
+      a.chapter.programme.position - b.chapter.programme.position ||
+      (a.chapter.semester ?? 3) - (b.chapter.semester ?? 3) ||
       a.chapter.position - b.chapter.position ||
       a.title.localeCompare(b.title, "fr"),
   );
@@ -27,16 +28,21 @@ export async function ExercisesList() {
   }
 
   // Grouped by chapter, in the order the tutor teaches them.
-  const chapters: { key: string; level: string; title: string; exercises: typeof exercises }[] = [];
+  const chapters: {
+    key: string;
+    programme: string;
+    title: string;
+    exercises: typeof exercises;
+  }[] = [];
   for (const exercise of exercises) {
-    const key = `${exercise.chapter.level.code}/${exercise.chapter.slug}`;
+    const key = `${exercise.chapter.programme.code}/${exercise.chapter.slug}`;
     const last = chapters.at(-1);
     if (last?.key === key) {
       last.exercises.push(exercise);
     } else {
       chapters.push({
         key,
-        level: exercise.chapter.level.label,
+        programme: exercise.chapter.programme.label,
         title: exercise.chapter.title,
         exercises: [exercise],
       });
@@ -50,7 +56,7 @@ export async function ExercisesList() {
       {chapters.map((chapter) => (
         <section key={chapter.key} className="grid gap-3">
           <h2 className="text-sm font-semibold text-encre-douce">
-            {chapter.level} · {chapter.title}
+            {chapter.programme} · {chapter.title}
           </h2>
 
           <ul className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">

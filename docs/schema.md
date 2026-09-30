@@ -1,7 +1,7 @@
 # Schema
 
-The database after phase 4, read from the live project (37 tables in `public`, one in `private`,
-four storage buckets). Every table has RLS enabled and a policy per operation; a table with no
+The database after phase 4 and the programmes (D-094), read from the live project (38 tables in
+`public`, one in `private`, four storage buckets). Every table has RLS enabled and a policy per operation; a table with no
 policy for an operation refuses it. The reasons behind each rule are in `DECISIONS.md`.
 
 One diagram per area, with the columns that carry the relations. The generated types in
@@ -12,6 +12,7 @@ One diagram per area, with the columns that carry the relations. The generated t
 ```mermaid
 erDiagram
   AUTH_USERS ||--|| PROFILES : "trigger creates"
+  PROGRAMMES ||--o{ LEVELS : "programme_code"
   LEVELS ||--o{ PROFILES : "level_code"
   LEVELS ||--o{ GROUPS : "level_code"
   LEVELS ||--o{ INVITE_CODES : "level_code"
@@ -24,6 +25,17 @@ erDiagram
   PROFILES ||--o{ GUARDIAN_LINKS : "student_id"
   PROFILES ||--o{ PARENT_INVITES : "student_id"
 
+  PROGRAMMES {
+    text code PK "2BAC-SEXP"
+    text slug UK
+    text label
+    text cycle
+  }
+  LEVELS {
+    text code PK "stream: 2BAC-PC"
+    text label
+    text programme_code FK
+  }
   PROFILES {
     uuid id PK
     user_role role "tutor | student | parent"
@@ -64,7 +76,7 @@ erDiagram
 
 ```mermaid
 erDiagram
-  LEVELS ||--o{ CHAPTERS : "level_code"
+  PROGRAMMES ||--o{ CHAPTERS : "programme_code"
   CHAPTERS ||--o{ LESSONS : "chapter_id"
   LESSONS ||--o{ LESSON_ACCESS : "lesson_id"
   PROFILES ||--o{ LESSON_ACCESS : "student_id"
@@ -80,10 +92,18 @@ erDiagram
   ASSIGNMENT_ITEMS ||--o{ EXERCISE_REVEALS : "assignment_id, exercise_id"
   PROFILES ||--o{ EXERCISE_REVEALS : "student_id"
 
+  CHAPTERS {
+    uuid id PK
+    text programme_code FK
+    text slug "unique in its programme"
+    smallint semester
+    int position
+  }
   LESSONS {
     uuid id PK
     uuid chapter_id FK
     text slug UK
+    document_kind kind "cours | resume | serie | devoir"
     jsonb content
     publication_status status
     lesson_visibility visibility "public | enrolled | specific"
@@ -255,7 +275,7 @@ table policies, except for the three rows marked.
 
 | Table                                                       | Signed out                        | Student                                                                  | Parent                   | Tutor                                              |
 | ----------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------ | ------------------------ | -------------------------------------------------- |
-| `levels`, `chapters`                                        | all                               | all                                                                      | all                      | all, writes                                        |
+| `programmes`, `levels`, `chapters`                          | all                               | all                                                                      | all                      | all, writes                                        |
 | `lessons`, `lesson_access`                                  | published + public                | published + public, own level (`enrolled`), or listed in `lesson_access` | published + public       | all, writes                                        |
 | `profiles`                                                  | —                                 | own row; edits contact fields only                                       | own row, linked children | all, writes                                        |
 | `student_settings`                                          | —                                 | own row                                                                  | —                        | all, writes                                        |

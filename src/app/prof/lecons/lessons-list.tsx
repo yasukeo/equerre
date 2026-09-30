@@ -7,11 +7,10 @@ import {
   type PublicationStatus,
 } from "@/components/lesson-status";
 import { requireViewer } from "@/lib/auth";
-import { levelSlug } from "@/lib/lesson/queries";
 import { createClient } from "@/lib/supabase/server";
 
 const FIELDS =
-  "id, title, slug, status, visibility, position, chapter:chapters!inner(title, slug, position, level:levels!inner(code, label, position))" as const;
+  "id, title, slug, status, visibility, position, chapter:chapters!inner(title, slug, semester, position, programme:programmes!inner(code, slug, label, position))" as const;
 
 export async function LessonsList() {
   await requireViewer("tutor");
@@ -24,7 +23,8 @@ export async function LessonsList() {
 
   const lessons = [...(data ?? [])].sort(
     (a, b) =>
-      a.chapter.level.position - b.chapter.level.position ||
+      a.chapter.programme.position - b.chapter.programme.position ||
+      (a.chapter.semester ?? 3) - (b.chapter.semester ?? 3) ||
       a.chapter.position - b.chapter.position ||
       a.position - b.position,
   );
@@ -34,16 +34,16 @@ export async function LessonsList() {
   }
 
   // Grouped by chapter, in the order the tutor teaches them.
-  const chapters: { key: string; level: string; title: string; lessons: typeof lessons }[] = [];
+  const chapters: { key: string; programme: string; title: string; lessons: typeof lessons }[] = [];
   for (const lesson of lessons) {
-    const key = `${lesson.chapter.level.code}/${lesson.chapter.slug}`;
+    const key = `${lesson.chapter.programme.code}/${lesson.chapter.slug}`;
     const last = chapters.at(-1);
     if (last?.key === key) {
       last.lessons.push(lesson);
     } else {
       chapters.push({
         key,
-        level: lesson.chapter.level.label,
+        programme: lesson.chapter.programme.label,
         title: lesson.chapter.title,
         lessons: [lesson],
       });
@@ -57,7 +57,7 @@ export async function LessonsList() {
       {chapters.map((chapter) => (
         <section key={chapter.key} className="grid gap-3">
           <h2 className="text-sm font-semibold text-encre-douce">
-            {chapter.level} · {chapter.title}
+            {chapter.programme} · {chapter.title}
           </h2>
 
           <ul className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
@@ -87,7 +87,7 @@ export async function LessonsList() {
 
                   {isLive ? (
                     <Link
-                      href={`/cours/${levelSlug(lesson.chapter.level.code)}/${lesson.chapter.slug}/${lesson.slug}`}
+                      href={`/cours/${lesson.chapter.programme.slug}/${lesson.chapter.slug}/${lesson.slug}`}
                       className="text-sm text-stylo-bleu underline underline-offset-2"
                     >
                       {t("open")}

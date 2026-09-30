@@ -41,10 +41,11 @@ async function StudentHome() {
   // RLS narrows every query to this student: their sessions, their groups' sessions,
   // and only the lessons they're allowed to read.
   //
-  // "New lessons" means this student's level plus lessons shared with them. RLS also lets
-  // them read other levels' public lessons, so filtering happens in the database, before
-  // the limit — otherwise public lessons from other levels could fill the list.
-  const lessonFields = "id, slug, title, published_at, chapters!inner(title, level_code)" as const;
+  // "New lessons" means this student's programme plus lessons shared with them (D-094). RLS
+  // also lets them read other programmes' public lessons, so filtering happens in the
+  // database, before the limit — otherwise public lessons from elsewhere could fill the list.
+  const lessonFields =
+    "id, slug, title, published_at, chapters!inner(title, programme_code)" as const;
   const [
     sessionsResult,
     levelLessonsResult,
@@ -63,12 +64,12 @@ async function StudentHome() {
       .in("status", ["en_attente", "planifiee"])
       .order("starts_at")
       .limit(4),
-    viewer.levelCode
+    viewer.programmeCode
       ? supabase
           .from("lessons")
           .select(lessonFields)
           .eq("status", "published")
-          .eq("chapters.level_code", viewer.levelCode)
+          .eq("chapters.programme_code", viewer.programmeCode)
           .order("published_at", { ascending: false })
           .limit(5)
       : null,

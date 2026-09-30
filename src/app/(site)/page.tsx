@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { siteConfig } from "@/config/site";
 import { formatLocalDate, withFirst } from "@/lib/dates";
-import { listPublicCourse } from "@/lib/lesson/queries";
+import { listProgrammes } from "@/lib/lesson/queries";
 import { renderMath } from "@/lib/lesson/math";
 import { formatHours, formatMad } from "@/lib/payments/format";
 import { listPublishedPosts } from "@/lib/posts/queries";
@@ -67,14 +67,11 @@ export default async function HomePage() {
     listLevelsByCycle(),
     listOfferedModes(),
     listPublishedPosts(),
-    listPublicCourse(),
+    listProgrammes(),
   ]);
   const whatsapp = profile.whatsapp ? whatsappHref(profile.whatsapp) : null;
-  const lessonCount = course.reduce(
-    (sum, level) =>
-      sum + level.chapters.reduce((count, chapter) => count + chapter.lessons.length, 0),
-    0,
-  );
+  const lessonCount = course.reduce((sum, programme) => sum + programme.documentCount, 0);
+  const readyProgrammes = course.filter((programme) => programme.readyCount > 0);
   const exampleNotes = [t("example.step1"), t("example.step2"), t("example.step3")];
   const place = (mode: (typeof modes)[number]) =>
     mode === "chez_prof"
@@ -336,13 +333,11 @@ export default async function HomePage() {
               </h2>
               <p className="text-encre-douce">{t("coursesLead")}</p>
               <ul role="list" className="grid gap-2">
-                {course.slice(0, 4).map((level) => (
-                  <li key={level.code} className="border-t border-quadrillage pt-2">
-                    <span className="font-semibold">{level.label}</span>
-                    <span className="text-encre-douce">
-                      {" · "}
-                      {level.chapters.map((chapter) => chapter.title).join(", ")}
-                    </span>
+                {readyProgrammes.slice(0, 4).map((programme) => (
+                  <li key={programme.code} className="border-t border-quadrillage pt-1">
+                    <Link href={`/cours/${programme.slug}`} className={cn(LINK, "font-semibold")}>
+                      {programme.label}
+                    </Link>
                   </li>
                 ))}
               </ul>

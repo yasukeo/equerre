@@ -79,10 +79,10 @@ describe("a student", () => {
     expect(data).toEqual([]);
   });
 
-  it("sees her level's lessons and the one shared with her, never drafts or other levels", async () => {
+  it("sees her programme's lessons and the one shared with her, never drafts or other programmes'", async () => {
     const { data } = await salma
       .from("lessons")
-      .select("id, visibility, status, chapter:chapters(level_code)");
+      .select("id, visibility, status, chapter:chapters(programme_code)");
     const visible = new Set(data?.map((row) => row.id));
 
     expect(visible.has(ids.salmaOnlyLesson)).toBe(true);
@@ -91,7 +91,8 @@ describe("a student", () => {
     for (const row of data ?? []) {
       expect(row.status).toBe("published");
       if (row.visibility === "enrolled") {
-        expect(row.chapter?.level_code).toBe("2BAC-PC");
+        // 2BAC-PC follows the programme of every 2e bac experimental stream (D-094).
+        expect(row.chapter?.programme_code).toBe("2BAC-SEXP");
       }
     }
   });

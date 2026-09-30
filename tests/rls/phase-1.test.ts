@@ -13,7 +13,7 @@ const ids = {
 
 // The same embedded select the tutor's lesson list issues.
 const LIST_FIELDS =
-  "id, title, slug, status, visibility, position, chapter:chapters!inner(title, slug, position, level:levels!inner(code, label, position))";
+  "id, title, slug, status, visibility, position, chapter:chapters!inner(title, slug, semester, position, programme:programmes!inner(code, slug, label, position))";
 
 describe("the lesson library", () => {
   let tutor: Client;
@@ -32,13 +32,13 @@ describe("the lesson library", () => {
     expect(new Set(data?.map((row) => row.visibility))).toContain("enrolled");
   });
 
-  it("resolves the chapter and level the tutor's list draws from", async () => {
+  it("resolves the chapter and programme the tutor's list draws from", async () => {
     const { data, error } = await tutor.from("lessons").select(LIST_FIELDS).limit(1);
     expect(error).toBeNull();
     const lesson = data?.[0];
     expect(lesson?.chapter.title).toBeTruthy();
-    expect(lesson?.chapter.level.label).toBeTruthy();
-    expect(typeof lesson?.chapter.level.position).toBe("number");
+    expect(lesson?.chapter.programme.label).toBeTruthy();
+    expect(typeof lesson?.chapter.programme.position).toBe("number");
   });
 
   it("hides every draft from a student", async () => {
@@ -47,20 +47,20 @@ describe("the lesson library", () => {
     expect(data?.every((row) => row.status === "published")).toBe(true);
   });
 
-  it("gives a student her own level's lessons and no other level's", async () => {
+  it("gives a student her own programme's lessons and no other programme's", async () => {
     const { data: profile } = await salma
       .from("profiles")
-      .select("level_code")
+      .select("level:levels(programme_code)")
       .eq("id", ids.salma)
       .single();
 
     const { data } = await salma
       .from("lessons")
-      .select("visibility, chapter:chapters!inner(level_code)");
+      .select("visibility, chapter:chapters!inner(programme_code)");
 
     for (const row of data ?? []) {
-      // Anything beyond her level has to be public, or granted to her by name.
-      if (row.chapter.level_code !== profile?.level_code) {
+      // Anything beyond her stream's programme has to be public, or granted to her by name.
+      if (row.chapter.programme_code !== profile?.level?.programme_code) {
         expect(["public", "specific"]).toContain(row.visibility);
       }
     }

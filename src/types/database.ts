@@ -213,8 +213,10 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          level_code: string
+          level_code: string | null
           position: number
+          programme_code: string
+          semester: number | null
           slug: string
           title: string
           updated_at: string
@@ -223,8 +225,10 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          level_code: string
+          level_code?: string | null
           position?: number
+          programme_code: string
+          semester?: number | null
           slug: string
           title: string
           updated_at?: string
@@ -233,8 +237,10 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          level_code?: string
+          level_code?: string | null
           position?: number
+          programme_code?: string
+          semester?: number | null
           slug?: string
           title?: string
           updated_at?: string
@@ -245,6 +251,13 @@ export type Database = {
             columns: ["level_code"]
             isOneToOne: false
             referencedRelation: "levels"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "chapters_programme_code_fkey"
+            columns: ["programme_code"]
+            isOneToOne: false
+            referencedRelation: "programmes"
             referencedColumns: ["code"]
           },
         ]
@@ -639,6 +652,7 @@ export type Database = {
           content: Json
           created_at: string
           id: string
+          kind: Database["public"]["Enums"]["document_kind"]
           position: number
           published_at: string | null
           slug: string
@@ -653,6 +667,7 @@ export type Database = {
           content?: Json
           created_at?: string
           id?: string
+          kind?: Database["public"]["Enums"]["document_kind"]
           position?: number
           published_at?: string | null
           slug: string
@@ -667,6 +682,7 @@ export type Database = {
           content?: Json
           created_at?: string
           id?: string
+          kind?: Database["public"]["Enums"]["document_kind"]
           position?: number
           published_at?: string | null
           slug?: string
@@ -692,20 +708,31 @@ export type Database = {
           cycle: string
           label: string
           position: number
+          programme_code: string
         }
         Insert: {
           code: string
           cycle: string
           label: string
           position: number
+          programme_code: string
         }
         Update: {
           code?: string
           cycle?: string
           label?: string
           position?: number
+          programme_code?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "levels_programme_code_fkey"
+            columns: ["programme_code"]
+            isOneToOne: false
+            referencedRelation: "programmes"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       message_digests: {
         Row: {
@@ -1059,6 +1086,30 @@ export type Database = {
             referencedColumns: ["code"]
           },
         ]
+      }
+      programmes: {
+        Row: {
+          code: string
+          cycle: string
+          label: string
+          position: number
+          slug: string
+        }
+        Insert: {
+          code: string
+          cycle: string
+          label: string
+          position: number
+          slug: string
+        }
+        Update: {
+          code?: string
+          cycle?: string
+          label?: string
+          position?: number
+          slug?: string
+        }
+        Relationships: []
       }
       receipt_counters: {
         Row: {
@@ -1803,6 +1854,7 @@ export type Database = {
       answer_type: "upload" | "numeric" | "mcq"
       attendance_status: "present" | "absent" | "excuse"
       choice_mode: "unique" | "multiple"
+      document_kind: "cours" | "resume" | "serie" | "devoir"
       lesson_visibility: "public" | "enrolled" | "specific"
       notification_type:
         | "booking_requested"
@@ -1963,6 +2015,7 @@ export const Constants = {
       answer_type: ["upload", "numeric", "mcq"],
       attendance_status: ["present", "absent", "excuse"],
       choice_mode: ["unique", "multiple"],
+      document_kind: ["cours", "resume", "serie", "devoir"],
       lesson_visibility: ["public", "enrolled", "specific"],
       notification_type: [
         "booking_requested",

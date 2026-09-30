@@ -25,65 +25,63 @@ export default async function StudentLessonsPage() {
 
 async function Lessons() {
   const viewer = await requireViewer("student");
-  const t = await getTranslations("student.lessons");
-  const lessons = await listReadableLessons();
-
-  // Her level and what was shared with her first; other levels' public lessons after.
-  const mine = lessons.filter((lesson) => lesson.shared || lesson.levelCode === viewer.levelCode);
-  const others = lessons.filter((lesson) => !mine.includes(lesson));
-
-  if (lessons.length === 0) {
-    return <p className="text-encre-douce">{t("empty")}</p>;
-  }
+  const [t, tKind] = await Promise.all([
+    getTranslations("student.lessons"),
+    getTranslations("documentKind"),
+  ]);
+  const lessons = await listReadableLessons(viewer.programmeCode);
 
   return (
     <>
-      {mine.length > 0 ? (
+      {lessons.length === 0 ? (
+        <p className="text-encre-douce">{t("empty")}</p>
+      ) : (
         <section aria-labelledby="my-lessons" className="grid gap-4">
           <h2 id="my-lessons" className="text-lg font-medium">
             {t("mine")}
           </h2>
-          <Chapters lessons={mine} withLevel={false} sharedLabel={t("shared")} />
+          <Chapters
+            lessons={lessons}
+            sharedLabel={t("shared")}
+            kindLabel={(kind) => tKind(`one.${kind}`)}
+          />
         </section>
-      ) : null}
+      )}
 
-      {others.length > 0 ? (
-        <section aria-labelledby="open-lessons" className="grid gap-4">
-          <div>
-            <h2 id="open-lessons" className="text-lg font-medium">
-              {t("others")}
-            </h2>
-            <p className="mt-1 text-sm text-encre-douce">{t("othersHint")}</p>
-          </div>
-          <Chapters lessons={others} withLevel sharedLabel={t("shared")} />
-        </section>
-      ) : null}
+      {/* Every other programme is the public course's: one place to browse it all. */}
+      <section aria-labelledby="open-lessons" className="grid gap-2">
+        <h2 id="open-lessons" className="text-lg font-medium">
+          {t("others")}
+        </h2>
+        <p className="text-sm text-encre-douce">{t("othersHint")}</p>
+        <Link
+          href="/cours"
+          className="inline-flex min-h-11 items-center justify-self-start underline decoration-trait underline-offset-4 hover:decoration-encre"
+        >
+          {t("browse")}
+        </Link>
+      </section>
     </>
   );
 }
 
 function Chapters({
   lessons,
-  withLevel,
   sharedLabel,
+  kindLabel,
 }: {
   lessons: ReadableLessonEntry[];
-  withLevel: boolean;
   sharedLabel: string;
+  kindLabel: (kind: ReadableLessonEntry["kind"]) => string;
 }) {
   // Consecutive lessons of one chapter share a heading; the list is already in teaching order.
   const chapters: { key: string; heading: string; lessons: ReadableLessonEntry[] }[] = [];
   for (const lesson of lessons) {
-    const key = `${lesson.levelCode}/${lesson.chapterTitle}`;
     const last = chapters.at(-1);
-    if (last?.key === key) {
+    if (last?.key === lesson.chapterTitle) {
       last.lessons.push(lesson);
     } else {
-      chapters.push({
-        key,
-        heading: withLevel ? `${lesson.levelLabel} · ${lesson.chapterTitle}` : lesson.chapterTitle,
-        lessons: [lesson],
-      });
+      chapters.push({ key: lesson.chapterTitle, heading: lesson.chapterTitle, lessons: [lesson] });
     }
   }
 
@@ -100,13 +98,11 @@ function Chapters({
                   className="grid min-h-16 content-center gap-0.5 py-3 hover:bg-sunken"
                 >
                   <span className="font-medium">{lesson.title}</span>
-                  {lesson.summary || lesson.shared ? (
-                    <span className="text-sm text-encre-douce">
-                      {lesson.shared ? sharedLabel : null}
-                      {lesson.shared && lesson.summary ? " · " : null}
-                      {lesson.summary}
-                    </span>
-                  ) : null}
+                  <span className="text-sm text-encre-douce">
+                    {[kindLabel(lesson.kind), lesson.shared ? sharedLabel : null, lesson.summary]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
                 </Link>
               </li>
             ))}

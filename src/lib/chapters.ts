@@ -3,25 +3,28 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ChapterOptions = { label: string; chapters: { id: string; title: string }[] }[];
 
-/** Every chapter, grouped by level in teaching order, for a chapter picker. */
+/** Every chapter, grouped by programme in teaching order (D-094), for a chapter picker. */
 export async function listChapterOptions(): Promise<ChapterOptions> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("chapters")
-    .select("id, title, position, level:levels!inner(code, label, position)");
+    .select("id, title, semester, position, programme:programmes!inner(code, label, position)");
 
   const chapters = [...(data ?? [])].sort(
-    (a, b) => a.level.position - b.level.position || a.position - b.position,
+    (a, b) =>
+      a.programme.position - b.programme.position ||
+      (a.semester ?? 3) - (b.semester ?? 3) ||
+      a.position - b.position,
   );
-  const levels: ChapterOptions = [];
+  const programmes: ChapterOptions = [];
   for (const chapter of chapters) {
-    const last = levels.at(-1);
+    const last = programmes.at(-1);
     const entry = { id: chapter.id, title: chapter.title };
-    if (last?.label === chapter.level.label) {
+    if (last?.label === chapter.programme.label) {
       last.chapters.push(entry);
     } else {
-      levels.push({ label: chapter.level.label, chapters: [entry] });
+      programmes.push({ label: chapter.programme.label, chapters: [entry] });
     }
   }
-  return levels;
+  return programmes;
 }

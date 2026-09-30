@@ -70,38 +70,38 @@ export function NewAssignmentForm({ recipients, exercises, preselected, defaultD
   );
   const levels = useMemo(() => {
     const seen = new Map<string, string>();
-    for (const exercise of exercises) seen.set(exercise.levelCode, exercise.levelLabel);
+    for (const exercise of exercises) seen.set(exercise.programmeCode, exercise.programmeLabel);
     return [...seen].map(([code, label]) => ({ code, label }));
   }, [exercises]);
 
-  // Choosing a recipient narrows the list to their level, until the tutor picks a level herself.
+  // Choosing a recipient narrows the list to their programme, until the tutor picks one herself.
   const chooseRecipient = (value: string) => {
     setRecipient(value);
     if (levelChosen) return;
     const parsed = readRecipient(value);
     const code =
       parsed?.kind === "student"
-        ? recipients.students.find((student) => student.id === parsed.id)?.levelCode
-        : recipients.groups.find((group) => group.id === parsed?.id)?.levelCode;
+        ? recipients.students.find((student) => student.id === parsed.id)?.programmeCode
+        : recipients.groups.find((group) => group.id === parsed?.id)?.programmeCode;
     setLevel(code && levels.some((option) => option.code === code) ? code : "");
   };
 
   const query = fold(search.trim());
   const visible = exercises.filter(
     (exercise) =>
-      (level === "" || exercise.levelCode === level) &&
+      (level === "" || exercise.programmeCode === level) &&
       (query === "" ||
         fold([exercise.title, exercise.chapterTitle, ...exercise.tags].join(" ")).includes(query)),
   );
   const chapters: { key: string; heading: string; exercises: AssignableExercise[] }[] = [];
   for (const exercise of visible) {
-    const key = `${exercise.levelCode}/${exercise.chapterTitle}`;
+    const key = `${exercise.programmeCode}/${exercise.chapterTitle}`;
     const last = chapters.at(-1);
     if (last?.key === key) last.exercises.push(exercise);
     else {
       chapters.push({
         key,
-        heading: `${exercise.levelLabel} · ${exercise.chapterTitle}`,
+        heading: `${exercise.programmeLabel} · ${exercise.chapterTitle}`,
         exercises: [exercise],
       });
     }

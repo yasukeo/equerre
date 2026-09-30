@@ -793,6 +793,34 @@ axe-core ran the WCAG 2.2 A and AA rules, and its best practices, on 50 screens:
 
 After the fixes the 150 runs report nothing. The audit script is not part of the repository: it needs axe-core, which the project does not install, and the end-to-end tests cover the flows.
 
+**D-094 — The whole Moroccan programme, by stream and programme.**
+Asked on 2026-09-30: a course as complete as the sites students already use (AlloSchool), every stream of the Moroccan school, PDFs to download, and the past national exams. The owner chose: maths only; Claude writes the courses and exercises, which the tutor reads before anything is published; the tutor uploads the national exams herself.
+
+- **Streams and programmes.** A student is in a stream (« filière »): 2e bac PC, SVT, STE… A programme is the maths syllabus several streams share. `programmes` holds 13 of them, and each of the 24 streams in `levels` points to one:
+
+  | Programme                                         | Streams                                             |
+  | ------------------------------------------------- | --------------------------------------------------- |
+  | 1re, 2e, 3e année collège                         | one each                                            |
+  | Tronc commun scientifique et technologique        | Sciences, Technologique                             |
+  | Tronc commun Lettres et sciences humaines         | the same                                            |
+  | 1re bac Sciences mathématiques                    | the same                                            |
+  | 1re bac Sciences expérimentales et technologiques | Sciences expérimentales, SVT, STE, STM              |
+  | 1re bac Sciences économiques et gestion           | the same                                            |
+  | 1re bac Lettres et sciences humaines              | the same                                            |
+  | 2e bac Sciences mathématiques                     | A, B                                                |
+  | 2e bac Sciences expérimentales et technologiques  | PC, SVT, Sciences agronomiques, STE, STM            |
+  | 2e bac Sciences économiques et gestion            | Sciences économiques, Sciences de gestion comptable |
+  | 2e bac Lettres et sciences humaines               | Lettres, Sciences humaines                          |
+
+  Chapters, and so lessons and exercises, belong to the programme: a course is written once, and a student reads her stream's programme (`private.my_programme()` in the lesson rule, `20260930031104`). The brief's « 1re bac SVT » is kept, following 1re bac Sciences expérimentales: no student uses it, and the official system has no such stream in 1re bac.
+
+- **Every chapter of the official programmes**, 166 in all, by semester, in `supabase/curriculum/maths.json`. `scripts/curriculum-sql.mjs` turns that file into upserts keyed on codes and slugs, so a correction is a new migration that keeps every chapter's id, lessons and exercises. The ministry's own documents (2007 guidelines for the lycée, 2009 for the collège) are no longer online; the lists come from the usual progressions, which agree with each other, and the tutor is to check them. The split into semesters of 1re bac Sciences économiques is a guess. The nine demo chapters were each an official chapter already and keep their content.
+- **`chapters.level_code` is no longer read**, and nullable. Dropping it is a destructive migration, left until the owner agrees.
+- **A chapter's documents have a kind** (`lessons.kind`, `20260930031252`): the course, its summary, series of exercises with their corrections, practice tests. They are lessons in every other way: one editor, one rule of who reads what, one page, one PDF.
+- **Addresses.** The course is `/cours/{programme}/{chapitre}/{document}`: the programme's page lists every chapter by semester, written or « En préparation », and a chapter's page its documents by kind. An old address that named a stream (`/cours/2bac-pc/…`) redirects permanently to its programme's (`next.config.ts`, from the same curriculum file).
+- **A student's list** is her programme's documents and those shared with her by name. The other programmes' public documents are the public course's, one link away, rather than hundreds of lines in her space.
+- **What comes next**, in order: exercises and their corrections inside a document, and the kind in the editor; PDFs; the national exams; then the content itself, 2e bac first, written as files in the repository and imported as drafts for the tutor to read and publish.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
