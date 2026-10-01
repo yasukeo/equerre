@@ -1,8 +1,8 @@
 ---
-title: Suites numériques
+title: Suites numériques — partie 1 : récurrence, monotonie, suites usuelles
 kind: cours
-summary: Raisonnement par récurrence, suites majorées, minorées, monotones, suites arithmétiques et géométriques, limites de suites et suites de la forme u(n+1) = f(u(n)).
-position: 20
+summary: Raisonnement par récurrence, suites majorées, minorées et bornées, sens de variation, suites arithmétiques et géométriques, sommes de termes et suites auxiliaires.
+position: 10
 visibility: public
 ---
 
@@ -60,51 +60,23 @@ u_p + u_{p + 1} + \cdots + u_n = u_p \times \frac{1 - q^{n - p + 1}}{1 - q}
 $$
 :::
 
-## Limite d’une suite
+:::exemple
+Soit $(u_n)$ définie par $u_0 = 1$ et $u_{n + 1} = 2u_n - 3$ pour tout $n$. Elle n’est ni arithmétique ni géométrique. On pose $v_n = u_n - 3$ (on cherche $\ell$ tel que $\ell = 2\ell - 3$, soit $\ell = 3$).
 
-:::definition
-- $(u_n)$ **converge** vers un réel $\ell$ si tout intervalle ouvert contenant $\ell$ contient tous les termes à partir d’un certain rang ; on note $\lim u_n = \ell$.
-- $(u_n)$ **tend vers** $+\infty$ si tout intervalle $]A ; +\infty[$ contient tous les termes à partir d’un certain rang.
-- Une suite qui ne converge pas est **divergente**.
+$v_{n + 1} = u_{n + 1} - 3 = 2u_n - 6 = 2(u_n - 3) = 2v_n$ : $(v_n)$ est géométrique de raison $2$ et de premier terme $v_0 = -2$. Donc $v_n = -2 \times 2^n = -2^{n + 1}$ et $u_n = 3 - 2^{n + 1}$.
 :::
 
-:::propriete
-- Pour $p$ entier, $p \geq 1$ : $\lim n^p = +\infty$, $\lim \sqrt{n} = +\infty$, $\lim \frac{1}{n^p} = 0$.
-- Suite géométrique $(q^n)$ : si $q > 1$, $\lim q^n = +\infty$ ; si $-1 < q < 1$, $\lim q^n = 0$ ; si $q = 1$, elle est constante ; si $q \leq -1$, elle n’a pas de limite.
-:::
+### Méthode : la suite auxiliaire
 
-Les règles d’opérations sur les limites et les formes indéterminées sont les mêmes que pour les fonctions.
+Pour une suite définie par $u_{n + 1} = a u_n + b$ avec $a \neq 1$, on cherche le réel $\ell$ tel que $\ell = a\ell + b$, puis on montre que $v_n = u_n - \ell$ est géométrique de raison $a$. On en déduit $v_n$, puis $u_n = v_n + \ell$.
 
-:::theoreme
-**Comparaison.** Si $u_n \leq v_n$ à partir d’un certain rang et $\lim u_n = +\infty$, alors $\lim v_n = +\infty$.
+:::exemple
+**Somme des premiers entiers, par récurrence.** Montrons que pour tout $n \geq 1$, $1 + 2 + \cdots + n = \dfrac{n(n + 1)}{2}$.
 
-**Gendarmes.** Si $v_n \leq u_n \leq w_n$ à partir d’un certain rang et $\lim v_n = \lim w_n = \ell$, alors $\lim u_n = \ell$.
-
-**Passage à la limite.** Si $u_n \leq v_n$ à partir d’un certain rang et si les deux suites convergent, alors $\lim u_n \leq \lim v_n$.
-:::
-
-:::theoreme
-Toute suite **croissante et majorée** converge. Toute suite **décroissante et minorée** converge.
-:::
-
-:::attention
-Ce théorème dit que la limite existe, pas ce qu’elle vaut : si $(u_n)$ est croissante et majorée par $M$, sa limite $\ell$ vérifie seulement $\ell \leq M$.
-:::
-
-:::propriete
-Une suite croissante et non majorée tend vers $+\infty$ ; une suite décroissante et non minorée tend vers $-\infty$.
-:::
-
-## Suites de la forme $u_{n + 1} = f(u_n)$
-
-:::theoreme
-Soit $f$ une fonction continue sur un intervalle $I$ telle que $f(I) \subset I$, et $(u_n)$ définie par $u_0 \in I$ et $u_{n + 1} = f(u_n)$. Si $(u_n)$ converge vers $\ell$ et si $\ell \in I$, alors $\ell$ est solution de l’équation $f(x) = x$.
+- Pour $n = 1$ : $1 = \frac{1 \times 2}{2}$.
+- Si l’égalité est vraie au rang $n$, alors $1 + \cdots + n + (n + 1) = \frac{n(n + 1)}{2} + (n + 1) = \frac{(n + 1)(n + 2)}{2}$ : elle est vraie au rang $n + 1$.
 :::
 
 :::exemple
-Soit $u_0 = 1$ et $u_{n + 1} = \sqrt{u_n + 2}$.
-
-- Par récurrence, $0 \leq u_n \leq 2$ : c’est vrai pour $n = 0$, et si $0 \leq u_n \leq 2$, alors $2 \leq u_n + 2 \leq 4$, donc $\sqrt{2} \leq u_{n + 1} \leq 2$.
-- $u_{n + 1} - u_n = \sqrt{u_n + 2} - u_n = \dfrac{u_n + 2 - u_n^2}{\sqrt{u_n + 2} + u_n} = \dfrac{(2 - u_n)(1 + u_n)}{\sqrt{u_n + 2} + u_n} \geq 0$ : la suite est croissante.
-- Croissante et majorée par $2$, elle converge vers $\ell \in [0 ; 2]$ ; $f(x) = \sqrt{x + 2}$ est continue sur $[0 ; 2]$ et $f([0 ; 2]) = [\sqrt{2} ; 2] \subset [0 ; 2]$, donc $\ell = \sqrt{\ell + 2}$, soit $\ell^2 - \ell - 2 = 0$ avec $\ell \geq 0$ : $\ell = 2$.
+**Sens de variation.** $u_n = \dfrac{n}{n + 1}$ : $u_{n + 1} - u_n = \frac{n + 1}{n + 2} - \frac{n}{n + 1} = \frac{(n + 1)^2 - n(n + 2)}{(n + 1)(n + 2)} = \frac{1}{(n + 1)(n + 2)} > 0$. La suite est strictement croissante, et majorée par $1$ car $u_n = 1 - \frac{1}{n + 1} < 1$.
 :::

@@ -1,12 +1,12 @@
 ---
-title: Série 1 : dérivation et étude des fonctions
+title: Série 1 — partie 1 : dérivabilité et calcul des dérivées
 kind: serie
-summary: Dérivabilité en un point, calculs de dérivées, tangente, variations, branches infinies et étude complète d’une fonction, avec les corrigés.
+summary: Dérivabilité en un point, point anguleux et demi-tangente verticale, calculs de dérivées, tangente, dérivée d’une réciproque et approximation affine, avec les corrigés.
 position: 10
 visibility: public
 ---
 
-Cinq exercices, du nombre dérivé à l’étude complète d’une fonction.
+Sept exercices sur la première partie du cours.
 
 :::exercice Dérivabilité en un point
 Soit $f$ définie sur $\mathbb{R}$ par $f(x) = x|x - 1|$.
@@ -48,30 +48,54 @@ Soit $f(x) = \dfrac{2x - 1}{x + 1}$ sur $]-1 ; +\infty[$.
 :::
 :::
 
-:::exercice Branches infinies
-Soit $f(x) = x + \sqrt{x^2 + 1}$ sur $\mathbb{R}$.
+:::exercice Demi-tangente verticale
+Soit $f(x) = \sqrt{1 - x}$ sur $]-\infty ; 1]$.
 
-1. Calculer $\lim_{x \to +\infty} f(x)$ et $\lim_{x \to -\infty} f(x)$.
-2. Étudier la branche infinie de la courbe en $+\infty$.
+1. Étudier la dérivabilité de $f$ à gauche en $1$.
+2. Interpréter géométriquement le résultat.
+3. Calculer $f'(x)$ pour $x < 1$.
 
 :::corrige
-1. En $+\infty$, $f(x) \to +\infty$ (somme de deux termes qui tendent vers $+\infty$). En $-\infty$, c’est une forme $-\infty + \infty$ ; avec la quantité conjuguée, $f(x) = \dfrac{x^2 - (x^2 + 1)}{x - \sqrt{x^2 + 1}} = \dfrac{-1}{x - \sqrt{x^2 + 1}}$, et le dénominateur tend vers $-\infty$, donc $\lim_{x \to -\infty} f(x) = 0$ : la droite $y = 0$ est asymptote en $-\infty$.
-2. Pour $x > 0$, $\dfrac{f(x)}{x} = 1 + \sqrt{1 + \dfrac{1}{x^2}} \to 2$. Puis $f(x) - 2x = \sqrt{x^2 + 1} - x = \dfrac{1}{\sqrt{x^2 + 1} + x} \to 0$ : la droite $y = 2x$ est asymptote oblique en $+\infty$.
+1. Pour $x < 1$ : $\frac{f(x) - f(1)}{x - 1} = \frac{\sqrt{1 - x}}{x - 1} = -\frac{\sqrt{1 - x}}{1 - x} = -\frac{1}{\sqrt{1 - x}}$, qui tend vers $-\infty$ quand $x \to 1^-$. $f$ n’est pas dérivable à gauche en $1$.
+2. La courbe admet au point $A(1 ; 0)$ une demi-tangente verticale.
+3. Avec $u(x) = 1 - x > 0$ : $f'(x) = \frac{u'(x)}{2\sqrt{u(x)}} = \frac{-1}{2\sqrt{1 - x}}$.
 :::
 :::
 
-:::exercice Étude complète
-Soit $f(x) = x^3 - 3x + 1$.
+:::exercice Racines n-ièmes et puissances
+Calculer la dérivée de chaque fonction sur l’intervalle indiqué.
 
-1. Calculer les limites de $f$ en $-\infty$ et en $+\infty$.
-2. Dresser le tableau de variations de $f$.
-3. Montrer que l’équation $f(x) = 0$ admet exactement trois solutions réelles.
-4. Déterminer le point d’inflexion de la courbe.
+1. $f(x) = \sqrt[3]{x^2 + 1}$ sur $\mathbb{R}$.
+2. $g(x) = x\sqrt[4]{x}$ sur $]0 ; +\infty[$.
+3. $h(x) = \left(2x + 1\right)^{\frac{3}{2}}$ sur $\left]-\frac{1}{2} ; +\infty\right[$.
 
 :::corrige
-1. $f$ se comporte comme $x^3$ : $\lim_{x \to -\infty} f(x) = -\infty$ et $\lim_{x \to +\infty} f(x) = +\infty$.
-2. $f'(x) = 3x^2 - 3 = 3(x - 1)(x + 1)$. $f$ est croissante sur $]-\infty ; -1]$, décroissante sur $[-1 ; 1]$, croissante sur $[1 ; +\infty[$, avec $f(-1) = 3$ (maximum local) et $f(1) = -1$ (minimum local).
-3. Sur chacun des intervalles $]-\infty ; -1]$, $[-1 ; 1]$ et $[1 ; +\infty[$, $f$ est continue et strictement monotone, et son image contient $0$ : $]-\infty ; 3]$, $[-1 ; 3]$ et $[-1 ; +\infty[$. L’équation a donc exactement une solution dans chacun, soit trois en tout.
-4. $f''(x) = 6x$ s’annule en $0$ en changeant de signe : le point $I(0 ; 1)$ est un point d’inflexion.
+1. $x^2 + 1 > 0$, donc $f'(x) = \dfrac{2x}{3\sqrt[3]{\left(x^2 + 1\right)^2}}$.
+2. $g(x) = x^{1 + \frac{1}{4}} = x^{\frac{5}{4}}$, donc $g'(x) = \frac{5}{4}x^{\frac{1}{4}} = \frac{5}{4}\sqrt[4]{x}$.
+3. $h'(x) = \frac{3}{2} \times 2 \times (2x + 1)^{\frac{1}{2}} = 3\sqrt{2x + 1}$.
+:::
+:::
+
+:::exercice Dérivée d’une fonction réciproque
+Soit $f(x) = x + \sqrt{x}$ sur $[0 ; +\infty[$.
+
+1. Montrer que $f$ est une bijection de $[0 ; +\infty[$ sur un intervalle $J$ à préciser.
+2. Calculer $f(1)$ et $f(4)$, puis $\left(f^{-1}\right)'(2)$ et $\left(f^{-1}\right)'(6)$.
+3. $f^{-1}$ est-elle dérivable en $0$ ?
+
+:::corrige
+1. $f$ est continue sur $[0 ; +\infty[$ et strictement croissante (somme de deux fonctions strictement croissantes). $f(0) = 0$ et $\lim_{x \to +\infty} f(x) = +\infty$, donc $J = [0 ; +\infty[$.
+2. $f(1) = 2$ et $f(4) = 6$. Pour $x > 0$, $f'(x) = 1 + \frac{1}{2\sqrt{x}}$ ; $f'(1) = \frac{3}{2}$ et $f'(4) = \frac{5}{4}$, non nuls. Donc $\left(f^{-1}\right)'(2) = \frac{1}{f'(1)} = \frac{2}{3}$ et $\left(f^{-1}\right)'(6) = \frac{1}{f'(4)} = \frac{4}{5}$.
+3. En $0$, $\frac{f(x) - f(0)}{x} = 1 + \frac{1}{\sqrt{x}} \to +\infty$ : la courbe de $f$ a une demi-tangente verticale en $O$. Par symétrie par rapport à la droite $y = x$, celle de $f^{-1}$ a une demi-tangente horizontale en $O$ : $f^{-1}$ est dérivable à droite en $0$ et $\left(f^{-1}\right)'_d(0) = 0$.
+:::
+:::
+
+:::exercice Approximation affine
+1. Donner l’approximation affine de $\sqrt{4 + h}$ pour $h$ proche de $0$, puis une valeur approchée de $\sqrt{4{,}1}$.
+2. Même question pour $(1 + h)^3$ et $1{,}002^3$.
+
+:::corrige
+1. Avec $f(x) = \sqrt{x}$, $f(4) = 2$ et $f'(4) = \frac{1}{4}$ : $\sqrt{4 + h} \approx 2 + \frac{h}{4}$. Donc $\sqrt{4{,}1} \approx 2 + \frac{0{,}1}{4} = 2{,}025$.
+2. Avec $g(x) = x^3$, $g(1) = 1$ et $g'(1) = 3$ : $(1 + h)^3 \approx 1 + 3h$. Donc $1{,}002^3 \approx 1{,}006$.
 :::
 :::

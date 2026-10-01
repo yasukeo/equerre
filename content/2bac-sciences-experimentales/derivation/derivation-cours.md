@@ -1,8 +1,8 @@
 ---
-title: Dérivation et étude des fonctions
+title: Dérivation — partie 1 : dérivabilité et calcul des dérivées
 kind: cours
-summary: Dérivabilité, tangente, dérivées usuelles et opérations, dérivée d’une composée et d’une réciproque, variations, extremums, concavité, branches infinies et plan d’étude d’une fonction.
-position: 20
+summary: Dérivabilité en un point, à droite et à gauche, tangente et demi-tangentes, approximation affine, dérivées usuelles, opérations, dérivée d’une composée, d’une racine n-ième et d’une fonction réciproque.
+position: 10
 visibility: public
 ---
 
@@ -110,73 +110,22 @@ $$
 Si $f'(a) = 0$, $f^{-1}$ n’est pas dérivable en $f(a)$ : sa courbe y a une tangente verticale.
 :::
 
-## Dérivée et variations
-
-:::theoreme
-Soit $f$ dérivable sur un intervalle $I$.
-
-- Si $f' > 0$ sur $I$ (sauf peut-être en des points isolés où elle s’annule), $f$ est strictement croissante sur $I$.
-- Si $f' < 0$ sur $I$ (sauf en des points isolés), $f$ est strictement décroissante sur $I$.
-- Si $f' = 0$ sur $I$, $f$ est constante sur $I$.
-:::
-
-### Extremums
-
-:::propriete
-Si $f$ est dérivable sur un intervalle ouvert $I$ et admet un extremum en $a \in I$, alors $f'(a) = 0$. Réciproquement, si $f'$ s’annule en $a$ **en changeant de signe**, $f$ admet un extremum local en $a$.
+:::exemple
+$f(x) = x^3 + x$ est continue et strictement croissante sur $\mathbb{R}$ (car $f'(x) = 3x^2 + 1 > 0$), donc bijective de $\mathbb{R}$ sur $\mathbb{R}$. On a $f(1) = 2$ et $f'(1) = 4 \neq 0$ : $f^{-1}$ est dérivable en $2$ et $\left(f^{-1}\right)'(2) = \frac{1}{f'(1)} = \frac{1}{4}$.
 :::
 
 :::exemple
-$f(x) = x^3$ : $f'(0) = 0$ mais $f' \geq 0$ ne change pas de signe, et $0$ n’est pas un extremum. La condition de changement de signe est indispensable.
+Sur $]0 ; +\infty[$, $\sqrt[3]{x}$ est la réciproque de $x \mapsto x^3$. Avec $y = \sqrt[3]{x}$ : $\left(\sqrt[3]{x}\right)' = \frac{1}{3y^2} = \frac{1}{3\sqrt[3]{x^2}}$, ce qui est aussi $\left(x^{\frac{1}{3}}\right)' = \frac{1}{3}x^{-\frac{2}{3}}$. En $0$, la dérivée de $x \mapsto x^3$ est nulle : $\sqrt[3]{\cdot}$ n’est pas dérivable en $0$ et sa courbe y a une tangente verticale.
 :::
 
-## Concavité et points d’inflexion
+### Méthode : étudier la dérivabilité en un point
 
-:::definition
-Soit $f$ deux fois dérivable sur $I$.
+Pour une fonction définie par morceaux ou avec une valeur absolue ou une racine, on revient au taux d’accroissement $\frac{f(x) - f(a)}{x - a}$ :
 
-- Si $f'' \geq 0$ sur $I$, $(C_f)$ est **convexe** : elle est au-dessus de ses tangentes.
-- Si $f'' \leq 0$ sur $I$, $(C_f)$ est **concave** : elle est au-dessous de ses tangentes.
-- Si $f''$ s’annule en $a$ en changeant de signe, le point $A(a ; f(a))$ est un **point d’inflexion** : la courbe y traverse sa tangente.
-:::
+- si sa limite en $a$ est un réel $\ell$, $f$ est dérivable en $a$ et $f'(a) = \ell$ ;
+- si les limites à droite et à gauche sont des réels différents, la courbe a un **point anguleux** ;
+- si la limite est infinie, $f$ n’est pas dérivable en $a$ et la courbe a une **tangente** (ou demi-tangente) **verticale**.
 
 :::exemple
-$f(x) = x^3 - 3x$ : $f''(x) = 6x$ change de signe en $0$. La courbe est concave sur $]-\infty ; 0]$, convexe sur $[0 ; +\infty[$, et $O(0 ; 0)$ est un point d’inflexion.
+$f(x) = \sqrt{x}$ en $0$ : $\frac{\sqrt{x} - 0}{x - 0} = \frac{1}{\sqrt{x}} \to +\infty$ quand $x \to 0^+$. $f$ n’est pas dérivable à droite en $0$ ; la courbe a en $O$ une demi-tangente verticale.
 :::
-
-## Branches infinies
-
-:::propriete
-- **Asymptote verticale** : si $\lim_{x \to a} f(x) = \pm\infty$, la droite $x = a$ est asymptote à $(C_f)$.
-- **Asymptote horizontale** : si $\lim_{x \to \pm\infty} f(x) = b$, la droite $y = b$ est asymptote à $(C_f)$ en $\pm\infty$.
-- **Asymptote oblique** : si $\lim_{x \to \pm\infty} \left(f(x) - (ax + b)\right) = 0$, la droite $y = ax + b$ est asymptote à $(C_f)$ en $\pm\infty$.
-:::
-
-Quand $\lim_{x \to +\infty} f(x) = \pm\infty$, on étudie $\lim_{x \to +\infty} \frac{f(x)}{x}$ :
-
-- si elle vaut $\pm\infty$, $(C_f)$ a une **branche parabolique de direction l’axe des ordonnées** ;
-- si elle vaut $0$, une **branche parabolique de direction l’axe des abscisses** ;
-- si elle vaut un réel $a \neq 0$, on étudie $\lim_{x \to +\infty} \left(f(x) - ax\right)$ : si elle vaut un réel $b$, la droite $y = ax + b$ est asymptote oblique ; si elle vaut $\pm\infty$, $(C_f)$ a une **branche parabolique de direction la droite** $y = ax$.
-
-:::exemple
-$f(x) = \frac{x^2 + 1}{x}$ : $f(x) - x = \frac{1}{x} \to 0$ en $\pm\infty$, donc la droite $y = x$ est asymptote oblique. Comme $f(x) - x$ a le signe de $x$, la courbe est au-dessus de l’asymptote sur $]0 ; +\infty[$ et au-dessous sur $]-\infty ; 0[$.
-:::
-
-## Éléments de symétrie
-
-:::propriete
-On suppose que pour tout $x \in D_f$, $2a - x \in D_f$. Alors :
-
-- la droite $x = a$ est **axe de symétrie** de $(C_f)$ si, pour tout $x \in D_f$, $f(2a - x) = f(x)$ ;
-- le point $\Omega(a ; b)$ est **centre de symétrie** de $(C_f)$ si, pour tout $x \in D_f$, $f(2a - x) + f(x) = 2b$.
-:::
-
-## Plan d’étude d’une fonction
-
-1. Domaine de définition, et parité ou périodicité s’il y en a, pour réduire le domaine d’étude.
-2. Limites aux bornes du domaine et branches infinies.
-3. Continuité et dérivabilité ; calcul de $f'$.
-4. Signe de $f'$ et tableau de variations, avec les extremums.
-5. Concavité et points d’inflexion si l’énoncé le demande.
-6. Points particuliers : intersections avec les axes, tangentes utiles.
-7. Tracé de la courbe, en commençant par les asymptotes et les tangentes.

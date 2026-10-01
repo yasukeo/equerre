@@ -1,8 +1,8 @@
 ---
-title: Limites et continuité
+title: Limites et continuité — partie 1
 kind: cours
-summary: Rappels sur les limites, continuité en un point et sur un intervalle, théorème des valeurs intermédiaires, fonction réciproque et fonction racine n-ième.
-position: 20
+summary: Rappels sur les limites, formes indéterminées, limites et ordre, continuité en un point et sur un intervalle, image d’un intervalle, théorème des valeurs intermédiaires et dichotomie.
+position: 10
 visibility: public
 ---
 
@@ -164,63 +164,4 @@ On recommence sur le nouvel intervalle, dont l’amplitude est divisée par $2$ 
 
 :::exemple
 Pour $f(x) = x^3 + x - 1$ : $f(0{,}5) = -0{,}375 < 0$, donc $\alpha \in ]0{,}5 ; 1[$ ; $f(0{,}75) \approx 0{,}17 > 0$, donc $\alpha \in ]0{,}5 ; 0{,}75[$.
-:::
-
-## Fonction réciproque
-
-:::theoreme
-Si $f$ est continue et strictement monotone sur un intervalle $I$, alors $f$ est une bijection de $I$ sur l’intervalle $J = f(I)$. Sa **fonction réciproque** $f^{-1}$, définie sur $J$, vérifie :
-
-$$
-\left( y = f(x) \text{ et } x \in I \right) \iff \left( x = f^{-1}(y) \text{ et } y \in J \right)
-$$
-:::
-
-:::propriete
-- $f^{-1}$ est continue sur $J$ et a le même sens de variation que $f$.
-- Dans un repère orthonormé, les courbes de $f$ et de $f^{-1}$ sont symétriques par rapport à la droite d’équation $y = x$.
-- Pour tout $x \in I$, $f^{-1}(f(x)) = x$ ; pour tout $y \in J$, $f(f^{-1}(y)) = y$.
-:::
-
-:::exemple
-$f(x) = x^2$ est continue et strictement croissante sur $[0 ; +\infty[$, donc bijective de $[0 ; +\infty[$ sur $[0 ; +\infty[$. Sa réciproque est $f^{-1}(x) = \sqrt{x}$.
-:::
-
-## Fonction racine n-ième
-
-:::definition
-Soit $n$ un entier, $n \geq 2$. La fonction $x \mapsto x^n$ est continue et strictement croissante sur $[0 ; +\infty[$ ; sa fonction réciproque est la fonction **racine n-ième**, notée $x \mapsto \sqrt[n]{x}$. Pour $x \geq 0$ et $y \geq 0$ :
-
-$$
-\sqrt[n]{x} = y \iff y^n = x
-$$
-:::
-
-:::propriete
-Pour tous réels positifs $x$ et $y$ et tous entiers $n, p \geq 2$ :
-
-- $\left(\sqrt[n]{x}\right)^n = x$ et $\sqrt[n]{x^n} = x$ ;
-- $\sqrt[n]{xy} = \sqrt[n]{x} \times \sqrt[n]{y}$ et, pour $y > 0$, $\sqrt[n]{\frac{x}{y}} = \frac{\sqrt[n]{x}}{\sqrt[n]{y}}$ ;
-- $\sqrt[n]{\sqrt[p]{x}} = \sqrt[np]{x}$ ;
-- $\sqrt[n]{x} = \sqrt[n]{y} \iff x = y$ et $\sqrt[n]{x} < \sqrt[n]{y} \iff x < y$.
-:::
-
-:::propriete
-$x \mapsto \sqrt[n]{x}$ est continue et strictement croissante sur $[0 ; +\infty[$, et $\lim_{x \to +\infty} \sqrt[n]{x} = +\infty$. Si $u$ est continue et positive sur $I$, alors $\sqrt[n]{u}$ est continue sur $I$ ; si $\lim_{a} u = \ell \geq 0$, alors $\lim_{a} \sqrt[n]{u} = \sqrt[n]{\ell}$.
-:::
-
-### Puissance rationnelle
-
-:::definition
-Pour $x > 0$ et $r = \frac{p}{q}$ avec $p \in \mathbb{Z}$ et $q \in \mathbb{N}^*$, on pose $x^r = \sqrt[q]{x^p}$.
-:::
-
-Les règles de calcul sur les puissances entières restent vraies : pour $x, y > 0$ et $r, r'$ rationnels, $x^r \times x^{r'} = x^{r + r'}$, $\left(x^r\right)^{r'} = x^{r r'}$, $(xy)^r = x^r y^r$ et $\frac{x^r}{x^{r'}} = x^{r - r'}$.
-
-:::exemple
-$\sqrt[3]{8} = 2$ car $2^3 = 8$, et $16^{\frac{3}{4}} = \sqrt[4]{16^3} = \left(\sqrt[4]{16}\right)^3 = 2^3 = 8$.
-:::
-
-:::attention
-$\sqrt[n]{x}$ n’est définie ici que pour $x \geq 0$. Pour résoudre $x^3 = -8$, on remarque que $x^3 = -8 \iff (-x)^3 = 8 \iff -x = 2$, donc $x = -2$.
 :::
