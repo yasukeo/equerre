@@ -4,8 +4,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { BandStats, PageBand } from "@/components/course/page-band";
+import { EXAM_HUE, hue } from "@/lib/design/colors";
 import { getProgrammeExams, listExamProgrammes, type ExamPaper } from "@/lib/exams/queries";
 import { formatFileSize } from "@/lib/lesson/file-size";
+import { programmeName } from "@/lib/lesson/streams";
+import { cn } from "@/lib/utils";
 
 export async function generateStaticParams(): Promise<{ niveau: string }[]> {
   const programmes = await listExamProgrammes();
@@ -30,9 +34,14 @@ export async function generateMetadata({
 
 export default function ProgrammeExamsPage({ params }: PageProps<"/examens/[niveau]">) {
   return (
-    <main id="contenu" className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-8">
+    <main id="contenu">
       <Suspense
-        fallback={<div aria-hidden="true" className="h-72 animate-pulse rounded-md bg-sunken" />}
+        fallback={
+          <div aria-hidden="true" className="grid gap-6">
+            <div className="h-64 animate-pulse bg-sunken" />
+            <div className="mx-auto h-96 w-full max-w-5xl animate-pulse rounded-2xl bg-sunken" />
+          </div>
+        }
       >
         <ProgrammeExams params={params} />
       </Suspense>
@@ -41,108 +50,216 @@ export default function ProgrammeExamsPage({ params }: PageProps<"/examens/[nive
 }
 
 async function ProgrammeExams({ params }: { params: Promise<{ niveau: string }> }) {
-  const [t, exams] = await Promise.all([
+  const [t, tProgramme, exams] = await Promise.all([
     getTranslations("exams"),
+    getTranslations("programmePage"),
     params.then(({ niveau }) => getProgrammeExams(niveau)),
   ]);
   if (!exams) notFound();
-  const link =
-    "inline-flex min-h-11 items-center underline decoration-trait underline-offset-4 hover:decoration-encre";
+  const colour = hue(EXAM_HUE);
+  const papers = exams.years.flatMap((year) => year.papers);
+  const answered = papers.filter((paper) => paper.solutionUrl !== null).length;
 
   return (
-    <article className="grid gap-8">
-      <header className="grid gap-3">
-        <Link href="/examens" className={`${link} justify-self-start text-sm`}>
-          {t("back")}
-        </Link>
-        <h1 className="text-[clamp(1.75rem,1.4rem+2vw,2.5rem)] leading-tight font-semibold [font-variation-settings:'HEXP'_90]">
-          {t("programmeTitle", { programme: exams.label })}
-        </h1>
-        <p className="text-encre-douce">{t("programmeLead")}</p>
-        <Link href={`/cours/${exams.slug}`} className={`${link} justify-self-start`}>
-          {t("toProgramme")}
-        </Link>
-      </header>
-
-      {exams.years.length === 0 ? (
-        <p className="rounded-md border border-dashed border-trait px-4 py-5">{t("empty")}</p>
-      ) : (
-        <>
-          {exams.years.map(({ year, papers }) => (
-            <section key={year} aria-labelledby={`annee-${year}`} className="grid gap-3">
-              <h2 id={`annee-${year}`} className="text-lg font-semibold">
-                {year}
-              </h2>
-              <ul
-                role="list"
-                className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage"
+    <>
+      <PageBand colour={colour.band}>
+        <nav aria-label={tProgramme("breadcrumb")} className="text-sm">
+          <ol role="list" className="flex flex-wrap items-center gap-x-2 text-white">
+            <li>
+              <Link
+                href="/examens"
+                className="inline-flex min-h-11 items-center underline-offset-4 hover:underline"
               >
-                {papers.map((paper) => (
-                  <Paper key={paper.id} paper={paper} />
-                ))}
-              </ul>
-            </section>
-          ))}
-          {exams.official ? (
-            <p className="text-sm text-encre-douce">
-              {t.rich("officialSource", {
-                link: (chunks) => (
+                {t("title")}
+              </Link>
+            </li>
+            {/* The separator goes with the item after it, so a wrapped line never ends on it. */}
+            <li className="flex items-center gap-x-2">
+              <span aria-hidden="true">›</span>
+              {programmeName(exams.label)}
+            </li>
+          </ol>
+        </nav>
+        <h1 className="grid gap-1 leading-[1.05] font-semibold text-balance [font-variation-settings:'HEXP'_45]">
+          <span className="text-base font-medium tracking-[0.08em] text-white uppercase">
+            {t("title")}
+          </span>
+          <span className="text-[clamp(2rem,1.5rem+2.5vw,3.25rem)]">
+            {programmeName(exams.label)}
+          </span>
+        </h1>
+        <p className="max-w-2xl text-white">{t("programmeLead")}</p>
+        {papers.length > 0 ? (
+          <BandStats
+            colour={colour.text}
+            stats={[
+              { value: papers.length, label: t("statPapers", { count: papers.length }) },
+              {
+                value: exams.years.length,
+                label: t("statYearCount", { count: exams.years.length }),
+              },
+              { value: answered, label: t("statAnswered") },
+            ]}
+          />
+        ) : null}
+      </PageBand>
+
+      <div className="mx-auto grid max-w-5xl gap-8 px-4 py-8 sm:px-8">
+        <nav aria-label={tProgramme("sections")} className="flex flex-wrap gap-2">
+          <Link
+            href={`/cours/${exams.slug}`}
+            className="inline-flex min-h-11 items-center rounded-full border border-trait bg-surface px-4 text-sm font-medium hover:border-encre"
+          >
+            {tProgramme("tabChapters")}
+          </Link>
+          <span
+            aria-current="page"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-encre px-4 text-sm font-medium text-papier"
+          >
+            {tProgramme("tabExams")}
+            <span className={cn("rounded-full px-2 py-0.5 text-xs", colour.chip)}>
+              {papers.length}
+            </span>
+          </span>
+        </nav>
+
+        {exams.years.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-trait bg-surface px-5 py-5">
+            {t("empty")}
+          </p>
+        ) : (
+          <>
+            {/* The years, to jump to one: the list runs long. */}
+            {exams.years.length > 3 ? (
+              <nav aria-label={t("years")} className="flex flex-wrap gap-1.5">
+                {exams.years.map(({ year }) => (
                   <a
-                    href="https://cnee.men.gov.ma/WebNational.aspx"
-                    className="underline decoration-trait underline-offset-4 hover:decoration-encre"
+                    key={year}
+                    href={`#annee-${year}`}
+                    className={cn(
+                      "inline-flex min-h-11 min-w-14 items-center justify-center rounded-xl px-3 text-sm font-semibold tabular-nums",
+                      colour.chip,
+                    )}
                   >
-                    {chunks}
+                    {year}
                   </a>
-                ),
-              })}
-            </p>
-          ) : null}
-        </>
-      )}
-    </article>
+                ))}
+              </nav>
+            ) : null}
+
+            {exams.years.map(({ year, papers }) => (
+              <section
+                key={year}
+                id={`annee-${year}`}
+                aria-labelledby={`annee-${year}-titre`}
+                className="grid gap-3 md:grid-cols-[7rem_minmax(0,1fr)] md:gap-6"
+              >
+                <h2
+                  id={`annee-${year}-titre`}
+                  className={cn(
+                    "text-3xl font-semibold tabular-nums md:sticky md:top-24 md:self-start",
+                    colour.text,
+                  )}
+                >
+                  {year}
+                </h2>
+                <ul role="list" className="grid gap-3 sm:grid-cols-2">
+                  {papers.map((paper) => (
+                    <Paper key={paper.id} paper={paper} />
+                  ))}
+                </ul>
+              </section>
+            ))}
+
+            {exams.official ? (
+              <p className="border-t border-quadrillage pt-6 text-sm text-encre-douce">
+                {t.rich("officialSource", {
+                  link: (chunks) => (
+                    <a
+                      href="https://cnee.men.gov.ma/WebNational.aspx"
+                      className="underline decoration-trait underline-offset-4 hover:decoration-encre"
+                    >
+                      {chunks}
+                    </a>
+                  ),
+                })}
+              </p>
+            ) : null}
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
 async function Paper({ paper }: { paper: ExamPaper }) {
   const t = await getTranslations("exams");
-  const name = `${t(`session.${paper.session}`)}${paper.track ? `\u00a0· ${paper.track}` : ""}`;
+  const colour = hue(EXAM_HUE);
+  const session = t(`session.${paper.session}`);
+  const name = `${session}${paper.track ? ` · ${paper.track}` : ""}`;
   // The ministry's correction is « éléments de réponse »: the marking guide, not a worked answer.
   const files = [
-    { href: paper.subjectUrl, label: t("subject"), size: paper.subjectSize },
+    { href: paper.subjectUrl, label: t("subject"), size: paper.subjectSize, main: true },
     ...(paper.solutionUrl && paper.solutionSize !== null
       ? [
           {
             href: paper.solutionUrl,
             label: paper.official ? t("officialAnswers") : t("solution"),
             size: paper.solutionSize,
+            main: false,
           },
         ]
       : []),
   ];
 
   return (
-    <li className="grid gap-1 bg-surface px-4 py-3">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h3 className="font-semibold">{name}</h3>
-        {paper.language === "ar" ? (
-          <span className="rounded-sm border border-trait px-1.5 py-0.5 text-xs text-encre-douce">
-            {t("arabic")}
+    <li
+      className={cn(
+        "grid content-between gap-3 rounded-2xl border border-s-4 border-quadrillage bg-surface p-4",
+        paper.session === "normale" ? colour.edge : "border-s-trait",
+      )}
+    >
+      <div className="grid gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className={cn(
+              "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+              paper.session === "normale" ? colour.chip : "bg-sunken text-encre-douce",
+            )}
+          >
+            {session}
           </span>
-        ) : null}
+          {paper.language === "ar" ? (
+            <span className="rounded-full border border-trait px-2.5 py-0.5 text-xs text-encre-douce">
+              {t("arabic")}
+            </span>
+          ) : null}
+        </div>
+        <h3 className="font-semibold">
+          <span className="sr-only">{`${session}, `}</span>
+          {paper.track ? paper.track : t("paperTitle", { year: paper.year })}
+        </h3>
       </div>
-      <ul role="list" className="flex flex-wrap gap-x-5">
+      <ul role="list" className="flex flex-wrap gap-2">
         {files.map((file) => (
           <li key={file.href}>
             {/* A plain link: the file is the ministry's PDF, served as it is. */}
             <a
               href={file.href}
               hrefLang={paper.language}
-              className="inline-flex min-h-11 items-center gap-1.5 text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+              className={cn(
+                "inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold",
+                file.main
+                  ? "bg-encre text-papier hover:bg-encre/90"
+                  : "border border-trait bg-surface hover:border-encre",
+              )}
             >
               <FileDown aria-hidden="true" className="size-4 shrink-0" />
               {file.label}
-              <span className="font-normal text-encre-douce">
-                {t("fileSize", { size: formatFileSize(file.size) })}
+              <span
+                className={cn("text-xs font-normal", file.main ? "opacity-80" : "text-encre-douce")}
+              >
+                {formatFileSize(file.size)}
               </span>
               <span className="sr-only">{`, ${paper.year}, ${name}${paper.language === "ar" ? `, ${t("arabic")}` : ""}`}</span>
             </a>

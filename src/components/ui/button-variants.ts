@@ -10,7 +10,8 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-encre text-papier hover:bg-encre/85",
+        // The site's blue (D-100): the one action a screen is for.
+        default: "bg-bleu-bande text-white hover:bg-bleu-bande/90",
         outline: "border-trait bg-surface text-encre hover:bg-sunken",
         ghost: "text-encre hover:bg-sunken",
         destructive: "border-stylo-rouge bg-surface text-stylo-rouge hover:bg-lavis-rouge",

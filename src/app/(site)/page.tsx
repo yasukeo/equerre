@@ -1,11 +1,24 @@
-import { MessageCircle } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  FileCheck2,
+  House,
+  Lightbulb,
+  MapPin,
+  MessageCircle,
+  MonitorPlay,
+  type LucideIcon,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { siteConfig } from "@/config/site";
 import { formatLocalDate, withFirst } from "@/lib/dates";
+import { cycleHue, EXAM_HUE, hue, type HueClasses } from "@/lib/design/colors";
+import { listExamProgrammes } from "@/lib/exams/queries";
 import { listProgrammes } from "@/lib/lesson/queries";
+import { programmeName } from "@/lib/lesson/streams";
 import { renderMath } from "@/lib/lesson/math";
 import { formatHours, formatMad } from "@/lib/payments/format";
 import { listPublishedPosts } from "@/lib/posts/queries";
@@ -27,7 +40,7 @@ import "katex/dist/katex.min.css";
 
 const SECTION = "mx-auto w-full max-w-6xl px-4 sm:px-8";
 const H2 =
-  "text-[clamp(1.5rem,1.2rem+1.4vw,2.25rem)] leading-[1.15] font-semibold [font-variation-settings:'HEXP'_70]";
+  "text-[clamp(1.5rem,1.2rem+1.4vw,2.25rem)] leading-[1.15] font-semibold [font-variation-settings:'HEXP'_45]";
 const LINK =
   "inline-flex min-h-11 items-center underline decoration-trait underline-offset-4 hover:decoration-encre";
 
@@ -60,7 +73,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [t, profile, plans, levels, modes, posts, course] = await Promise.all([
+  const [t, profile, plans, levels, modes, posts, course, exams] = await Promise.all([
     getTranslations("site.home"),
     getSiteProfile(),
     listOfferedPlans(),
@@ -68,10 +81,59 @@ export default async function HomePage() {
     listOfferedModes(),
     listPublishedPosts(),
     listProgrammes(),
+    listExamProgrammes(),
   ]);
   const whatsapp = profile.whatsapp ? whatsappHref(profile.whatsapp) : null;
   const lessonCount = course.reduce((sum, programme) => sum + programme.documentCount, 0);
   const readyProgrammes = course.filter((programme) => programme.readyCount > 0);
+  const papers = exams.reduce((sum, programme) => sum + programme.paperCount, 0);
+  // « de 2008 à 2022 », or « en 2022 » when every paper is from one year.
+  const yearSpan = (first: number, latest: number) =>
+    first === latest
+      ? t("doors.exams.oneYear", { year: latest })
+      : t("doors.exams.years", { first, latest });
+  // What anyone can open without an account, each in its colour across the site (D-100).
+  const doors: Door[] = [
+    ...(lessonCount > 0
+      ? [
+          {
+            href: "/cours",
+            icon: BookOpen,
+            colour: hue("bleu"),
+            title: t("doors.courses.title"),
+            body: t("doors.courses.body", { count: lessonCount }),
+          },
+        ]
+      : []),
+    ...(papers > 0
+      ? [
+          {
+            href: "/examens",
+            icon: FileCheck2,
+            colour: hue(EXAM_HUE),
+            title: t("doors.exams.title"),
+            body: t("doors.exams.body", {
+              count: papers,
+              years: yearSpan(
+                Math.min(...exams.map((programme) => programme.firstYear)),
+                Math.max(...exams.map((programme) => programme.latestYear)),
+              ),
+            }),
+          },
+        ]
+      : []),
+    ...(posts.length > 0
+      ? [
+          {
+            href: "/conseils",
+            icon: Lightbulb,
+            colour: hue("vert"),
+            title: t("doors.advice.title"),
+            body: t("doors.advice.body", { count: posts.length }),
+          },
+        ]
+      : []),
+  ];
   const exampleNotes = [t("example.step1"), t("example.step2"), t("example.step3")];
   const place = (mode: (typeof modes)[number]) =>
     mode === "chez_prof"
@@ -123,12 +185,13 @@ export default async function HomePage() {
           )}
         >
           <div className="grid content-start gap-6">
-            <p className="text-encre-douce">
+            <p className="inline-flex items-center gap-2 justify-self-start rounded-2xl bg-bleu-fond px-3 py-1 text-sm font-medium text-bleu-texte">
+              <span aria-hidden="true" className="size-2 rounded-full bg-bleu" />
               {profile.city
                 ? t("whoCity", { tutor: siteConfig.tutorName, city: frenchSpaces(profile.city) })
                 : t("who", { tutor: siteConfig.tutorName })}
             </p>
-            <h1 className="text-[clamp(2.25rem,1.6rem+3vw,3.75rem)] leading-[1.05] font-semibold text-balance [font-variation-settings:'HEXP'_70] sm:[font-variation-settings:'HEXP'_100]">
+            <h1 className="text-[clamp(2.25rem,1.6rem+3vw,3.75rem)] leading-[1.05] font-semibold text-balance [font-variation-settings:'HEXP'_45]">
               {t("title")}
             </h1>
             <p className="max-w-xl text-lg leading-relaxed text-encre-douce">
@@ -191,15 +254,63 @@ export default async function HomePage() {
         </div>
       </div>
 
+      {/* Free to open, without an account: the doors to the course, the exams, the advice. */}
+      {doors.length > 0 ? (
+        <section aria-labelledby="doors" className={cn(SECTION, "grid gap-6 py-10")}>
+          <h2 id="doors" className={H2}>
+            {t("doorsHeading")}
+          </h2>
+          <ul role="list" className={cn("grid gap-3", doors.length > 1 ? "md:grid-cols-3" : null)}>
+            {doors.map((door) => (
+              <li key={door.href} className="grid">
+                <Link
+                  href={door.href}
+                  className={cn(
+                    "group relative grid min-h-44 content-between gap-6 overflow-hidden rounded-2xl p-5",
+                    door.colour.band,
+                  )}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-[linear-gradient(rgb(255_255_255/0.09)_1px,transparent_1px),linear-gradient(90deg,rgb(255_255_255/0.09)_1px,transparent_1px)] bg-[size:22px_22px]"
+                  />
+                  <span className="relative flex items-start justify-between gap-3">
+                    <span className="flex size-11 items-center justify-center rounded-xl bg-white/15">
+                      <door.icon aria-hidden="true" className="size-6" />
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="flex size-9 items-center justify-center rounded-full bg-white text-encre-fixe transition-transform group-hover:translate-x-0.5"
+                    >
+                      <ArrowRight className="size-4" />
+                    </span>
+                  </span>
+                  <span className="relative grid gap-1">
+                    <span className="text-xl font-semibold">{door.title}</span>
+                    <span className="text-white">{door.body}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {/* A real sequence, so it is numbered; the list says the numbers already. */}
       <section aria-labelledby="how" className={cn(SECTION, "grid gap-8 py-14")}>
         <h2 id="how" className={H2}>
           {t("howHeading")}
         </h2>
-        <ol role="list" className="grid gap-8 md:grid-cols-3">
+        <ol role="list" className="grid gap-3 md:grid-cols-3">
           {(["contact", "sessions", "between"] as const).map((step, index) => (
-            <li key={step} className="grid content-start gap-2 border-t border-encre pt-4">
-              <p aria-hidden="true" className="text-sm font-semibold text-encre-douce tabular">
+            <li
+              key={step}
+              className="grid content-start gap-3 rounded-2xl border border-quadrillage bg-surface p-5"
+            >
+              <p
+                aria-hidden="true"
+                className="flex size-10 items-center justify-center rounded-full bg-bleu-fond text-lg font-semibold text-bleu-texte tabular"
+              >
                 {index + 1}
               </p>
               <h3 className="text-lg font-semibold">{t(`how.${step}.title`)}</h3>
@@ -216,17 +327,36 @@ export default async function HomePage() {
               <h2 id="levels" className={H2}>
                 {t("levelsHeading")}
               </h2>
-              <dl className="grid gap-4">
-                {levels.map((group) => (
-                  <div key={group.cycle} className="grid gap-1 border-t border-quadrillage pt-3">
-                    <dt className="font-semibold">
-                      {isCycle(group.cycle) ? t(`cycle.${group.cycle}`) : group.cycle}
-                    </dt>
-                    <dd className="text-encre-douce">
-                      {group.levels.map((level) => level.label).join(" · ")}
-                    </dd>
-                  </div>
-                ))}
+              {/* Each level in the colour of its notebook cover, as on the course pages. */}
+              <dl className="grid gap-2.5">
+                {levels.map((group) => {
+                  const colour = cycleHue(group.cycle);
+                  return (
+                    <div
+                      key={group.cycle}
+                      className={cn(
+                        "grid gap-2 rounded-2xl border border-s-4 border-quadrillage bg-surface px-4 py-3",
+                        colour.edge,
+                      )}
+                    >
+                      <dt className={cn("font-semibold", colour.text)}>
+                        {isCycle(group.cycle) ? t(`cycle.${group.cycle}`) : group.cycle}
+                      </dt>
+                      <dd>
+                        <ul role="list" className="flex flex-wrap gap-1.5">
+                          {group.levels.map((level) => (
+                            <li
+                              key={level.code}
+                              className={cn("rounded-full px-2.5 py-0.5 text-sm", colour.chip)}
+                            >
+                              {level.label}
+                            </li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </div>
+                  );
+                })}
               </dl>
             </section>
           ) : null}
@@ -235,24 +365,32 @@ export default async function HomePage() {
               <h2 id="places" className={H2}>
                 {t("placesHeading")}
               </h2>
-              <ul role="list" className="grid gap-4">
-                {modes.map((mode) => (
-                  <li key={mode} className="border-t border-quadrillage pt-3">
-                    {frenchSpaces(place(mode))}
-                  </li>
-                ))}
+              <ul role="list" className="grid gap-2.5">
+                {modes.map((mode) => {
+                  const Icon = PLACE_ICON[mode];
+                  return (
+                    <li
+                      key={mode}
+                      className="flex items-center gap-3 rounded-2xl border border-quadrillage bg-surface px-4 py-3"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-bleu-fond text-bleu-texte"
+                      >
+                        <Icon className="size-5" />
+                      </span>
+                      {frenchSpaces(place(mode))}
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           ) : null}
         </div>
       ) : null}
 
-      {/* Always there, so « Tarifs » in the header always leads somewhere. */}
-      <section
-        id="tarifs"
-        aria-labelledby="prices"
-        className={cn(SECTION, "grid scroll-mt-4 gap-6 py-14")}
-      >
+      {/* Always there, so « Tarifs » in the footer always leads somewhere. */}
+      <section id="tarifs" aria-labelledby="prices" className={cn(SECTION, "grid gap-6 py-14")}>
         <div className="grid gap-2">
           <h2 id="prices" className={H2}>
             {t("pricesHeading")}
@@ -262,14 +400,16 @@ export default async function HomePage() {
           </p>
         </div>
         {plans.length > 0 ? (
-          <ul
-            role="list"
-            className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage sm:grid-cols-2 lg:grid-cols-4"
-          >
+          <ul role="list" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {plans.map((plan) => (
-              <li key={plan.id} className="grid content-start gap-2 bg-surface p-5">
+              <li
+                key={plan.id}
+                className="grid content-start gap-2 rounded-2xl border border-t-4 border-quadrillage border-t-bleu bg-surface p-5"
+              >
                 <h3 className="font-semibold">{frenchSpaces(plan.name)}</h3>
-                <p className="text-2xl font-semibold tabular">{formatMad(plan.priceMad)}</p>
+                <p className="text-3xl font-semibold text-bleu tabular">
+                  {formatMad(plan.priceMad)}
+                </p>
                 <p className="text-sm text-encre-douce">
                   {plan.kind === "hour_pack"
                     ? t("pack", { hours: formatHours(plan.hours ?? 0) })
@@ -285,19 +425,21 @@ export default async function HomePage() {
       </section>
 
       {profile.bio ? (
-        <section aria-labelledby="about" className={cn(SECTION, "grid gap-6 py-14")}>
-          <h2 id="about" className={H2}>
-            {t("aboutHeading")}
-          </h2>
-          <div className="grid max-w-2xl gap-4 text-lg leading-relaxed">
-            {profile.bio
-              .split(/(?:\r?\n){2,}/)
-              .filter((paragraph) => paragraph.trim())
-              .map((paragraph) => (
-                <p key={paragraph} className="whitespace-pre-line">
-                  {frenchSpaces(paragraph)}
-                </p>
-              ))}
+        <section aria-labelledby="about" className={cn(SECTION, "py-14")}>
+          <div className="grid gap-6 rounded-2xl bg-sunken p-6 sm:p-10">
+            <h2 id="about" className={H2}>
+              {t("aboutHeading")}
+            </h2>
+            <div className="grid max-w-2xl gap-4 text-lg leading-relaxed">
+              {profile.bio
+                .split(/(?:\r?\n){2,}/)
+                .filter((paragraph) => paragraph.trim())
+                .map((paragraph) => (
+                  <p key={paragraph} className="whitespace-pre-line">
+                    {frenchSpaces(paragraph)}
+                  </p>
+                ))}
+            </div>
           </div>
         </section>
       ) : null}
@@ -309,15 +451,18 @@ export default async function HomePage() {
               <h2 id="advice" className={H2}>
                 {t("adviceHeading")}
               </h2>
-              <ul role="list" className="grid gap-2">
+              <ul role="list" className="grid gap-2.5">
                 {posts.slice(0, 3).map((post) => (
-                  <li key={post.slug} className="grid border-t border-quadrillage pt-1">
-                    <Link href={`/conseils/${post.slug}`} className={cn(LINK, "font-semibold")}>
-                      {frenchSpaces(post.title)}
+                  <li key={post.slug} className="grid">
+                    <Link
+                      href={`/conseils/${post.slug}`}
+                      className="grid gap-0.5 rounded-2xl border border-s-4 border-quadrillage border-s-vert bg-surface px-4 py-3 hover:border-trait"
+                    >
+                      <span className="font-semibold">{frenchSpaces(post.title)}</span>
+                      <span className="text-sm text-encre-douce">
+                        {withFirst(formatLocalDate(post.publishedAt))}
+                      </span>
                     </Link>
-                    <p className="text-sm text-encre-douce">
-                      {withFirst(formatLocalDate(post.publishedAt))}
-                    </p>
                   </li>
                 ))}
               </ul>
@@ -332,14 +477,24 @@ export default async function HomePage() {
                 {t("coursesHeading")}
               </h2>
               <p className="text-encre-douce">{t("coursesLead")}</p>
-              <ul role="list" className="grid gap-2">
-                {readyProgrammes.slice(0, 4).map((programme) => (
-                  <li key={programme.code} className="border-t border-quadrillage pt-1">
-                    <Link href={`/cours/${programme.slug}`} className={cn(LINK, "font-semibold")}>
-                      {programme.label}
-                    </Link>
-                  </li>
-                ))}
+              <ul role="list" className="grid gap-2.5">
+                {readyProgrammes.slice(0, 4).map((programme) => {
+                  const colour = cycleHue(programme.cycle);
+                  return (
+                    <li key={programme.code} className="grid">
+                      <Link
+                        href={`/cours/${programme.slug}`}
+                        className={cn(
+                          "flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-s-4 border-quadrillage bg-surface px-4 py-3 font-semibold hover:border-trait",
+                          colour.edge,
+                        )}
+                      >
+                        {programmeName(programme.label)}
+                        <ArrowRight aria-hidden="true" className={cn("size-4", colour.text)} />
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
               <Link href="/cours" className={cn(LINK, "justify-self-start")}>
                 {t("coursesAll")}
@@ -349,32 +504,61 @@ export default async function HomePage() {
         </div>
       ) : null}
 
-      <section aria-labelledby="start" className={cn(SECTION, "pt-14 pb-20")}>
-        <div className="grid gap-4 border-t-2 border-encre pt-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-          <div className="grid gap-2">
-            <h2 id="start" className={H2}>
-              {t("contactHeading")}
-            </h2>
-            <p className="max-w-xl text-lg text-encre-douce">
-              {whatsapp ? t("contactBody") : t("contactNoWhatsapp")}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            {whatsapp ? (
-              <a href={whatsapp} className={buttonVariants({ size: "lg" })}>
-                <MessageCircle aria-hidden="true" />
-                {t("whatsapp")}
-              </a>
-            ) : null}
-            <p className="flex flex-wrap items-center gap-x-2">
-              <span className="text-encre-douce">{t("alreadyIn")}</span>
-              <Link href="/connexion" className={LINK}>
-                {t("signIn")}
-              </Link>
-            </p>
+      <section aria-labelledby="start" className={cn(SECTION, "pt-6 pb-20")}>
+        <div className="relative overflow-hidden rounded-3xl bg-bleu-bande text-white">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-[linear-gradient(rgb(255_255_255/0.09)_1px,transparent_1px),linear-gradient(90deg,rgb(255_255_255/0.09)_1px,transparent_1px)] bg-[size:22px_22px]"
+          />
+          <div className="relative grid gap-6 p-6 sm:p-10 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+            <div className="grid gap-2">
+              <h2 id="start" className={H2}>
+                {t("contactHeading")}
+              </h2>
+              <p className="max-w-xl text-lg text-white">
+                {whatsapp ? t("contactBody") : t("contactNoWhatsapp")}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {whatsapp ? (
+                <a
+                  href={whatsapp}
+                  className={cn(
+                    buttonVariants({ size: "lg" }),
+                    "bg-white text-bleu-bande hover:bg-white/90",
+                  )}
+                >
+                  <MessageCircle aria-hidden="true" />
+                  {t("whatsapp")}
+                </a>
+              ) : null}
+              <p className="flex flex-wrap items-center gap-x-2">
+                <span className="text-white">{t("alreadyIn")}</span>
+                <Link
+                  href="/connexion"
+                  className="inline-flex min-h-11 items-center font-medium underline decoration-white/60 underline-offset-4 hover:decoration-white"
+                >
+                  {t("signIn")}
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </section>
     </main>
   );
 }
+
+type Door = {
+  href: string;
+  icon: LucideIcon;
+  colour: HueClasses;
+  title: string;
+  body: string;
+};
+
+const PLACE_ICON: Record<"chez_prof" | "domicile" | "en_ligne", LucideIcon> = {
+  chez_prof: MapPin,
+  domicile: House,
+  en_ligne: MonitorPlay,
+};

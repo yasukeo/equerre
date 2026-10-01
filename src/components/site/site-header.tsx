@@ -2,9 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { BrandMark } from "@/components/brand-mark";
 import { buttonVariants } from "@/components/ui/button-variants";
-
-const LINK =
-  "inline-flex min-h-11 items-center text-sm underline decoration-transparent underline-offset-4 hover:decoration-encre";
+import { SiteNavLink } from "./site-nav-link";
 
 /**
  * The public site's header (D-089, D-097): the brand, the places a visitor looks for, and the
@@ -13,39 +11,28 @@ const LINK =
 export async function SiteHeader() {
   const t = await getTranslations("site.nav");
   return (
-    <header className="border-b border-quadrillage bg-papier print:hidden">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 px-4 py-2 sm:px-8">
-        <Link href="/" className="inline-flex min-h-11 items-center rounded-sm">
+    <header className="sticky top-0 z-30 border-b border-quadrillage bg-surface/95 backdrop-blur print:hidden">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 px-4 py-2 sm:px-8">
+        <Link href="/" className="inline-flex min-h-11 items-center rounded-lg">
           <BrandMark />
         </Link>
         <nav
           aria-label={t("label")}
-          className="order-last w-full sm:order-none sm:me-auto sm:w-auto"
+          className="order-last -mx-2 w-full sm:order-none sm:mx-0 sm:me-auto sm:w-auto"
         >
-          <ul role="list" className="flex flex-wrap gap-x-5">
+          <ul role="list" className="flex gap-1">
             <li>
-              <Link href="/cours" className={LINK}>
-                {t("courses")}
-              </Link>
+              <SiteNavLink href="/cours">{t("courses")}</SiteNavLink>
             </li>
             <li>
-              <Link href="/examens" className={LINK}>
-                {t("exams")}
-              </Link>
+              <SiteNavLink href="/examens">{t("exams")}</SiteNavLink>
             </li>
             <li>
-              <Link href="/conseils" className={LINK}>
-                {t("advice")}
-              </Link>
-            </li>
-            <li>
-              <Link href="/#tarifs" className={LINK}>
-                {t("prices")}
-              </Link>
+              <SiteNavLink href="/conseils">{t("advice")}</SiteNavLink>
             </li>
           </ul>
         </nav>
-        <Link href="/connexion" className={buttonVariants({ variant: "outline", size: "sm" })}>
+        <Link href="/connexion" className={buttonVariants({ size: "sm" })}>
           {t("signIn")}
         </Link>
       </div>

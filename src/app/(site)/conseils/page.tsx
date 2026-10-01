@@ -20,7 +20,7 @@ export default async function BlogPage() {
 
   return (
     <main id="contenu" className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-8">
-      <h1 className="text-[clamp(2rem,1.5rem+2.5vw,3rem)] leading-tight font-semibold [font-variation-settings:'HEXP'_100]">
+      <h1 className="text-[clamp(2rem,1.5rem+2.5vw,3rem)] leading-tight font-semibold [font-variation-settings:'HEXP'_45]">
         {t("title")}
       </h1>
       <p className="mt-4 max-w-2xl text-lg text-encre-douce">{t("lead")}</p>

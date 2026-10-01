@@ -40,12 +40,20 @@ export default async function StudentLessonPage({ params }: PageProps<"/eleve/co
 
 async function Reader({ params }: { params: Promise<{ slug: string }> }) {
   await requireViewer("student");
-  const lesson = await getReadableLesson((await params).slug);
+  const [tKind, lesson] = await Promise.all([
+    getTranslations("documentKind"),
+    params.then(({ slug }) => getReadableLesson(slug)),
+  ]);
   if (!lesson) notFound();
 
   return (
     <LessonArticle
-      {...lesson}
+      title={lesson.title}
+      summary={lesson.summary}
+      publishedAt={lesson.publishedAt}
+      context={lesson.context}
+      content={lesson.content}
+      kind={{ kind: lesson.kind, label: tKind(`one.${lesson.kind}`) }}
       downloads={<PdfLinks id={lesson.id} version={lesson.version} kind={lesson.kind} />}
     />
   );

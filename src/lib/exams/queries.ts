@@ -34,7 +34,8 @@ export type ExamProgramme = {
   /** The streams that follow it, by the names students use. */
   streams: string[];
   paperCount: number;
-  /** The most recent year with a paper, for the index. */
+  /** The first and most recent years with a paper, for the index. */
+  firstYear: number;
   latestYear: number;
 };
 
@@ -59,6 +60,7 @@ export async function listExamProgrammes(): Promise<ExamProgramme[]> {
     cycle: programme.cycle,
     streams: publicStreams(programme.levels),
     paperCount: programme.national_exams.length,
+    firstYear: Math.min(...programme.national_exams.map((exam) => exam.year)),
     latestYear: Math.max(...programme.national_exams.map((exam) => exam.year)),
   }));
 }

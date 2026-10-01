@@ -3,9 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { ChapterDocuments, DocumentPager } from "@/components/course/chapter-documents";
 import { LessonArticle } from "@/components/lesson-article";
 import { PdfLinks } from "@/components/pdf-links";
-import { getPublicLesson, listPublicLessons, type LessonParams } from "@/lib/lesson/queries";
+import {
+  getProgrammeCourse,
+  getPublicLesson,
+  listPublicLessons,
+  type LessonParams,
+} from "@/lib/lesson/queries";
 
 export async function generateStaticParams(): Promise<LessonParams[]> {
   const lessons = await listPublicLessons();
@@ -38,7 +44,7 @@ export default function LessonPage({ params }: PageProps<"/cours/[niveau]/[chapi
   // `params` is awaited inside the boundary on purpose. Awaiting it out here would tie
   // this segment's App Shell to a single URL, and partial prefetching would lose it.
   return (
-    <main id="contenu" className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-8">
+    <main id="contenu" className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-10">
       <Suspense fallback={<LessonSkeleton />}>
         <Lesson params={params} />
       </Suspense>
@@ -48,8 +54,18 @@ export default function LessonPage({ params }: PageProps<"/cours/[niveau]/[chapi
 
 async function Lesson({ params }: { params: Promise<LessonParams> }) {
   // A stream's old address (`/cours/2bac-pc/…`) never gets here: next.config.ts redirects it.
-  const [t, lesson] = await Promise.all([getTranslations("lesson"), params.then(getPublicLesson)]);
+  const { niveau, lecon: current } = await params;
+  // The chapter around it, as visitors see it: its other public documents, in order.
+  const [t, tKind, lesson, programme] = await Promise.all([
+    getTranslations("lesson"),
+    getTranslations("documentKind"),
+    params.then(getPublicLesson),
+    getProgrammeCourse(niveau),
+  ]);
   if (!lesson) notFound();
+  const documents =
+    programme?.chapters.find((chapter) => chapter.slug === lesson.chapterSlug)?.documents ?? [];
+  const base = `/cours/${lesson.programmeSlug}/${lesson.chapterSlug}`;
 
   const crumb =
     "inline-flex min-h-11 items-center underline decoration-trait underline-offset-4 hover:decoration-encre";
@@ -78,6 +94,18 @@ async function Lesson({ params }: { params: Promise<LessonParams> }) {
         </nav>
       }
       downloads={<PdfLinks id={lesson.id} version={lesson.version} kind={lesson.kind} />}
+      kind={{ kind: lesson.kind, label: tKind(`one.${lesson.kind}`) }}
+      aside={
+        documents.length > 1 ? (
+          <ChapterDocuments
+            base={base}
+            chapterTitle={lesson.chapterTitle}
+            documents={documents}
+            current={current}
+          />
+        ) : undefined
+      }
+      pager={<DocumentPager base={base} documents={documents} current={current} />}
       content={lesson.content}
     />
   );

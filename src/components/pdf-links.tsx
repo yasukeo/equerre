@@ -13,6 +13,8 @@ type Props = {
   /** Read after the link by a screen reader, where several documents' links sit together. */
   title?: string;
   className?: string;
+  /** « links »: full labels, under a document's title. « compact »: short buttons, in a list. */
+  variant?: "links" | "compact";
 };
 
 type Status =
@@ -25,16 +27,23 @@ type Status =
  * download list. Without script, or with a modifier key, it is a plain download link. Never a
  * <Link>: a prefetch would print it for nobody.
  */
-export function PdfLinks({ id, version, kind, title, className }: Props) {
+export function PdfLinks({ id, version, kind, title, className, variant = "links" }: Props) {
   const t = useTranslations("pdf");
   const [status, setStatus] = useState<Status>({ state: "idle" });
+  const compact = variant === "compact";
   const links =
     kind === "serie" || kind === "devoir"
       ? [
-          { href: pdfHref(id, version), label: t("downloadStatements") },
-          { href: pdfHref(id, version, true), label: t("downloadWithSolutions") },
+          {
+            href: pdfHref(id, version),
+            label: compact ? t("compactStatements") : t("downloadStatements"),
+          },
+          {
+            href: pdfHref(id, version, true),
+            label: compact ? t("compactSolutions") : t("downloadWithSolutions"),
+          },
         ]
-      : [{ href: pdfHref(id, version), label: t("download") }];
+      : [{ href: pdfHref(id, version), label: compact ? t("compact") : t("download") }];
 
   async function download(event: MouseEvent<HTMLAnchorElement>, href: string) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
@@ -79,8 +88,8 @@ export function PdfLinks({ id, version, kind, title, className }: Props) {
 
   return (
     <div className={`grid gap-1 print:hidden ${className ?? ""}`}>
-      <ul role="list" className="flex flex-wrap gap-x-5">
-        {links.map((link) => {
+      <ul role="list" className={compact ? "flex flex-wrap gap-1.5" : "flex flex-wrap gap-2"}>
+        {links.map((link, index) => {
           const busy = status.state === "busy" && status.href === link.href;
           return (
             <li key={link.href}>
@@ -89,7 +98,13 @@ export function PdfLinks({ id, version, kind, title, className }: Props) {
                 download
                 onClick={(event) => void download(event, link.href)}
                 aria-busy={busy || undefined}
-                className="inline-flex min-h-11 items-center gap-1.5 text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+                className={
+                  compact
+                    ? "inline-flex min-h-11 items-center gap-1 rounded-lg bg-encre px-2.5 text-xs font-semibold text-papier hover:bg-encre/85"
+                    : index === 0
+                      ? "inline-flex min-h-11 items-center gap-2 rounded-full bg-encre px-4 text-sm font-medium text-papier hover:bg-encre/85"
+                      : "inline-flex min-h-11 items-center gap-2 rounded-full border border-trait bg-surface px-4 text-sm font-medium hover:border-encre"
+                }
               >
                 {busy ? (
                   <LoaderCircle

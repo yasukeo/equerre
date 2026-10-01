@@ -3,14 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { ChapterFolder } from "@/components/course/chapter-folder";
+import { BandStats, PageBand } from "@/components/course/page-band";
+import { cycleHue } from "@/lib/design/colors";
 import { listExamProgrammes } from "@/lib/exams/queries";
-import {
-  getProgrammeCourse,
-  listProgrammes,
-  type ProgrammeChapter,
-  type PublicDocument,
-} from "@/lib/lesson/queries";
-import { frenchSpaces } from "@/lib/typography";
+import { getProgrammeCourse, listProgrammes } from "@/lib/lesson/queries";
+import { programmeName } from "@/lib/lesson/streams";
 
 export async function generateStaticParams(): Promise<{ niveau: string }[]> {
   const programmes = await listProgrammes();
@@ -40,9 +38,14 @@ export default function ProgrammePage({ params }: PageProps<"/cours/[niveau]">) 
   // `params` is awaited inside the boundary, as on the lesson page: partial prefetching keeps
   // one shell for every programme.
   return (
-    <main id="contenu" className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-8">
+    <main id="contenu">
       <Suspense
-        fallback={<div aria-hidden="true" className="h-96 animate-pulse rounded-md bg-sunken" />}
+        fallback={
+          <div aria-hidden="true" className="grid gap-6">
+            <div className="h-64 animate-pulse bg-sunken" />
+            <div className="mx-auto h-96 w-full max-w-5xl animate-pulse rounded-2xl bg-sunken" />
+          </div>
+        }
       >
         <Programme params={params} />
       </Suspense>
@@ -53,134 +56,126 @@ export default function ProgrammePage({ params }: PageProps<"/cours/[niveau]">) 
 async function Programme({ params }: { params: Promise<{ niveau: string }> }) {
   // A stream's old address (`/cours/2bac-pc`) never gets here: next.config.ts redirects it.
   const { niveau } = await params;
-  const [t, tKind, programme, withExams] = await Promise.all([
+  const [t, tIndex, programme, withExams] = await Promise.all([
     getTranslations("programmePage"),
-    getTranslations("documentKind"),
+    getTranslations("coursesIndex"),
     getProgrammeCourse(niveau),
     listExamProgrammes(),
   ]);
   if (!programme) notFound();
 
   const exams = withExams.find((candidate) => candidate.code === programme.code);
+  const level = cycleHue(programme.cycle);
   const semesters = [1, 2, null] as const;
   const numbered = programme.chapters.map((chapter, index) => ({ ...chapter, number: index + 1 }));
-  const ready = programme.chapters.filter((chapter) => chapter.documents.length > 0).length;
+  const documents = programme.chapters.reduce((sum, chapter) => sum + chapter.documents.length, 0);
+  const ready = programme.chapters.filter((chapter) => chapter.documents.length > 0);
+  // The first chapter with something to read opens by itself: the page shows what it holds.
+  const firstReady = ready[0]?.slug;
+
+  const stats = [
+    {
+      value: programme.chapters.length,
+      label: t("statChapters", { count: programme.chapters.length }),
+    },
+    { value: documents, label: t("statDocuments", { count: documents }) },
+    ...(exams
+      ? [{ value: exams.paperCount, label: t("statExams", { count: exams.paperCount }) }]
+      : []),
+  ];
 
   return (
-    <article className="grid gap-10">
-      <header className="grid gap-3">
-        <Link
-          href="/cours"
-          className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-        >
-          {t("back")}
-        </Link>
-        <h1 className="text-[clamp(1.75rem,1.4rem+2vw,2.75rem)] leading-tight font-semibold [font-variation-settings:'HEXP'_90]">
-          {programme.label}
-        </h1>
-        {programme.streams.length > 1 ? (
-          <p>{t("streams", { list: programme.streams.join("\u00a0· ") })}</p>
-        ) : null}
-        <p className="text-encre-douce">
-          {t("progress", {
-            ready,
-            total: programme.chapters.length,
-            complete: ready === programme.chapters.length ? "yes" : "no",
-          })}
-        </p>
-        {exams ? (
-          <Link
-            href={`/examens/${programme.slug}`}
-            className="inline-flex min-h-11 items-center justify-self-start underline decoration-trait underline-offset-4 hover:decoration-encre"
-          >
-            {t("exams", { count: exams.paperCount })}
-          </Link>
-        ) : null}
-      </header>
-
-      {semesters.map((semester) => {
-        const chapters = numbered.filter((chapter) => chapter.semester === semester);
-        if (chapters.length === 0) return null;
-        const id = `semestre-${semester ?? "autre"}`;
-        return (
-          <section key={id} aria-labelledby={id} className="grid gap-3">
-            <h2 id={id} className="text-xl font-semibold">
-              {t("semester", { semester: String(semester ?? "none") })}
-            </h2>
-            <ol
-              role="list"
-              className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage"
-            >
-              {chapters.map((chapter) => (
-                <ChapterRow
-                  key={chapter.slug}
-                  programmeSlug={programme.slug}
-                  chapter={chapter}
-                  pendingLabel={t("inPreparation")}
-                  kindLabel={(kind) => tKind(`one.${kind}`)}
-                />
-              ))}
-            </ol>
-          </section>
-        );
-      })}
-    </article>
-  );
-}
-
-function ChapterRow({
-  programmeSlug,
-  chapter,
-  pendingLabel,
-  kindLabel,
-}: {
-  programmeSlug: string;
-  chapter: ProgrammeChapter & { number: number };
-  pendingLabel: string;
-  kindLabel: (kind: PublicDocument["kind"]) => string;
-}) {
-  const ready = chapter.documents.length > 0;
-  // A document alone of its kind is named by its kind (« Cours », « Résumé »); two of a kind
-  // are told apart by their titles.
-  const named = (document: PublicDocument) =>
-    chapter.documents.filter((other) => other.kind === document.kind).length === 1
-      ? kindLabel(document.kind)
-      : frenchSpaces(document.title);
-
-  return (
-    <li className="grid gap-1 bg-surface px-4 py-2">
-      <div className="flex flex-wrap items-baseline gap-x-3">
-        <h3 className="font-semibold">
-          {ready ? (
-            <Link
-              href={`/cours/${programmeSlug}/${chapter.slug}`}
-              className="inline-flex min-h-11 items-center underline decoration-trait underline-offset-4 hover:decoration-encre"
-            >
-              {chapter.number}. {frenchSpaces(chapter.title)}
-            </Link>
-          ) : (
-            <span className="inline-flex min-h-11 items-center">
-              {chapter.number}. {frenchSpaces(chapter.title)}
-            </span>
-          )}
-        </h3>
-        {ready ? null : <span className="text-sm text-encre-douce">{pendingLabel}</span>}
-      </div>
-      {ready ? (
-        <ul role="list" className="flex flex-wrap gap-x-4">
-          {chapter.documents.map((document) => (
-            <li key={document.slug}>
+    <>
+      {/* The programme's band, in its level's colour. */}
+      <PageBand colour={level.band}>
+        <nav aria-label={t("breadcrumb")} className="text-sm">
+          <ol role="list" className="flex flex-wrap items-center gap-x-2 text-white">
+            <li>
               <Link
-                href={`/cours/${programmeSlug}/${chapter.slug}/${document.slug}`}
-                className="inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+                href="/cours"
+                className="inline-flex min-h-11 items-center underline-offset-4 hover:underline"
               >
-                {named(document)}
-                <span className="sr-only">, {chapter.title}</span>
+                {t("back")}
               </Link>
             </li>
-          ))}
-        </ul>
-      ) : null}
-    </li>
+            {/* The separator goes with the item after it, so a wrapped line never ends on it. */}
+            <li className="flex items-center gap-x-2">
+              <span aria-hidden="true">›</span>
+              {tIndex(`cycle.${programme.cycle}`)}
+            </li>
+          </ol>
+        </nav>
+        <h1 className="text-[clamp(2rem,1.5rem+2.5vw,3.25rem)] leading-[1.05] font-semibold text-balance [font-variation-settings:'HEXP'_45]">
+          {programmeName(programme.label)}
+        </h1>
+        {programme.streams.length > 1 ? (
+          <ul role="list" aria-label={t("streamsLabel")} className="flex flex-wrap gap-2">
+            {programme.streams.map((stream) => (
+              <li key={stream} className="rounded-full border border-white/80 px-3 py-1 text-sm">
+                {stream}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <BandStats stats={stats} colour={level.text} />
+      </PageBand>
+
+      <div className="mx-auto grid max-w-5xl gap-8 px-4 py-8 sm:px-8">
+        <nav aria-label={t("sections")} className="flex flex-wrap gap-2">
+          <span
+            aria-current="page"
+            className="inline-flex min-h-11 items-center rounded-full bg-encre px-4 text-sm font-medium text-papier"
+          >
+            {t("tabChapters")}
+          </span>
+          {exams ? (
+            <Link
+              href={`/examens/${programme.slug}`}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-trait bg-surface px-4 text-sm font-medium hover:border-encre"
+            >
+              {t("tabExams")}
+              <span className="rounded-full bg-violet-fond px-2 py-0.5 text-xs text-violet-texte">
+                {exams.paperCount}
+              </span>
+            </Link>
+          ) : null}
+        </nav>
+
+        <p className="text-encre-douce">
+          {t("progress", {
+            ready: ready.length,
+            total: programme.chapters.length,
+            complete: ready.length === programme.chapters.length ? "yes" : "no",
+          })}
+        </p>
+
+        {semesters.map((semester) => {
+          const chapters = numbered.filter((chapter) => chapter.semester === semester);
+          if (chapters.length === 0) return null;
+          const id = `semestre-${semester ?? "autre"}`;
+          return (
+            <section key={id} aria-labelledby={id} className="grid gap-3">
+              <h2
+                id={id}
+                className="text-sm font-semibold tracking-[0.08em] text-encre-douce uppercase"
+              >
+                {t("semester", { semester: String(semester ?? "none") })}
+              </h2>
+              <ol role="list" className="grid gap-2.5">
+                {chapters.map((chapter) => (
+                  <ChapterFolder
+                    key={chapter.slug}
+                    programmeSlug={programme.slug}
+                    cycle={programme.cycle}
+                    chapter={chapter}
+                    open={chapter.slug === firstReady}
+                  />
+                ))}
+              </ol>
+            </section>
+          );
+        })}
+      </div>
+    </>
   );
 }

@@ -30,7 +30,7 @@ A student learns this system without being told, because it's the one they alrea
 | Token                | Light (_cahier_) | Dark (_tableau_) | Role                                                                                                                | Why it fits this brief                                                                                                          |
 | -------------------- | ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `papier` / `tableau` | `#F5F8FB`        | `#141E20`        | Page background                                                                                                     | A cool squared-paper white, not cream; the dark value is green-black slate, so chalk-white text doesn't vibrate on OLED phones. |
-| `encre` / `craie`    | `#132033`        | `#E7ECE8`        | Text, primary buttons                                                                                               | Fountain-pen ink and chalk: the interface's own voice, quiet and very high contrast (15.4:1 / 14.2:1).                          |
+| `encre` / `craie`    | `#132033`        | `#E7ECE8`        | Text, download buttons                                                                                              | Fountain-pen ink and chalk: the interface's own voice, quiet and very high contrast (15.4:1 / 14.2:1).                          |
 | `quadrillage`        | `#D3DEEA`        | `#2B3A3D`        | Hairline rules, table lines, the squared grid                                                                       | Graph-paper lines give structure without boxes. Decorative only — never the sole edge of a control.                             |
 | `stylo-bleu`         | `#1F4FB5`        | `#9BB6FF`        | Anything the student produced: answers, uploaded pages, the _rendu_ state                                           | Students write in blue; seeing their work in blue says "this is yours" (6.9:1 / 8.5:1).                                         |
 | `stylo-rouge`        | `#BE2F26`        | `#FF9A8B`        | Anything the tutor marked: corrections, grades, annotations, _corrigé_; also errors (always with an icon and words) | Corrections are red on every copy they've ever had back, so meaning is instant (5.4:1 / 8.3:1).                                 |
@@ -48,6 +48,21 @@ A student learns this system without being told, because it's the one they alrea
 
 There is no green "success" colour. Success is written in ink, with a check mark and a sentence.
 
+### Colour that says what something is (D-100)
+
+The pens say _who wrote it_. Six hues say _what it is_: a level has the colour of its notebook cover, a kind of document its own. Each comes as a solid (marks, edges), a « fond » with its « texte » (chips, tinted cards) and a « bande » that carries white text (page bands, the next-session card). The classes come from `src/lib/design/colors.ts`, never built by hand.
+
+| Hue      | Light solid / band    | Means                                  |
+| -------- | --------------------- | -------------------------------------- |
+| `bleu`   | `#1F4FB5`             | 2e bac · cours · primary action · nav  |
+| `vert`   | `#18794E`             | collège · série d’exercices · conseils |
+| `orange` | `#B5520C`             | tronc commun · unread messages         |
+| `violet` | `#5A3DB5`             | 1re bac · national exams · grades      |
+| `jaune`  | `#A77F00` / `#8A6A00` | résumé                                 |
+| `rouge`  | `#BE2F26`             | devoir · homework to hand in           |
+
+A coloured thing always says what it is in words too (§ State is never colour alone).
+
 ## Typefaces
 
 | Face                                                                    | Role                                                  | Why                                                                                                                                                                                                            |
@@ -56,7 +71,7 @@ There is no green "success" colour. Success is written in ink, with a check mark
 | **KaTeX's Computer Modern faces**                                       | Mathematics only, loaded only where maths is rendered | Maths should look like the maths in their textbooks and on the board. We don't restyle it.                                                                                                                     |
 | **Kalam 700** (Latin subset)                                            | The red-pen grade mark, and nothing else              | A felt-tip hand for the one personal moment: the grade she wrote. Never used for sentences.                                                                                                                    |
 
-**One family, two densities.** Readex Pro's `HEXP` (expansion) axis is how the two surfaces differ. The workspace sets `HEXP 0`: compact, for dense tables. Public-site headings set `HEXP 100`: wide and calm. This is the brief's "same identity, very different density", applied literally to the type.
+**One family, two densities.** Readex Pro's `HEXP` (expansion) axis is how the two surfaces differ. The workspace sets `HEXP 0`: compact, for dense tables. Headings set `HEXP 45`: wide and calm, not stretched (D-100; it was 100). This is the brief's "same identity, very different density", applied literally to the type.
 
 Times, grades and MAD amounts use `tabular-nums` so columns line up.
 
@@ -86,7 +101,7 @@ Times, grades and MAD amounts use `tabular-nums` so columns line up.
 ## Space, shape, elevation
 
 - **Spacing** steps of 4px: 4 · 8 · 12 · 16 · 24 · 32 · 48. The _carreau_ (one square of the grid) is 20px, close to the 5mm of real squared paper.
-- **Radius:** 6px on controls, 12px on the top of mobile bottom sheets. No pill-shaped buttons.
+- **Radius:** 10px on controls, 16px on cards and bands' cards, 12px on the top of mobile bottom sheets. Tabs, filters and chips are pills; buttons are not (D-100).
 - **No drop shadows** except for things that genuinely float (menus, dialogs, bottom sheets). Surfaces separate with a `quadrillage` rule or a change of surface. Paper doesn't float, and identical soft-shadow cards are the most generic look there is.
 - **Hit targets** at least 44px. Tutor table rows are 44px, student list rows 64px.
 

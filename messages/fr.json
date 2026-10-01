@@ -1183,7 +1183,6 @@
       "noHomework": "Rien à rendre pour l’instant.",
       "allHomework": "Tous mes devoirs",
       "grades": "Mes notes",
-      "average": "Moyenne : {average}/20, sur {count, plural, one {# exercice corrigé} other {# exercices corrigés}}",
       "noGrades": "Pas encore de note : elles apparaîtront ici.",
       "gradeLabel": "Note",
       "newLessons": "Nouveaux cours",
@@ -1191,7 +1190,12 @@
       "publishedOn": "publié le {date}",
       "sessionDetails": "Voir la séance",
       "book": "Réserver une séance",
-      "unreadMessages": "{count, plural, one {# nouveau message} other {# nouveaux messages}}"
+      "unreadMessages": "{count, plural, one {# nouveau message} other {# nouveaux messages}}",
+      "averageValue": "{average}/20",
+      "averageOver": "de moyenne, sur {count, plural, one {# exercice corrigé} other {# exercices corrigés}}",
+      "startHomework": "Commencer le devoir",
+      "continueHomework": "Continuer le devoir",
+      "allLessons": "Tous mes cours"
     },
     "profile": {
       "title": "Mon profil",
@@ -1214,7 +1218,9 @@
       "shared": "Partagé avec vous",
       "back": "Tous les cours",
       "browse": "Parcourir tous les cours",
-      "myProgramme": "Voir tout le programme de votre filière"
+      "myProgramme": "Voir tout le programme, chapitre par chapitre",
+      "programmeEyebrow": "Mon programme",
+      "programmeProgress": "{ready, plural, =0 {Les chapitres arrivent au fil de l’année.} one {# chapitre sur {total} en ligne} other {# chapitres sur {total} en ligne}}"
     },
     "homework": {
       "title": "Devoirs",
@@ -1523,7 +1529,11 @@
     "hideSolution": "Masquer le corrigé",
     "breadcrumb": "Fil d’Ariane",
     "courses": "Cours",
-    "solutionOf": "de l’exercice {number}"
+    "solutionOf": "de l’exercice {number}",
+    "inChapter": "Dans ce chapitre",
+    "pager": "Documents voisins",
+    "previousDocument": "Document précédent",
+    "nextDocument": "Document suivant"
   },
   "editor": {
     "mathShortcut": "Astuce : tapez $$x^2$$ dans le texte pour une formule, et $$$x^2$$$ seul sur une ligne pour une formule centrée. Au clavier, les flèches sélectionnent une formule, une image ou un document, et Entrée l’ouvre.",
@@ -1947,13 +1957,32 @@
       "metaTitleCity": "{tutor}, cours de mathématiques à {city}",
       "jobTitle": "Professeure de mathématiques",
       "knowsAbout": "Mathématiques",
-      "pricesEmpty": "Les tarifs vous sont communiqués au premier message."
+      "pricesEmpty": "Les tarifs vous sont communiqués au premier message.",
+      "doorsHeading": "Pour réviser, en accès libre",
+      "doors": {
+        "courses": {
+          "title": "Cours et exercices",
+          "body": "{count, plural, one {# document en ligne} other {# documents en ligne}} : cours, résumés, séries et devoirs corrigés."
+        },
+        "exams": {
+          "title": "Examens nationaux",
+          "body": "{count, plural, one {# sujet officiel} other {# sujets officiels}} du bac, {years}, et leurs éléments de réponse quand le ministère les a publiés.",
+          "years": "de {first} à {latest}",
+          "oneYear": "en {year}"
+        },
+        "advice": {
+          "title": "Conseils",
+          "body": "{count, plural, one {# article} other {# articles}} pour s’organiser et préparer les examens."
+        }
+      }
     },
     "footer": {
       "about": "{brand} · les cours de mathématiques de {tutor}",
       "student": "Se connecter",
       "courses": "Cours",
-      "advice": "Conseils"
+      "advice": "Conseils",
+      "exams": "Examens",
+      "prices": "Tarifs"
     }
   },
   "blog": {
@@ -1983,7 +2012,8 @@
     },
     "streams": "Filières : {list}",
     "progress": "{ready, plural, =0 {{total} chapitres · rédaction en cours} other {{total} chapitres · # en ligne}}",
-    "home": "Retour à l’accueil"
+    "home": "Retour à l’accueil",
+    "levels": "Niveaux"
   },
   "siteAdmin": {
     "title": "Site public",
@@ -2151,18 +2181,38 @@
     "cancel": "Annuler"
   },
   "programmePage": {
-    "back": "Tous les cours",
+    "back": "Cours",
     "streams": "Filières : {list}",
     "semester": "{semester, select, 1 {Premier semestre} 2 {Deuxième semestre} other {Hors semestre}}",
     "inPreparation": "En préparation",
     "metaDescription": "{programme} : le programme officiel de mathématiques, chapitre par chapitre, avec cours, résumés et séries d’exercices corrigés.",
     "progress": "{ready, plural, =0 {Les chapitres sont en cours de rédaction et arrivent au fil de l’année.} one {# chapitre sur {total} est en ligne ; les autres arrivent au fil de l’année.} other {{complete, select, yes {Les {ready} chapitres sont en ligne.} other {{ready} chapitres sur {total} sont en ligne ; les autres arrivent au fil de l’année.}}}}",
-    "exams": "{count, plural, one {Examen national : # sujet} other {Examens nationaux : # sujets}}"
+    "exams": "{count, plural, one {Examen national : # sujet} other {Examens nationaux : # sujets}}",
+    "breadcrumb": "Fil d’Ariane",
+    "chapter": "Chapitre {number}",
+    "streamsLabel": "Filières",
+    "sections": "Rubriques du programme",
+    "tabChapters": "Chapitres",
+    "tabExams": "Examens nationaux",
+    "statChapters": "{count, plural, one {chapitre} other {chapitres}}",
+    "statDocuments": "{count, plural, =0 {document en ligne} one {document en ligne} other {documents en ligne}}",
+    "statExams": "{count, plural, one {examen national} other {examens nationaux}}",
+    "kindCount": "{kind, select, cours {{count, plural, one {# cours} other {# cours}}} resume {{count, plural, one {Résumé} other {# résumés}}} serie {{count, plural, one {# série} other {# séries}}} other {{count, plural, one {# devoir} other {# devoirs}}}}",
+    "columns": {
+      "learn": "Apprendre",
+      "practice": "S’entraîner",
+      "assess": "S’évaluer"
+    },
+    "columnSoon": "Bientôt en ligne.",
+    "openChapter": "Ouvrir la page du chapitre"
   },
   "chapterPage": {
     "empty": "Ce chapitre est en cours de rédaction.",
     "metaDescription": "{chapter} ({programme}) : cours, résumé et exercices corrigés, en ligne et en PDF.",
-    "emptyLink": "Voir tous les chapitres du programme"
+    "emptyLink": "Voir tous les chapitres du programme",
+    "neighbours": "Chapitres voisins",
+    "previous": "Chapitre précédent",
+    "next": "Chapitre suivant"
   },
   "documentKind": {
     "one": {
@@ -2187,14 +2237,17 @@
     "preparing": "Préparation du PDF…",
     "tooMany": "Vous avez demandé plusieurs PDF d’affilée. Réessayez dans une minute.",
     "failed": "Le PDF n’a pas pu être préparé. Réessayez dans un instant.",
-    "busy": "Beaucoup de PDF sont demandés en ce moment. Réessayez dans une minute."
+    "busy": "Beaucoup de PDF sont demandés en ce moment. Réessayez dans une minute.",
+    "compact": "PDF",
+    "compactStatements": "Énoncés",
+    "compactSolutions": "Corrigés"
   },
   "exams": {
     "title": "Examens nationaux",
     "lead": "Les sujets officiels du baccalauréat des années précédentes, session normale et session de rattrapage, avec les éléments de réponse publiés par le ministère quand ils existent, à télécharger en PDF.",
     "empty": "Les premiers sujets arrivent bientôt. En attendant, les cours de chaque programme sont en ligne.",
     "toCourses": "Voir les cours",
-    "count": "{count, plural, one {# sujet} other {# sujets}} · jusqu’en {latest}",
+    "count": "{count, plural, one {# sujet} other {# sujets}} · de {first} à {latest}",
     "back": "Tous les examens",
     "programmeTitle": "Examens nationaux · {programme}",
     "programmeDescription": "{programme} : les sujets de l’examen national des années précédentes et leurs corrigés, en PDF.",
@@ -2206,11 +2259,19 @@
     },
     "subject": "Sujet",
     "solution": "Corrigé",
-    "fileSize": "(PDF, {size})",
     "noSolution": "Éléments de réponse non publiés pour cette session.",
-    "streams": "Filières : {list}",
     "officialAnswers": "Éléments de réponse",
     "arabic": "En arabe",
-    "officialSource": "Sujets et éléments de réponse officiels publiés par le <link>Centre national des examens et de l’évaluation</link> (ministère de l’Éducation nationale), reproduits tels quels. Certaines filières passent l’examen en arabe : leurs sujets sont en arabe."
+    "officialSource": "Sujets et éléments de réponse officiels publiés par le <link>Centre national des examens et de l’évaluation</link> (ministère de l’Éducation nationale), reproduits tels quels. Certaines filières passent l’examen en arabe : leurs sujets sont en arabe.",
+    "eyebrow": "Baccalauréat · 2e année",
+    "choose": "Choisissez votre filière",
+    "statPapers": "{count, plural, one {sujet} other {sujets}}",
+    "statProgrammes": "{count, plural, one {programme} other {programmes}}",
+    "statYears": "années d’examen",
+    "statYearCount": "{count, plural, one {année} other {années}}",
+    "statAnswered": "avec éléments de réponse",
+    "years": "Aller à l’année",
+    "paperTitle": "Sujet de {year}",
+    "countOneYear": "{count, plural, one {# sujet} other {# sujets}} · {year}"
   }
 }

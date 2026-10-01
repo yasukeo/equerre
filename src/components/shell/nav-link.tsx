@@ -52,15 +52,19 @@ function NavLinkView({
       aria-current={active ? "page" : undefined}
       className={cn(
         // Mobile: a column in the bottom bar. Desktop: a row in the rail.
-        "relative flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 text-xs text-encre-douce md:min-h-11 md:flex-none md:flex-row md:justify-start md:gap-3 md:rounded-md md:px-3 md:text-sm",
+        "group relative flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 text-xs text-encre-douce md:min-h-11 md:flex-none md:flex-row md:justify-start md:gap-3 md:rounded-xl md:px-3 md:text-sm",
         "hover:text-encre md:hover:bg-sunken",
-        // Current page: ink text and a highlighter bar (top edge on mobile, start edge on desktop).
-        "aria-[current=page]:font-semibold aria-[current=page]:text-encre",
-        "before:absolute before:inset-x-4 before:top-0 before:h-[3px] before:rounded-full before:bg-surligneur before:opacity-0 aria-[current=page]:before:opacity-100",
-        "md:before:inset-x-auto md:before:inset-y-2 md:before:start-0 md:before:h-auto md:before:w-[3px]",
+        // Current page: in blue, the icon in a pill on a phone, the whole row on a desktop.
+        "aria-[current=page]:font-semibold aria-[current=page]:text-bleu-texte",
+        "md:aria-[current=page]:bg-bleu-fond md:aria-[current=page]:hover:bg-bleu-fond",
+        // Not colour alone: a bar on top of the item on a phone, at its start on a desktop.
+        "before:absolute before:inset-x-4 before:top-0 before:h-1 before:rounded-b-full aria-[current=page]:before:bg-bleu",
+        "md:before:inset-x-auto md:before:inset-y-2 md:before:start-0 md:before:h-auto md:before:w-1 md:before:rounded-e-full md:before:rounded-b-none",
       )}
     >
-      <span className="[&_svg]:size-5">{icon}</span>
+      <span className="flex h-7 w-12 items-center justify-center rounded-full group-aria-[current=page]:bg-bleu-fond md:h-auto md:w-auto md:bg-transparent md:group-aria-[current=page]:bg-transparent [&_svg]:size-5 group-aria-[current=page]:[&_svg]:text-bleu">
+        {icon}
+      </span>
       <span className="max-w-full truncate">{children}</span>
     </Link>
   );

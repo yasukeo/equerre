@@ -21,6 +21,8 @@
 
 :root {
   --papier: #f5f8fb;
+  /* Ink on a white tile that sits on a coloured band: the tile is white in both themes. */
+  --encre-fixe: #132033;
   --surface: #ffffff;
   --sunken: #eef3f8;
   --encre: #132033;
@@ -35,6 +37,35 @@
   /* The tutor's red pen on a photographed page. The page is white paper in both themes, so
      this one is never redefined for the dark theme; white on it is 5.9:1. */
   --correction: #be2f26;
+
+  /* Colour that says what something is (D-100): each level has the colour of its notebook
+     cover, each kind of document its own (cours bleu, résumé jaune, série verte, devoir rouge,
+     examen violet). A hue comes as a solid (icons, edges), a « fond » with its « texte » for
+     chips and tinted cards, and a « bande » that carries white text. */
+  --bleu: #1f4fb5;
+  --bleu-fond: #e6eefd;
+  --bleu-texte: #193f91;
+  --bleu-bande: #1f4fb5;
+  --vert: #18794e;
+  --vert-fond: #e1f4e9;
+  --vert-texte: #125e3c;
+  --vert-bande: #18794e;
+  --orange: #b5520c;
+  --orange-fond: #fdebdb;
+  --orange-texte: #873c07;
+  --orange-bande: #b5520c;
+  --violet: #5a3db5;
+  --violet-fond: #ece6fd;
+  --violet-texte: #452e92;
+  --violet-bande: #5a3db5;
+  --jaune: #a77f00;
+  --jaune-fond: #fff3bf;
+  --jaune-texte: #6b5200;
+  --jaune-bande: #8a6a00;
+  --rouge: #be2f26;
+  --rouge-fond: #fde7e4;
+  --rouge-texte: #962219;
+  --rouge-bande: #be2f26;
 
   color-scheme: light;
 }
@@ -53,6 +84,30 @@
     --surligneur: #e3da6e;
     --lavis-bleu: color-mix(in oklab, #9bb6ff 16%, #1b2729);
     --lavis-rouge: color-mix(in oklab, #ff9a8b 16%, #1b2729);
+    --bleu: #8fb0ff;
+    --bleu-fond: color-mix(in oklab, #8fb0ff 18%, #1b2729);
+    --bleu-texte: #c3d4ff;
+    --bleu-bande: #21407f;
+    --vert: #6fd3a0;
+    --vert-fond: color-mix(in oklab, #6fd3a0 18%, #1b2729);
+    --vert-texte: #b3ecd0;
+    --vert-bande: #155c3c;
+    --orange: #ffb27a;
+    --orange-fond: color-mix(in oklab, #ffb27a 18%, #1b2729);
+    --orange-texte: #ffd6b8;
+    --orange-bande: #7f3a0b;
+    --violet: #b9a6ff;
+    --violet-fond: color-mix(in oklab, #b9a6ff 18%, #1b2729);
+    --violet-texte: #ddd3ff;
+    --violet-bande: #45318a;
+    --jaune: #f2d45c;
+    --jaune-fond: color-mix(in oklab, #f2d45c 18%, #1b2729);
+    --jaune-texte: #f8e8a6;
+    --jaune-bande: #6b5200;
+    --rouge: #ff9a8b;
+    --rouge-fond: color-mix(in oklab, #ff9a8b 18%, #1b2729);
+    --rouge-texte: #ffc9c0;
+    --rouge-bande: #8a221b;
 
     color-scheme: dark;
   }
@@ -71,6 +126,30 @@
   --surligneur: #e3da6e;
   --lavis-bleu: color-mix(in oklab, #9bb6ff 16%, #1b2729);
   --lavis-rouge: color-mix(in oklab, #ff9a8b 16%, #1b2729);
+  --bleu: #8fb0ff;
+  --bleu-fond: color-mix(in oklab, #8fb0ff 18%, #1b2729);
+  --bleu-texte: #c3d4ff;
+  --bleu-bande: #21407f;
+  --vert: #6fd3a0;
+  --vert-fond: color-mix(in oklab, #6fd3a0 18%, #1b2729);
+  --vert-texte: #b3ecd0;
+  --vert-bande: #155c3c;
+  --orange: #ffb27a;
+  --orange-fond: color-mix(in oklab, #ffb27a 18%, #1b2729);
+  --orange-texte: #ffd6b8;
+  --orange-bande: #7f3a0b;
+  --violet: #b9a6ff;
+  --violet-fond: color-mix(in oklab, #b9a6ff 18%, #1b2729);
+  --violet-texte: #ddd3ff;
+  --violet-bande: #45318a;
+  --jaune: #f2d45c;
+  --jaune-fond: color-mix(in oklab, #f2d45c 18%, #1b2729);
+  --jaune-texte: #f8e8a6;
+  --jaune-bande: #6b5200;
+  --rouge: #ff9a8b;
+  --rouge-fond: color-mix(in oklab, #ff9a8b 18%, #1b2729);
+  --rouge-texte: #ffc9c0;
+  --rouge-bande: #8a221b;
 
   color-scheme: dark;
 }
@@ -95,7 +174,7 @@
   --border: var(--quadrillage);
   --input: var(--trait);
   --ring: var(--encre);
-  --radius: 0.375rem;
+  --radius: 0.625rem;
   --sidebar: var(--papier);
   --sidebar-foreground: var(--encre);
   --sidebar-primary: var(--encre);
@@ -107,6 +186,7 @@
 }
 
 @theme inline {
+  --color-encre-fixe: var(--encre-fixe);
   --color-papier: var(--papier);
   --color-surface: var(--surface);
   --color-sunken: var(--sunken);
@@ -120,6 +200,30 @@
   --color-lavis-bleu: var(--lavis-bleu);
   --color-lavis-rouge: var(--lavis-rouge);
   --color-correction: var(--correction);
+  --color-bleu: var(--bleu);
+  --color-bleu-fond: var(--bleu-fond);
+  --color-bleu-texte: var(--bleu-texte);
+  --color-bleu-bande: var(--bleu-bande);
+  --color-vert: var(--vert);
+  --color-vert-fond: var(--vert-fond);
+  --color-vert-texte: var(--vert-texte);
+  --color-vert-bande: var(--vert-bande);
+  --color-orange: var(--orange);
+  --color-orange-fond: var(--orange-fond);
+  --color-orange-texte: var(--orange-texte);
+  --color-orange-bande: var(--orange-bande);
+  --color-violet: var(--violet);
+  --color-violet-fond: var(--violet-fond);
+  --color-violet-texte: var(--violet-texte);
+  --color-violet-bande: var(--violet-bande);
+  --color-jaune: var(--jaune);
+  --color-jaune-fond: var(--jaune-fond);
+  --color-jaune-texte: var(--jaune-texte);
+  --color-jaune-bande: var(--jaune-bande);
+  --color-rouge: var(--rouge);
+  --color-rouge-fond: var(--rouge-fond);
+  --color-rouge-texte: var(--rouge-texte);
+  --color-rouge-bande: var(--rouge-bande);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -161,10 +265,22 @@
   --radius-sm: calc(var(--radius) * 0.66);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) * 1.33);
-  --radius-xl: calc(var(--radius) * 2);
+  --radius-xl: calc(var(--radius) * 1.6);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.8);
 }
 
 @layer base {
+  /* The public header is sticky (two lines on a phone): scrolling to a focused element or an
+     anchor stops below it. */
+  html {
+    scroll-padding-top: 7.5rem;
+  }
+  @media (min-width: 40rem) {
+    html {
+      scroll-padding-top: 5rem;
+    }
+  }
   * {
     @apply border-border;
   }
