@@ -1,8 +1,8 @@
 ---
-title: Nombres complexes (2e partie)
+title: Nombres complexes (2e partie) — partie 1 : forme exponentielle et équations
 kind: cours
-summary: Notation exponentielle, formules d’Euler, équations du second degré dans ℂ, et transformations du plan (translation, homothétie, rotation).
-position: 20
+summary: Notation exponentielle, règles de calcul, formules d’Euler et linéarisation, équations du second degré à coefficients réels dans C, somme et produit des solutions, factorisation d’un polynôme.
+position: 10
 visibility: public
 ---
 
@@ -52,28 +52,22 @@ $z^2 - 2z + 5 = 0$ : $\Delta = 4 - 20 = -16 = (4i)^2$, donc $z = \frac{2 - 4i}{2
 Si $z_1$ et $z_2$ sont les solutions de $az^2 + bz + c = 0$, alors $z_1 + z_2 = -\frac{b}{a}$ et $z_1 z_2 = \frac{c}{a}$.
 :::
 
-## Transformations du plan
+:::exemple
+$z^2 + z + 1 = 0$ : $\Delta = -3 = \left(i\sqrt{3}\right)^2$, donc $z = \frac{-1 - i\sqrt{3}}{2} = e^{-i\frac{2\pi}{3}}$ ou $z = \frac{-1 + i\sqrt{3}}{2} = e^{i\frac{2\pi}{3}}$.
+:::
 
-À chaque transformation, on associe son **écriture complexe** : la relation entre l’affixe $z$ d’un point $M$ et l’affixe $z'$ de son image $M'$.
+### Équations qui se ramènent au second degré
 
-:::propriete
-- **Translation** de vecteur $\vec{w}$ d’affixe $b$ : $z' = z + b$.
-- **Homothétie** de centre $\Omega$ d’affixe $\omega$ et de rapport $k$ réel non nul : $z' - \omega = k(z - \omega)$.
-- **Rotation** de centre $\Omega$ d’affixe $\omega$ et d’angle $\theta$ : $z' - \omega = e^{i\theta}(z - \omega)$.
+:::exemple
+Soit $P(z) = z^3 - 3z^2 + 4z - 2$. On remarque que $P(1) = 1 - 3 + 4 - 2 = 0$ ; on peut donc factoriser par $z - 1$ : $P(z) = (z - 1)\left(z^2 - 2z + 2\right)$ (on le vérifie en développant). L’équation $z^2 - 2z + 2 = 0$ a pour discriminant $-4 = (2i)^2$ et pour solutions $1 - i$ et $1 + i$. Les solutions de $P(z) = 0$ sont $1$, $1 - i$ et $1 + i$.
 :::
 
 :::exemple
-La rotation de centre $\Omega(1 + i)$ et d’angle $\frac{\pi}{2}$ a pour écriture $z' - (1 + i) = i\left(z - (1 + i)\right)$, soit $z' = iz + 2$. L’image de $O$ est le point d’affixe $2$.
+Résoudre $z^4 - 1 = 0$ : $z^4 - 1 = (z^2 - 1)(z^2 + 1) = (z - 1)(z + 1)(z - i)(z + i)$. Les solutions sont $1$, $-1$, $i$ et $-i$.
 :::
 
-:::propriete
-Réciproquement, soit $z' = az + b$ avec $a \neq 0$ :
-
-- si $a = 1$, c’est la translation de vecteur d’affixe $b$ ;
-- si $a$ est réel et $a \neq 1$, c’est l’homothétie de rapport $a$ et de centre le point fixe d’affixe $\omega = \frac{b}{1 - a}$ ;
-- si $|a| = 1$ et $a \neq 1$, c’est la rotation d’angle $\arg a$ et de centre le point fixe d’affixe $\omega = \frac{b}{1 - a}$.
-:::
+### Linéariser avec Euler
 
 :::exemple
-$z' = -2z + 3$ : $a = -2$ est réel, c’est l’homothétie de rapport $-2$ et de centre le point d’affixe $\omega = \frac{3}{1 + 2} = 1$.
+$\sin^3\theta = \left(\frac{e^{i\theta} - e^{-i\theta}}{2i}\right)^3 = \frac{e^{3i\theta} - 3e^{i\theta} + 3e^{-i\theta} - e^{-3i\theta}}{-8i} = \frac{2i\sin 3\theta - 6i\sin\theta}{-8i} = \frac{3\sin\theta - \sin 3\theta}{4}$.
 :::

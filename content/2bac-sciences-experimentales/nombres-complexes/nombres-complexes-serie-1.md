@@ -1,12 +1,12 @@
 ---
-title: Série 1 : nombres complexes
+title: Série 1 — partie 1 : forme algébrique
 kind: serie
-summary: Forme algébrique, module et argument, forme trigonométrique, équation du second degré et nature d’un triangle, avec les corrigés.
+summary: Calculs sous forme algébrique, puissances de i, conjugué, équations du premier degré dans C, affixes, milieu et alignement, avec les corrigés.
 position: 10
 visibility: public
 ---
 
-Quatre exercices sur les nombres complexes.
+Quatre exercices sur la première partie du cours.
 
 :::exercice Forme algébrique
 Écrire sous forme algébrique :
@@ -22,34 +22,42 @@ Quatre exercices sur les nombres complexes.
 :::
 :::
 
-:::exercice Module, argument, forme trigonométrique
-Soit $z = -1 + i$.
-
-1. Calculer le module et un argument de $z$, et écrire $z$ sous forme trigonométrique.
-2. En déduire $z^8$.
-
-:::corrige
-1. $|z| = \sqrt{1 + 1} = \sqrt{2}$. $\cos\theta = -\frac{1}{\sqrt{2}} = -\frac{\sqrt{2}}{2}$ et $\sin\theta = \frac{\sqrt{2}}{2}$, donc $\theta = \frac{3\pi}{4}$ et $z = \sqrt{2}\left(\cos\frac{3\pi}{4} + i\sin\frac{3\pi}{4}\right)$.
-2. Par la formule de Moivre, $z^8 = \left(\sqrt{2}\right)^8 \left(\cos(6\pi) + i\sin(6\pi)\right) = 16$.
-:::
-:::
-
-:::exercice Équation du second degré
-Résoudre dans $\mathbb{C}$ l’équation $z^2 - 4z + 13 = 0$, puis placer les images des solutions dans le plan complexe.
+:::exercice Puissances de i et conjugué
+1. Calculer $i^{2025}$ et $i^{2026} + i^{2027}$.
+2. Soit $z = 2 - 3i$. Calculer $z + \bar{z}$, $z - \bar{z}$ et $z\bar{z}$.
+3. Soit $z = x + iy$ ($x, y$ réels). Écrire $Z = z^2 + \bar{z}$ sous forme algébrique, et trouver les $z$ pour lesquels $Z$ est réel.
 
 :::corrige
-$\Delta = 16 - 52 = -36 = (6i)^2$, donc $z_1 = \frac{4 - 6i}{2} = 2 - 3i$ et $z_2 = 2 + 3i$. Les deux solutions sont conjuguées : leurs images $M_1(2 ; -3)$ et $M_2(2 ; 3)$ sont symétriques par rapport à l’axe des abscisses. On vérifie : $z_1 + z_2 = 4$ et $z_1 z_2 = 4 + 9 = 13$.
+1. $2025 = 4 \times 506 + 1$, donc $i^{2025} = i$. Puis $i^{2026} + i^{2027} = i^2 + i^3 = -1 - i$.
+2. $z + \bar{z} = 4$, $z - \bar{z} = -6i$, $z\bar{z} = 4 + 9 = 13$.
+3. $Z = x^2 - y^2 + 2ixy + x - iy = \left(x^2 - y^2 + x\right) + i\,y(2x - 1)$. $Z$ est réel si et seulement si $y = 0$ ou $x = \frac{1}{2}$ : $z$ est réel, ou sa partie réelle vaut $\frac{1}{2}$.
 :::
 :::
 
-:::exercice Interprétation géométrique
-Dans le plan complexe, on considère les points $A$, $B$ et $C$ d’affixes $z_A = 1 + i$, $z_B = 3 + 2i$ et $z_C = 3i$.
+:::exercice Équations du premier degré
+Résoudre dans $\mathbb{C}$ :
 
-1. Calculer $Z = \dfrac{z_C - z_A}{z_B - z_A}$ sous forme algébrique.
-2. En déduire la nature du triangle $ABC$.
+1. $(2 - i)z + 3i = 1$
+2. $\dfrac{z + 1}{z - 1} = i$ (avec $z \neq 1$)
+3. $z + 2\bar{z} = 6 - 2i$
 
 :::corrige
-1. $z_C - z_A = -1 + 2i$ et $z_B - z_A = 2 + i$, donc $Z = \dfrac{(-1 + 2i)(2 - i)}{(2 + i)(2 - i)} = \dfrac{-2 + i + 4i - 2i^2}{5} = \dfrac{5i}{5} = i$.
-2. $|Z| = 1$, donc $AC = AB$ ; et $\arg Z \equiv \frac{\pi}{2}$ $[2\pi]$, donc $\left(\overrightarrow{AB}, \overrightarrow{AC}\right) \equiv \frac{\pi}{2}$ $[2\pi]$. Le triangle $ABC$ est rectangle et isocèle en $A$.
+1. $(2 - i)z = 1 - 3i$, donc $z = \frac{1 - 3i}{2 - i} = \frac{(1 - 3i)(2 + i)}{5} = \frac{2 + i - 6i + 3}{5} = \frac{5 - 5i}{5} = 1 - i$.
+2. $z + 1 = i(z - 1)$, donc $z(1 - i) = -1 - i$ et $z = \frac{-1 - i}{1 - i} = \frac{(-1 - i)(1 + i)}{2} = \frac{-1 - 2i - i^2}{2} = -i$, qui est bien différent de $1$.
+3. Avec $z = x + iy$ : $x + iy + 2x - 2iy = 3x - iy = 6 - 2i$, donc $x = 2$ et $y = 2$ : $z = 2 + 2i$.
+:::
+:::
+
+:::exercice Affixes et alignement
+On considère les points $A(1 + 2i)$, $B(3 - i)$ et $C(-1 + 5i)$.
+
+1. Calculer les affixes des vecteurs $\overrightarrow{AB}$ et $\overrightarrow{AC}$, et celle du milieu $I$ de $[BC]$.
+2. Montrer que $A$, $B$ et $C$ sont alignés.
+3. Soit $E$ le point d’affixe $i$. Déterminer l’affixe du point $D$ tel que $ABDE$ soit un parallélogramme.
+
+:::corrige
+1. $z_{\overrightarrow{AB}} = 2 - 3i$, $z_{\overrightarrow{AC}} = -2 + 3i$, $z_I = \frac{(3 - i) + (-1 + 5i)}{2} = 1 + 2i$.
+2. $\frac{z_C - z_A}{z_B - z_A} = \frac{-2 + 3i}{2 - 3i} = -1$ est réel : les points sont alignés (et $A$ est le milieu de $[BC]$, puisque $z_I = z_A$).
+3. $ABDE$ est un parallélogramme si et seulement si $\overrightarrow{ED} = \overrightarrow{AB}$, soit $z_D - z_E = z_B - z_A$. Donc $z_D = i + 2 - 3i = 2 - 2i$.
 :::
 :::
