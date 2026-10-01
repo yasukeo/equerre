@@ -22,11 +22,12 @@ export function newExamFileName(examId: string): string {
 /** What a download is saved as: `examen-2024-normale-2bac-sciences-maths-sujet.pdf`. */
 export function examFileName(
   programmeSlug: string,
-  exam: { year: number; session: ExamSession; track: string | null },
-  part: "sujet" | "corrige",
+  exam: { year: number; session: ExamSession; track: string | null; language?: string },
+  part: "sujet" | "corrige" | "elements-de-reponse",
 ): string {
   const track = exam.track ? `-${slugify(exam.track)}` : "";
-  return `examen-${exam.year}-${exam.session}-${programmeSlug}${track}-${part}.pdf`;
+  const language = exam.language === "ar" ? "-arabe" : "";
+  return `examen-${exam.year}-${exam.session}-${programmeSlug}${track}-${part}${language}.pdf`;
 }
 
 function slugify(value: string): string {

@@ -20,6 +20,7 @@ export type PaperValues = {
   year: string;
   session: string;
   track: string;
+  language: string;
   published: boolean;
 };
 
@@ -83,7 +84,8 @@ export function PaperForm({ id, editing, programmes, initial, hasSolution = fals
 
   const shown = local ?? state;
   const set =
-    (key: "programme" | "year" | "session" | "track") => (event: { target: { value: string } }) =>
+    (key: "programme" | "year" | "session" | "track" | "language") =>
+    (event: { target: { value: string } }) =>
       setValues((current) => ({ ...current, [key]: event.target.value }));
   const refuse = (message: string, field?: string) =>
     setLocal({
@@ -176,6 +178,7 @@ export function PaperForm({ id, editing, programmes, initial, hasSolution = fals
       year: values.year,
       session: values.session,
       track: values.track,
+      language: values.language,
       published: String(values.published),
       subjectPath: path(files.subject),
       solutionPath: removeSolution ? "" : path(files.solution),
@@ -232,6 +235,16 @@ export function PaperForm({ id, editing, programmes, initial, hasSolution = fals
             ))}
           </SelectField>
         </div>
+        <SelectField
+          id="paper-language"
+          label={t("language")}
+          value={values.language}
+          onChange={set("language")}
+          error={fieldError(shown, "language")}
+        >
+          <option value="fr">{t("languages.fr")}</option>
+          <option value="ar">{t("languages.ar")}</option>
+        </SelectField>
         <Field
           id="paper-track"
           label={t("track")}

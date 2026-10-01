@@ -58,7 +58,7 @@ async function Papers({
   const { data, error } = await supabase
     .from("national_exams")
     .select(
-      "id, year, session, track, status, subject_size, solution_size, programme:programmes!inner(code, slug, label, position)",
+      "id, year, session, track, language, official, status, subject_size, solution_size, programme:programmes!inner(code, slug, label, position)",
     )
     .order("year", { ascending: false })
     .order("session")
@@ -111,6 +111,16 @@ async function Papers({
                     </span>
                     {paper.status === "draft" ? (
                       <PublicationChip status="draft" label={tLessons("status.draft")} />
+                    ) : null}
+                    {paper.official ? (
+                      <span className="rounded-sm border border-trait px-1.5 py-0.5 text-xs text-encre-douce">
+                        {t("officialChip")}
+                      </span>
+                    ) : null}
+                    {paper.language === "ar" ? (
+                      <span className="rounded-sm border border-trait px-1.5 py-0.5 text-xs text-encre-douce">
+                        {t("languages.ar")}
+                      </span>
                     ) : null}
                   </span>
                   <span className="text-sm text-encre-douce">

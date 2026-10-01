@@ -42,7 +42,9 @@ async function EditPaper({ params }: { params: Promise<{ id: string }> }) {
   const [{ data: paper }, programmes, t] = await Promise.all([
     supabase
       .from("national_exams")
-      .select("id, programme_code, year, session, track, status, subject_path, solution_path")
+      .select(
+        "id, programme_code, year, session, track, language, official, status, subject_path, solution_path, subject_source_url",
+      )
       .eq("id", id)
       .maybeSingle(),
     listProgrammes(),
@@ -58,6 +60,9 @@ async function EditPaper({ params }: { params: Promise<{ id: string }> }) {
           {t("paperTitle", { year: paper.year, session: paper.session })}
           {paper.track ? ` · ${paper.track}` : null}
         </h1>
+        {paper.official ? (
+          <p className="max-w-prose text-sm text-encre-douce">{t("officialHint")}</p>
+        ) : null}
         <ul role="list" className="flex flex-wrap gap-x-5">
           <li>
             <a
@@ -89,6 +94,7 @@ async function EditPaper({ params }: { params: Promise<{ id: string }> }) {
           year: String(paper.year),
           session: paper.session,
           track: paper.track ?? "",
+          language: paper.language,
           published: paper.status === "published",
         }}
       />

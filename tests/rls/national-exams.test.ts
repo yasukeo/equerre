@@ -106,6 +106,18 @@ describe("national exams", () => {
       subject_size: 1000,
     });
     expect(twice.error?.code).toBe("23505");
+
+    // A paper called the ministry's says where it comes from.
+    const unsourced = await tutor.from("national_exams").insert({
+      id,
+      programme_code: "2BAC-SM",
+      year: 2002,
+      session: "rattrapage",
+      subject_path: file(id),
+      subject_size: 1000,
+      official: true,
+    });
+    expect(unsourced.error?.code).toBe("23514");
   });
 
   it("takes PDFs from the tutor only", async () => {

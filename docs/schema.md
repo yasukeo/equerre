@@ -148,6 +148,9 @@ erDiagram
     text track "null: the whole programme"
     text subject_path "id/file.pdf in national-exams"
     text solution_path
+    text language "fr, ar"
+    boolean official "the ministry's own, D-099"
+    text subject_source_url
     publication_status status
   }
 ```

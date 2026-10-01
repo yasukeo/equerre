@@ -1,0 +1,818 @@
+{
+  "source": "Centre national des examens et de l'évaluation (CNEE), ministère de l'Éducation nationale : archive https://cnee.men.gov.ma/WebNational.aspx. Relevé le 1er octobre 2026. Les sujets 2023 (lien cassé sur le serveur du ministère), 2024 et 2025 n'y sont pas.",
+  "base": "https://cnee.men.gov.ma/",
+  "papers": [
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2010,
+      "session": "normale",
+      "subject": "NATIONAL/2010/25NS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2010,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2010/25RS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2011,
+      "session": "normale",
+      "subject": "NATIONAL/2011/25NS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2011,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2011/25RS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2012,
+      "session": "normale",
+      "subject": "NATIONAL/2012/25NS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2012,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2012/25RS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2013,
+      "session": "normale",
+      "subject": "NATIONAL/2013/sujets2013/NS25.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2013,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2013/sujets2013/RS25.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2014,
+      "session": "normale",
+      "subject": "NATIONAL/2014/sujet2014/25_NS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2014,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2014/sujet2014/25_RS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2015,
+      "session": "normale",
+      "subject": "NATIONAL/2015/sujets%202015/NS%2025.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2015,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2015/sujets%202015/RS%2025.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2016,
+      "session": "normale",
+      "subject": "NATIONAL/2016/sujets%202016/NS25.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2016,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2016/sujets%202016/RS25.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2017,
+      "session": "normale",
+      "subject": "NATIONAL/2017/sujets%202017/NS24F.pdf",
+      "answers": "NATIONAL/2017/reponses%202017/NR24F%20.pdf"
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2017,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2017/sujets%202017/RS24F%20.pdf",
+      "answers": "NATIONAL/2017/reponses%202017/RR24F%20.pdf"
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2018,
+      "session": "normale",
+      "subject": "NATIONAL/2018/NS24F.pdf",
+      "answers": "NATIONAL/2018/NR24F.pdf"
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2018,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2018/RS24F.pdf",
+      "answers": "NATIONAL/2018/RR24F.pdf"
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2019,
+      "session": "normale",
+      "subject": "NATIONAL/2019/NS24F.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2019,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2019/RS24F.pdf",
+      "answers": "NATIONAL/2019/RR24F.pdf"
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2020,
+      "session": "normale",
+      "subject": "NATIONAL/2020/NS%2024F.pdf",
+      "answers": "NATIONAL/2020/NR%2024F.pdf"
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2020,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2020/RS%2024F.pdf",
+      "answers": "NATIONAL/2020/RR%2024F.pdf"
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2021,
+      "session": "normale",
+      "subject": "NATIONAL/2021/NS24F.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2021,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2021/RS24F%20MATH%20SMA-SMB.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2022,
+      "session": "normale",
+      "subject": "NATIONAL/2022/NS%2024F.pdf",
+      "answers": "NATIONAL/2022/NR%2024F.pdf"
+    },
+    {
+      "programme": "2BAC-SM",
+      "track": null,
+      "language": "fr",
+      "year": 2022,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2022/RS%2024F.pdf",
+      "answers": "NATIONAL/2022/RR%2024F.pdf"
+    },
+
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "ar",
+      "year": 2010,
+      "session": "normale",
+      "subject": "NATIONAL/2010/22NS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "ar",
+      "year": 2010,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2010/22RS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "ar",
+      "year": 2011,
+      "session": "normale",
+      "subject": "NATIONAL/2011/22NS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "ar",
+      "year": 2011,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2011/22RS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "ar",
+      "year": 2013,
+      "session": "normale",
+      "subject": "NATIONAL/2013/sujets2013/NS22.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "ar",
+      "year": 2013,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2013/sujets2013/RS22.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "ar",
+      "year": 2014,
+      "session": "normale",
+      "subject": "NATIONAL/2014/sujet2014/NS22.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "ar",
+      "year": 2014,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2014/sujet2014/RS22.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "ar",
+      "year": 2015,
+      "session": "normale",
+      "subject": "NATIONAL/2015/sujets%202015/NS%2022.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "ar",
+      "year": 2015,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2015/sujets%202015/RS%2022.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "fr",
+      "year": 2016,
+      "session": "normale",
+      "subject": "NATIONAL/2016/sujets%202016/NS%2022F.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": null,
+      "language": "fr",
+      "year": 2016,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2016/sujets%202016/RS22F.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC, SVT et Sciences agronomiques",
+      "language": "fr",
+      "year": 2017,
+      "session": "normale",
+      "subject": "NATIONAL/2017/sujets%202017/NS22F.pdf",
+      "answers": "NATIONAL/2017/reponses%202017/NR22F.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC, SVT et Sciences agronomiques",
+      "language": "fr",
+      "year": 2017,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2017/sujets%202017/RS22F.pdf",
+      "answers": "NATIONAL/2017/reponses%202017/RR22F.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC, SVT et Sciences agronomiques",
+      "language": "fr",
+      "year": 2018,
+      "session": "normale",
+      "subject": "NATIONAL/2018/NS%2022F.pdf",
+      "answers": "NATIONAL/2018/NR%2022F.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC, SVT et Sciences agronomiques",
+      "language": "fr",
+      "year": 2018,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2018/RS22F.pdf",
+      "answers": "NATIONAL/2018/RR%2022F.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC, SVT et Sciences agronomiques",
+      "language": "fr",
+      "year": 2019,
+      "session": "normale",
+      "subject": "NATIONAL/2019/NS22F.pdf",
+      "answers": "NATIONAL/2019/NR22F.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC, SVT et Sciences agronomiques",
+      "language": "fr",
+      "year": 2019,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2019/RS22F.pdf",
+      "answers": "NATIONAL/2019/RR22F.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC, SVT et Sciences agronomiques",
+      "language": "fr",
+      "year": 2020,
+      "session": "normale",
+      "subject": "NATIONAL/2020/NS%2022F.pdf",
+      "answers": "NATIONAL/2020/NR%2022F.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC, SVT et Sciences agronomiques",
+      "language": "fr",
+      "year": 2020,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2020/RS%2022F.pdf",
+      "answers": "NATIONAL/2020/RR%2022F.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC, SVT et Sciences agronomiques",
+      "language": "fr",
+      "year": 2021,
+      "session": "normale",
+      "subject": "NATIONAL/2021/NS22F.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC, SVT et Sciences agronomiques",
+      "language": "fr",
+      "year": 2021,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2021/RS22F%20MATH%20SVT-PC.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC et SVT",
+      "language": "fr",
+      "year": 2022,
+      "session": "normale",
+      "subject": "NATIONAL/2022/NS%2022F.pdf",
+      "answers": "NATIONAL/2022/NR%2022F.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "PC et SVT",
+      "language": "fr",
+      "year": 2022,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2022/RS%2022F.pdf",
+      "answers": "NATIONAL/2022/RR%2022F.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "Sciences agronomiques",
+      "language": "ar",
+      "year": 2022,
+      "session": "normale",
+      "subject": "NATIONAL/2022/NS%2022AG.pdf",
+      "answers": "NATIONAL/2022/NR%2022AG.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "Sciences agronomiques",
+      "language": "ar",
+      "year": 2022,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2022/RS%2022AG.pdf",
+      "answers": "NATIONAL/2022/RR%2022AG.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "STE et STM",
+      "language": "ar",
+      "year": 2017,
+      "session": "normale",
+      "subject": "NATIONAL/2017/sujets%202017/NS22ST.pdf",
+      "answers": "NATIONAL/2017/reponses%202017/NR22ST.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "STE et STM",
+      "language": "ar",
+      "year": 2017,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2017/sujets%202017/RS22ST.pdf",
+      "answers": "NATIONAL/2017/reponses%202017/RR22ST.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "STE et STM",
+      "language": "ar",
+      "year": 2018,
+      "session": "normale",
+      "subject": "NATIONAL/2018/NS%2022ST.pdf",
+      "answers": "NATIONAL/2018/NR%2022ST.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "STE et STM",
+      "language": "ar",
+      "year": 2018,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2018/RS22ST.pdf",
+      "answers": "NATIONAL/2018/RR%2022ST.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "STE et STM",
+      "language": "ar",
+      "year": 2019,
+      "session": "normale",
+      "subject": "NATIONAL/2019/NS22ST.pdf",
+      "answers": "NATIONAL/2019/NR22ST.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "STE et STM",
+      "language": "ar",
+      "year": 2019,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2019/RS22ST.pdf",
+      "answers": "NATIONAL/2019/RR22ST.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "STE et STM",
+      "language": "ar",
+      "year": 2021,
+      "session": "normale",
+      "subject": "NATIONAL/2021/NS22ST.pdf",
+      "answers": "NATIONAL/2021/NR22ST.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "STE et STM",
+      "language": "ar",
+      "year": 2021,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2021/RS22ST%20MATH%20SC%20TECH.pdf",
+      "answers": "NATIONAL/2021/RR22ST%20MATH%20SC%20TECH.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "STE et STM",
+      "language": "ar",
+      "year": 2022,
+      "session": "normale",
+      "subject": "NATIONAL/2022/NS%2022ST.pdf",
+      "answers": "NATIONAL/2022/NR%2022ST.pdf"
+    },
+    {
+      "programme": "2BAC-SEXP",
+      "track": "STE et STM",
+      "language": "ar",
+      "year": 2022,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2022/RS%2022ST.pdf",
+      "answers": "NATIONAL/2022/RR%2022ST.pdf"
+    },
+
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2008,
+      "session": "normale",
+      "subject": "NATIONAL/NS_2008/NS_maths/sc_eco_gestion.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2008,
+      "session": "rattrapage",
+      "subject": "NATIONAL/RS_2008/RS_maths/MATH_MASLAK_TADBIR_MOUHASABATI_MASLAK_SC_ECO.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2010,
+      "session": "normale",
+      "subject": "NATIONAL/2010/26NS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2010,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2010/26RS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2011,
+      "session": "normale",
+      "subject": "NATIONAL/2011/26NS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2011,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2011/26RS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2012,
+      "session": "normale",
+      "subject": "NATIONAL/2012/26NS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2012,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2012/26RS.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2013,
+      "session": "normale",
+      "subject": "NATIONAL/2013/sujets2013/NS26.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2013,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2013/sujets2013/RS26.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2014,
+      "session": "normale",
+      "subject": "NATIONAL/2014/sujet2014/NS26.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2014,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2014/sujet2014/RS26.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2015,
+      "session": "normale",
+      "subject": "NATIONAL/2015/sujets%202015/NS%2026.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2015,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2015/sujets%202015/RS%2026.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2016,
+      "session": "normale",
+      "subject": "NATIONAL/2016/sujets%202016/NS26.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2016,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2016/sujets%202016/RS26.pdf",
+      "answers": null
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2017,
+      "session": "normale",
+      "subject": "NATIONAL/2017/sujets%202017/NS26.pdf",
+      "answers": "NATIONAL/2017/reponses%202017/NR26.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2017,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2017/sujets%202017/RS26%20.pdf",
+      "answers": "NATIONAL/2017/reponses%202017/RR26%20%20.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2018,
+      "session": "normale",
+      "subject": "NATIONAL/2018/NS%2026A.pdf",
+      "answers": "NATIONAL/2018/NR%2026A%20.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "ar",
+      "year": 2018,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2018/RS26A.pdf",
+      "answers": "NATIONAL/2018/RR%2026A%20.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "fr",
+      "year": 2019,
+      "session": "normale",
+      "subject": "NATIONAL/2019/NS26F.pdf",
+      "answers": "NATIONAL/2019/NR26F.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "fr",
+      "year": 2019,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2019/RS%2026F.pdf",
+      "answers": "NATIONAL/2019/RR26F.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "fr",
+      "year": 2020,
+      "session": "normale",
+      "subject": "NATIONAL/2020/NS%2026F.pdf",
+      "answers": "NATIONAL/2020/NR%2026F.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "fr",
+      "year": 2020,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2020/RS%2026F.pdf",
+      "answers": "NATIONAL/2020/RR%2026F.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "fr",
+      "year": 2021,
+      "session": "normale",
+      "subject": "NATIONAL/2021/NS26F.pdf",
+      "answers": "NATIONAL/2021/NR26F.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "fr",
+      "year": 2021,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2021/RS26F%20MATH%20ECO-GEST.pdf",
+      "answers": "NATIONAL/2021/RR26F%20MATH%20ECO-GEST.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "fr",
+      "year": 2022,
+      "session": "normale",
+      "subject": "NATIONAL/2022/NS%2026F.pdf",
+      "answers": "NATIONAL/2022/NR%2026F.pdf"
+    },
+    {
+      "programme": "2BAC-ECO",
+      "track": null,
+      "language": "fr",
+      "year": 2022,
+      "session": "rattrapage",
+      "subject": "NATIONAL/2022/RS%2026F.pdf",
+      "answers": "NATIONAL/2022/RR%2026F.pdf"
+    }
+  ]
+}

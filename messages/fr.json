@@ -1156,13 +1156,21 @@
         "upload": "L’envoi des fichiers n’a pas abouti. Vérifiez la connexion et réessayez.",
         "duplicate": "Cet examen existe déjà : même programme, même année, même session et mêmes filières.",
         "gone": "Ce sujet n’existe plus.",
-        "unknown": "L’enregistrement n’a pas abouti. Réessayez."
+        "unknown": "L’enregistrement n’a pas abouti. Réessayez.",
+        "language": "Choisissez la langue du sujet."
       },
       "checking": "Vérification…",
       "progress": "Envoi {part, select, solution {du corrigé} other {du sujet}} ({index} sur {total}) : {sent} sur {size}…",
       "keepOpen": "Gardez cette page ouverte jusqu’à la fin de l’envoi.",
       "deleted": "L’examen a été supprimé, avec ses fichiers.",
-      "created": "L’examen a été ajouté."
+      "created": "L’examen a été ajouté.",
+      "language": "Langue du sujet",
+      "languages": {
+        "fr": "Français",
+        "ar": "Arabe"
+      },
+      "officialChip": "Officiel",
+      "officialHint": "Sujet officiel du ministère, publié tel quel. Remplacer ou retirer un de ses fichiers en fait un sujet ordinaire."
     }
   },
   "student": {
@@ -2183,14 +2191,14 @@
   },
   "exams": {
     "title": "Examens nationaux",
-    "lead": "Les sujets du baccalauréat des années précédentes, session normale et session de rattrapage, avec leurs corrigés quand ils existent, à télécharger en PDF.",
+    "lead": "Les sujets officiels du baccalauréat des années précédentes, session normale et session de rattrapage, avec les éléments de réponse publiés par le ministère quand ils existent, à télécharger en PDF.",
     "empty": "Les premiers sujets arrivent bientôt. En attendant, les cours de chaque programme sont en ligne.",
     "toCourses": "Voir les cours",
     "count": "{count, plural, one {# sujet} other {# sujets}} · jusqu’en {latest}",
     "back": "Tous les examens",
     "programmeTitle": "Examens nationaux · {programme}",
     "programmeDescription": "{programme} : les sujets de l’examen national des années précédentes et leurs corrigés, en PDF.",
-    "programmeLead": "Chaque sujet tel qu’il a été donné à l’examen, et son corrigé quand il est disponible.",
+    "programmeLead": "Chaque sujet tel qu’il a été donné à l’examen, et ses éléments de réponse quand le ministère les a publiés.",
     "toProgramme": "Réviser avec les cours du programme",
     "session": {
       "normale": "Session normale",
@@ -2199,7 +2207,10 @@
     "subject": "Sujet",
     "solution": "Corrigé",
     "fileSize": "(PDF, {size})",
-    "noSolution": "Corrigé pas encore disponible.",
-    "streams": "Filières : {list}"
+    "noSolution": "Éléments de réponse non publiés pour cette session.",
+    "streams": "Filières : {list}",
+    "officialAnswers": "Éléments de réponse",
+    "arabic": "En arabe",
+    "officialSource": "Sujets et éléments de réponse officiels publiés par le <link>Centre national des examens et de l’évaluation</link> (ministère de l’Éducation nationale), reproduits tels quels. Certaines filières passent l’examen en arabe : leurs sujets sont en arabe."
   }
 }

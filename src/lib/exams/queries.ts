@@ -16,6 +16,10 @@ export type ExamPaper = {
   year: number;
   session: ExamSession;
   track: string | null;
+  /** French, or Arabic where the stream sat its paper in Arabic only. */
+  language: "fr" | "ar";
+  /** The ministry's own paper and « éléments de réponse », published as they are (D-099). */
+  official: boolean;
   subjectUrl: string;
   subjectSize: number;
   solutionUrl: string | null;
@@ -65,6 +69,8 @@ export type ProgrammeExams = {
   label: string;
   /** Newest year first; within a year, the normal session before the resit. */
   years: { year: number; papers: ExamPaper[] }[];
+  /** Whether any of them is the ministry's own: the page then says where they come from. */
+  official: boolean;
 };
 
 /** One programme's papers, by year. Null when the programme does not exist. */
@@ -80,7 +86,7 @@ async function readProgrammeExams(slug: string): Promise<ProgrammeExams | null> 
   const { data, error } = await client
     .from("programmes")
     .select(
-      "code, slug, label, national_exams(id, year, session, track, subject_path, subject_size, solution_path, solution_size)",
+      "code, slug, label, national_exams(id, year, session, track, language, official, subject_path, subject_size, solution_path, solution_size)",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -108,10 +114,15 @@ async function readProgrammeExams(slug: string): Promise<ProgrammeExams | null> 
       year: exam.year,
       session: exam.session,
       track: exam.track,
+      language: exam.language === "ar" ? "ar" : "fr",
+      official: exam.official,
       subjectUrl: url(exam.subject_path, examFileName(data.slug, exam, "sujet")),
       subjectSize: exam.subject_size,
       solutionUrl: exam.solution_path
-        ? url(exam.solution_path, examFileName(data.slug, exam, "corrige"))
+        ? url(
+            exam.solution_path,
+            examFileName(data.slug, exam, exam.official ? "elements-de-reponse" : "corrige"),
+          )
         : null,
       solutionSize: exam.solution_size,
     };
@@ -119,7 +130,13 @@ async function readProgrammeExams(slug: string): Promise<ProgrammeExams | null> 
     if (last?.year === exam.year) last.papers.push(paper);
     else years.push({ year: exam.year, papers: [paper] });
   }
-  return { code: data.code, slug: data.slug, label: data.label, years };
+  return {
+    code: data.code,
+    slug: data.slug,
+    label: data.label,
+    years,
+    official: papers.some((exam) => exam.official),
+  };
 }
 
 const SESSIONS: readonly ExamSession[] = ["normale", "rattrapage"];

@@ -815,13 +815,17 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          language: string
+          official: boolean
           programme_code: string
           session: Database["public"]["Enums"]["exam_session"]
           solution_path: string | null
           solution_size: number | null
+          solution_source_url: string | null
           status: Database["public"]["Enums"]["publication_status"]
           subject_path: string
           subject_size: number
+          subject_source_url: string | null
           track: string | null
           updated_at: string
           year: number
@@ -829,13 +833,17 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          language?: string
+          official?: boolean
           programme_code: string
           session: Database["public"]["Enums"]["exam_session"]
           solution_path?: string | null
           solution_size?: number | null
+          solution_source_url?: string | null
           status?: Database["public"]["Enums"]["publication_status"]
           subject_path: string
           subject_size: number
+          subject_source_url?: string | null
           track?: string | null
           updated_at?: string
           year: number
@@ -843,13 +851,17 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          language?: string
+          official?: boolean
           programme_code?: string
           session?: Database["public"]["Enums"]["exam_session"]
           solution_path?: string | null
           solution_size?: number | null
+          solution_source_url?: string | null
           status?: Database["public"]["Enums"]["publication_status"]
           subject_path?: string
           subject_size?: number
+          subject_source_url?: string | null
           track?: string | null
           updated_at?: string
           year?: number

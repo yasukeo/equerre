@@ -22,6 +22,7 @@
     "db:push": "supabase db push",
     "db:seed": "tsx --env-file=.env.local scripts/seed.mts",
     "content:import": "tsx --env-file=.env.local scripts/import-content.mts",
+    "exams:import": "tsx --env-file=.env.local scripts/import-exams.mts",
     "storage:sweep": "tsx --env-file=.env.local scripts/sweep-lesson-storage.mts"
   },
   "dependencies": {

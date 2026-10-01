@@ -49,6 +49,7 @@ async function NewPaper() {
         year: String(new Date().getFullYear()),
         session: "normale",
         track: "",
+        language: "fr",
         published: true,
       }}
     />

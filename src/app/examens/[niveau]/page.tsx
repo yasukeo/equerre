@@ -67,21 +67,37 @@ async function ProgrammeExams({ params }: { params: Promise<{ niveau: string }> 
       {exams.years.length === 0 ? (
         <p className="rounded-md border border-dashed border-trait px-4 py-5">{t("empty")}</p>
       ) : (
-        exams.years.map(({ year, papers }) => (
-          <section key={year} aria-labelledby={`annee-${year}`} className="grid gap-3">
-            <h2 id={`annee-${year}`} className="text-lg font-semibold">
-              {year}
-            </h2>
-            <ul
-              role="list"
-              className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage"
-            >
-              {papers.map((paper) => (
-                <Paper key={paper.id} paper={paper} />
-              ))}
-            </ul>
-          </section>
-        ))
+        <>
+          {exams.years.map(({ year, papers }) => (
+            <section key={year} aria-labelledby={`annee-${year}`} className="grid gap-3">
+              <h2 id={`annee-${year}`} className="text-lg font-semibold">
+                {year}
+              </h2>
+              <ul
+                role="list"
+                className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage"
+              >
+                {papers.map((paper) => (
+                  <Paper key={paper.id} paper={paper} />
+                ))}
+              </ul>
+            </section>
+          ))}
+          {exams.official ? (
+            <p className="text-sm text-encre-douce">
+              {t.rich("officialSource", {
+                link: (chunks) => (
+                  <a
+                    href="https://cnee.men.gov.ma/WebNational.aspx"
+                    className="underline decoration-trait underline-offset-4 hover:decoration-encre"
+                  >
+                    {chunks}
+                  </a>
+                ),
+              })}
+            </p>
+          ) : null}
+        </>
       )}
     </article>
   );
@@ -90,22 +106,37 @@ async function ProgrammeExams({ params }: { params: Promise<{ niveau: string }> 
 async function Paper({ paper }: { paper: ExamPaper }) {
   const t = await getTranslations("exams");
   const name = `${t(`session.${paper.session}`)}${paper.track ? `\u00a0· ${paper.track}` : ""}`;
+  // The ministry's correction is « éléments de réponse »: the marking guide, not a worked answer.
   const files = [
     { href: paper.subjectUrl, label: t("subject"), size: paper.subjectSize },
     ...(paper.solutionUrl && paper.solutionSize !== null
-      ? [{ href: paper.solutionUrl, label: t("solution"), size: paper.solutionSize }]
+      ? [
+          {
+            href: paper.solutionUrl,
+            label: paper.official ? t("officialAnswers") : t("solution"),
+            size: paper.solutionSize,
+          },
+        ]
       : []),
   ];
 
   return (
     <li className="grid gap-1 bg-surface px-4 py-3">
-      <h3 className="font-semibold">{name}</h3>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h3 className="font-semibold">{name}</h3>
+        {paper.language === "ar" ? (
+          <span className="rounded-sm border border-trait px-1.5 py-0.5 text-xs text-encre-douce">
+            {t("arabic")}
+          </span>
+        ) : null}
+      </div>
       <ul role="list" className="flex flex-wrap gap-x-5">
         {files.map((file) => (
           <li key={file.href}>
             {/* A plain link: the file is the ministry's PDF, served as it is. */}
             <a
               href={file.href}
+              hrefLang={paper.language}
               className="inline-flex min-h-11 items-center gap-1.5 text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
             >
               <FileDown aria-hidden="true" className="size-4 shrink-0" />
@@ -113,7 +144,7 @@ async function Paper({ paper }: { paper: ExamPaper }) {
               <span className="font-normal text-encre-douce">
                 {t("fileSize", { size: formatFileSize(file.size) })}
               </span>
-              <span className="sr-only">{`, ${paper.year}, ${name}`}</span>
+              <span className="sr-only">{`, ${paper.year}, ${name}${paper.language === "ar" ? `, ${t("arabic")}` : ""}`}</span>
             </a>
           </li>
         ))}

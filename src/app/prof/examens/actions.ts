@@ -26,6 +26,7 @@ const paperSchema = z.object({
     .max(new Date().getFullYear() + 1),
   session: z.enum(EXAM_SESSIONS as [string, ...string[]]),
   track: z.string().trim().max(80),
+  language: z.enum(["fr", "ar"]),
   published: z.enum(["true", "false"]).transform((value) => value === "true"),
   subjectPath: z.string(),
   solutionPath: z.string(),
@@ -49,6 +50,7 @@ async function readPaper(formData: FormData): Promise<Read> {
     year: textField(formData, "year"),
     session: textField(formData, "session"),
     track: textField(formData, "track"),
+    language: textField(formData, "language") || "fr",
     published: textField(formData, "published") || "true",
     subjectPath: textField(formData, "subjectPath"),
     solutionPath: textField(formData, "solutionPath"),
@@ -73,6 +75,7 @@ async function readPaper(formData: FormData): Promise<Read> {
               year: t("errors.year"),
               session: t("errors.session"),
               track: t("errors.track"),
+              language: t("errors.language"),
             }),
         values,
       },
@@ -166,6 +169,7 @@ export async function createPaper(_previous: FormState, formData: FormData): Pro
     year: paper.year,
     session: paper.session as "normale" | "rattrapage",
     track: paper.track || null,
+    language: paper.language,
     subject_path: paper.subjectPath,
     subject_size: subjectSize,
     solution_path: paper.solutionPath || null,
@@ -189,7 +193,7 @@ export async function updatePaper(_previous: FormState, formData: FormData): Pro
   const supabase = await createClient();
   const { data: current } = await supabase
     .from("national_exams")
-    .select("subject_path, solution_path, status")
+    .select("subject_path, solution_path, status, official")
     .eq("id", paper.id)
     .maybeSingle();
   if (!current) return { status: "error", message: t("errors.gone"), values };
@@ -200,7 +204,11 @@ export async function updatePaper(_previous: FormState, formData: FormData): Pro
     year: number;
     session: "normale" | "rattrapage";
     track: string | null;
+    language: "fr" | "ar";
     status: "published" | "draft";
+    official?: boolean;
+    subject_source_url?: string | null;
+    solution_source_url?: string | null;
     subject_path?: string;
     subject_size?: number;
     solution_path?: string | null;
@@ -210,8 +218,15 @@ export async function updatePaper(_previous: FormState, formData: FormData): Pro
     year: paper.year,
     session: paper.session as "normale" | "rattrapage",
     track: paper.track || null,
+    language: paper.language,
     status: paper.published ? "published" : "draft",
   };
+  // A file of the ministry's replaced or taken away: the paper is no longer theirs as published.
+  if (current.official && (paper.subjectPath || paper.solutionPath || paper.removeSolution)) {
+    change.official = false;
+    change.subject_source_url = null;
+    change.solution_source_url = null;
+  }
   if (paper.subjectPath) {
     const size = sizes.get(paper.subjectPath);
     if (size === undefined) return { status: "error", message: t("errors.upload"), values };
