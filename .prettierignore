@@ -6,3 +6,7 @@ supabase/.temp
 playwright-report
 test-results
 tutoring-saas-agent-prompt*.md
+# Course documents: their Markdown is read by src/lib/content/markdown.ts, not by Prettier,
+# which would indent a « ::: » after a list and escape the stars of a formula.
+content/**/*.md
+!content/README.md

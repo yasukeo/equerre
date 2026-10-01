@@ -130,10 +130,12 @@
         "groups": "Groupes",
         "invite": "Inviter un élève",
         "payments": "Paiements",
-        "site": "Site public"
+        "site": "Site public",
+        "exams": "Examens nationaux"
       },
       "payments": "Paiements",
-      "site": "Site public"
+      "site": "Site public",
+      "exams": "Examens"
     },
     "student": {
       "label": "Mon espace",
@@ -251,8 +253,20 @@
         "specific": "Visible des élèves désignées"
       },
       "open": "Voir la page publique",
-      "count": "{count, plural, one {# leçon} other {# leçons}}",
-      "new": "Nouvelle leçon"
+      "count": "{count, plural, one {# document} other {# documents}}",
+      "new": "Nouvelle leçon",
+      "filter": {
+        "label": "Filtrer les documents",
+        "all": "Tous",
+        "drafts": "{count, plural, =0 {À relire} other {À relire (#)}}",
+        "published": "Publiés",
+        "programme": "Programme",
+        "allProgrammes": "Tous les programmes",
+        "apply": "Afficher",
+        "noDrafts": "Rien à relire : tous les documents de cette sélection sont publiés.",
+        "none": "Aucun document dans cette sélection.",
+        "showAll": "Tout afficher"
+      }
     },
     "newLesson": {
       "title": "Nouvelle leçon",
@@ -1082,6 +1096,73 @@
         "gone": "Ce type n’existe plus. La page est à jour.",
         "unknown": "L’enregistrement n’a pas abouti. Vérifiez votre connexion et réessayez."
       }
+    },
+    "exams": {
+      "title": "Examens nationaux",
+      "lead": "Les examens des années précédentes, leur sujet et leur corrigé en PDF, sur la page Examens du site. Déposez seulement les documents que vous avez le droit de partager.",
+      "add": "Ajouter un examen",
+      "empty": "Aucun examen pour l’instant.",
+      "emptyHint": "Chaque examen ajouté apparaît sur le site, dans la page de son programme.",
+      "paperTitle": "{year} · {session, select, rattrapage {Session de rattrapage} other {Session normale}}",
+      "subjectSize": "sujet {size}",
+      "solutionSize": "corrigé {size}",
+      "noSolution": "sans corrigé",
+      "back": "Tous les examens",
+      "newTitle": "Ajouter un examen",
+      "newLead": "Le sujet en PDF, et son corrigé si vous l’avez. Le corrigé peut aussi s’ajouter plus tard.",
+      "editTitle": "Modifier l’examen",
+      "openSubject": "Ouvrir le sujet",
+      "openSolution": "Ouvrir le corrigé",
+      "programme": "Programme",
+      "year": "Année",
+      "session": "Session",
+      "sessions": {
+        "normale": "Session normale",
+        "rattrapage": "Session de rattrapage"
+      },
+      "track": "Filières concernées (facultatif)",
+      "trackHint": "Seulement si le sujet n’est pas celui de tout le programme, par exemple « STE et STM ».",
+      "subject": "Sujet (PDF)",
+      "replaceSubject": "Remplacer le sujet (PDF)",
+      "replaceHint": "Laissez vide pour garder le fichier actuel. Un fichier PDF de 20 Mo au plus.",
+      "fileHint": "Un fichier PDF de 20 Mo au plus.",
+      "solution": "Corrigé (PDF, facultatif)",
+      "replaceSolution": "Remplacer le corrigé (PDF)",
+      "solutionHint": "Un fichier PDF de 20 Mo au plus.",
+      "removeSolution": "Retirer le corrigé",
+      "published": "Visible sur le site",
+      "publishedHint": "Décoché, l’examen reste ici en brouillon.",
+      "create": "Ajouter l’examen",
+      "save": "Enregistrer",
+      "uploading": "Envoi des fichiers…",
+      "saving": "Enregistrement…",
+      "delete": {
+        "title": "Supprimer cet examen",
+        "start": "Supprimer…",
+        "confirmQuestion": "{solution, select, yes {L’examen, son sujet et son corrigé seront effacés.} other {L’examen et son sujet seront effacés.}} Continuer ?",
+        "confirm": "Supprimer l’examen",
+        "cancel": "Annuler"
+      },
+      "errors": {
+        "programme": "Choisissez un programme.",
+        "year": "Indiquez une année entre 2000 et l’an prochain.",
+        "session": "Choisissez une session.",
+        "track": "80 caractères au plus.",
+        "subject": "Choisissez le fichier du sujet.",
+        "file": "Ce fichier n’a pas été envoyé correctement. Choisissez-le à nouveau.",
+        "checkFile": "Vérifiez le fichier choisi.",
+        "notPdf": "Seuls les fichiers PDF sont acceptés.",
+        "tooBig": "Ce fichier dépasse 20 Mo.",
+        "upload": "L’envoi des fichiers n’a pas abouti. Vérifiez la connexion et réessayez.",
+        "duplicate": "Cet examen existe déjà : même programme, même année, même session et mêmes filières.",
+        "gone": "Ce sujet n’existe plus.",
+        "unknown": "L’enregistrement n’a pas abouti. Réessayez."
+      },
+      "checking": "Vérification…",
+      "progress": "Envoi {part, select, solution {du corrigé} other {du sujet}} ({index} sur {total}) : {sent} sur {size}…",
+      "keepOpen": "Gardez cette page ouverte jusqu’à la fin de l’envoi.",
+      "deleted": "L’examen a été supprimé, avec ses fichiers.",
+      "created": "L’examen a été ajouté."
     }
   },
   "student": {
@@ -1786,7 +1867,8 @@
       "courses": "Cours",
       "advice": "Conseils",
       "prices": "Tarifs",
-      "signIn": "Se connecter"
+      "signIn": "Se connecter",
+      "exams": "Examens"
     },
     "home": {
       "title": "Des maths qui tiennent debout.",
@@ -2066,7 +2148,8 @@
     "semester": "{semester, select, 1 {Premier semestre} 2 {Deuxième semestre} other {Hors semestre}}",
     "inPreparation": "En préparation",
     "metaDescription": "{programme} : le programme officiel de mathématiques, chapitre par chapitre, avec cours, résumés et séries d’exercices corrigés.",
-    "progress": "{ready, plural, =0 {Les chapitres sont en cours de rédaction et arrivent au fil de l’année.} one {# chapitre sur {total} est en ligne ; les autres arrivent au fil de l’année.} other {{complete, select, yes {Les {ready} chapitres sont en ligne.} other {{ready} chapitres sur {total} sont en ligne ; les autres arrivent au fil de l’année.}}}}"
+    "progress": "{ready, plural, =0 {Les chapitres sont en cours de rédaction et arrivent au fil de l’année.} one {# chapitre sur {total} est en ligne ; les autres arrivent au fil de l’année.} other {{complete, select, yes {Les {ready} chapitres sont en ligne.} other {{ready} chapitres sur {total} sont en ligne ; les autres arrivent au fil de l’année.}}}}",
+    "exams": "{count, plural, one {Examen national : # sujet} other {Examens nationaux : # sujets}}"
   },
   "chapterPage": {
     "empty": "Ce chapitre est en cours de rédaction.",
@@ -2097,5 +2180,26 @@
     "tooMany": "Vous avez demandé plusieurs PDF d’affilée. Réessayez dans une minute.",
     "failed": "Le PDF n’a pas pu être préparé. Réessayez dans un instant.",
     "busy": "Beaucoup de PDF sont demandés en ce moment. Réessayez dans une minute."
+  },
+  "exams": {
+    "title": "Examens nationaux",
+    "lead": "Les sujets du baccalauréat des années précédentes, session normale et session de rattrapage, avec leurs corrigés quand ils existent, à télécharger en PDF.",
+    "empty": "Les premiers sujets arrivent bientôt. En attendant, les cours de chaque programme sont en ligne.",
+    "toCourses": "Voir les cours",
+    "count": "{count, plural, one {# sujet} other {# sujets}} · jusqu’en {latest}",
+    "back": "Tous les examens",
+    "programmeTitle": "Examens nationaux · {programme}",
+    "programmeDescription": "{programme} : les sujets de l’examen national des années précédentes et leurs corrigés, en PDF.",
+    "programmeLead": "Chaque sujet tel qu’il a été donné à l’examen, et son corrigé quand il est disponible.",
+    "toProgramme": "Réviser avec les cours du programme",
+    "session": {
+      "normale": "Session normale",
+      "rattrapage": "Session de rattrapage"
+    },
+    "subject": "Sujet",
+    "solution": "Corrigé",
+    "fileSize": "(PDF, {size})",
+    "noSolution": "Corrigé pas encore disponible.",
+    "streams": "Filières : {list}"
   }
 }

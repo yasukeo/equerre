@@ -1,6 +1,7 @@
 import {
   BookOpen,
   CalendarClock,
+  FileText,
   Globe,
   NotebookPen,
   Tags,
@@ -25,6 +26,7 @@ const PLACES: {
     | "payments"
     | "lessons"
     | "exercises"
+    | "exams"
     | "availability"
     | "sessionTypes"
     | "groups"
@@ -35,6 +37,7 @@ const PLACES: {
   { href: "/prof/paiements", key: "payments", icon: Wallet },
   { href: "/prof/lecons", key: "lessons", icon: BookOpen },
   { href: "/prof/exercices", key: "exercises", icon: NotebookPen },
+  { href: "/prof/examens", key: "exams", icon: FileText },
   { href: "/prof/seances/disponibilites", key: "availability", icon: CalendarClock },
   { href: "/prof/seances/types", key: "sessionTypes", icon: Tags },
   { href: "/prof/eleves/groupes", key: "groups", icon: Users },

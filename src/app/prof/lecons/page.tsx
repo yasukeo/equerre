@@ -3,14 +3,14 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { buttonVariants } from "@/components/ui/button-variants";
-import { LessonsList } from "./lessons-list";
+import { LessonsList, readLessonFilter } from "./lessons-list";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.lessons");
   return { title: t("title") };
 }
 
-export default async function TutorLessonsPage() {
+export default async function TutorLessonsPage({ searchParams }: PageProps<"/prof/lecons">) {
   const t = await getTranslations("tutor.lessons");
 
   return (
@@ -22,10 +22,18 @@ export default async function TutorLessonsPage() {
         </Link>
       </div>
       <Suspense fallback={<LessonsSkeleton />}>
-        <LessonsList />
+        <FilteredLessons searchParams={searchParams} />
       </Suspense>
     </div>
   );
+}
+
+async function FilteredLessons({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  return <LessonsList filter={readLessonFilter(await searchParams)} />;
 }
 
 function LessonsSkeleton() {

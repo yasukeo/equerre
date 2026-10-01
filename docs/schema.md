@@ -77,6 +77,7 @@ erDiagram
 ```mermaid
 erDiagram
   PROGRAMMES ||--o{ CHAPTERS : "programme_code"
+  PROGRAMMES ||--o{ NATIONAL_EXAMS : "programme_code"
   CHAPTERS ||--o{ LESSONS : "chapter_id"
   LESSONS ||--o{ LESSON_ACCESS : "lesson_id"
   PROFILES ||--o{ LESSON_ACCESS : "student_id"
@@ -139,7 +140,21 @@ erDiagram
     text_array file_paths
     numeric grade "0 to 20"
   }
+  NATIONAL_EXAMS {
+    uuid id PK
+    text programme_code FK
+    smallint year
+    exam_session session "normale, rattrapage"
+    text track "null: the whole programme"
+    text subject_path "id/file.pdf in national-exams"
+    text solution_path
+    publication_status status
+  }
 ```
+
+A past national exam (D-097) is one paper of one session of one year, for a programme or the
+part of its streams that sat it. Its PDFs live in the paper's own folder of the public
+`national-exams` bucket; one paper per programme, year, session and track.
 
 ## Sessions and bookings
 
@@ -277,6 +292,7 @@ table policies, except for the three rows marked.
 | ----------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------ | ------------------------ | -------------------------------------------------- |
 | `programmes`, `levels`, `chapters`                          | all                               | all                                                                      | all                      | all, writes                                        |
 | `lessons`, `lesson_access`                                  | published + public                | published + public, own level (`enrolled`), or listed in `lesson_access` | published + public       | all, writes                                        |
+| `national_exams`                                            | published ones                    | published ones                                                           | published ones           | all, writes                                        |
 | `profiles`                                                  | —                                 | own row; edits contact fields only                                       | own row, linked children | all, writes                                        |
 | `student_settings`                                          | —                                 | own row                                                                  | —                        | all, writes                                        |
 | `student_notes`                                             | —                                 | —                                                                        | —                        | all, writes                                        |
@@ -322,12 +338,13 @@ signed-out visitors unless noted.
 
 ## Storage
 
-| Bucket          | Reads                                                    | Writes                                                |
-| --------------- | -------------------------------------------------------- | ----------------------------------------------------- |
-| `lesson-assets` | public (images inside lessons, unguessable paths)        | the tutor                                             |
-| `lesson-files`  | whoever may read the lesson                              | the tutor                                             |
-| `submissions`   | the student their own pages, the tutor all (signed URLs) | the student, inside their own folder, until handed in |
-| `message-files` | whoever may read the message that holds the file         | a participant, inside their own folder                |
+| Bucket           | Reads                                                    | Writes                                                |
+| ---------------- | -------------------------------------------------------- | ----------------------------------------------------- |
+| `lesson-assets`  | public (images inside lessons, unguessable paths)        | the tutor                                             |
+| `lesson-files`   | whoever may read the lesson                              | the tutor                                             |
+| `submissions`    | the student their own pages, the tutor all (signed URLs) | the student, inside their own folder, until handed in |
+| `message-files`  | whoever may read the message that holds the file         | a participant, inside their own folder                |
+| `national-exams` | public (past papers, unguessable paths for drafts)       | the tutor, PDFs only                                  |
 
 ## Invariants the database enforces
 

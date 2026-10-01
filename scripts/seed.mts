@@ -2,7 +2,7 @@
 // Development machines only: it creates accounts whose password is SEED_PASSWORD.
 
 import { readFile } from "node:fs/promises";
-import postgres from "postgres";
+import { connect } from "./database.mjs";
 
 const databaseUrl = process.env.SUPABASE_DB_URL;
 const seedPassword = process.env.SEED_PASSWORD;
@@ -22,7 +22,7 @@ if (!seedPassword || !/^[A-Za-z0-9-]{12,}$/.test(seedPassword)) {
 }
 
 const template = await readFile(new URL("../supabase/seed.sql", import.meta.url), "utf8");
-const sql = postgres(databaseUrl, { max: 1, prepare: false, onnotice: () => {} });
+const sql = connect(databaseUrl);
 
 try {
   const results = await sql.unsafe(template.replaceAll("{{SEED_PASSWORD}}", seedPassword)).simple();

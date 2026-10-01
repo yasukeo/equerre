@@ -131,16 +131,18 @@ describe.skipIf(!admin)("parents", () => {
     await admin!.auth.admin.deleteUser(data.user.id);
     await refusedSignUp(usedAddress, usedToken);
 
-    // Expired: made two days ago, for a day.
+    // Expired: made two days ago, for a day. One instant for both, or the day would be a
+    // millisecond too long for the table's check.
     const expiredAddress = address("expired");
+    const now = Date.now();
     const { data: expired, error: expiredError } = await admin!
       .from("parent_invites")
       .insert({
         student_id: ids.salma,
         email: expiredAddress,
         full_name: "Test RLS — parent",
-        created_at: new Date(Date.now() - 2 * 86_400_000).toISOString(),
-        expires_at: new Date(Date.now() - 86_400_000).toISOString(),
+        created_at: new Date(now - 2 * 86_400_000).toISOString(),
+        expires_at: new Date(now - 86_400_000).toISOString(),
       })
       .select("token")
       .single();

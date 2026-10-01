@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { listExamProgrammes } from "@/lib/exams/queries";
 import {
   getProgrammeCourse,
   listProgrammes,
@@ -52,13 +53,15 @@ export default function ProgrammePage({ params }: PageProps<"/cours/[niveau]">) 
 async function Programme({ params }: { params: Promise<{ niveau: string }> }) {
   // A stream's old address (`/cours/2bac-pc`) never gets here: next.config.ts redirects it.
   const { niveau } = await params;
-  const [t, tKind, programme] = await Promise.all([
+  const [t, tKind, programme, withExams] = await Promise.all([
     getTranslations("programmePage"),
     getTranslations("documentKind"),
     getProgrammeCourse(niveau),
+    listExamProgrammes(),
   ]);
   if (!programme) notFound();
 
+  const exams = withExams.find((candidate) => candidate.code === programme.code);
   const semesters = [1, 2, null] as const;
   const numbered = programme.chapters.map((chapter, index) => ({ ...chapter, number: index + 1 }));
   const ready = programme.chapters.filter((chapter) => chapter.documents.length > 0).length;
@@ -85,6 +88,14 @@ async function Programme({ params }: { params: Promise<{ niveau: string }> }) {
             complete: ready === programme.chapters.length ? "yes" : "no",
           })}
         </p>
+        {exams ? (
+          <Link
+            href={`/examens/${programme.slug}`}
+            className="inline-flex min-h-11 items-center justify-self-start underline decoration-trait underline-offset-4 hover:decoration-encre"
+          >
+            {t("exams", { count: exams.paperCount })}
+          </Link>
+        ) : null}
       </header>
 
       {semesters.map((semester) => {

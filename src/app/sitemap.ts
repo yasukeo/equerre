@@ -1,16 +1,21 @@
 import type { MetadataRoute } from "next";
 import { publicEnv } from "@/lib/env";
+import { listExamProgrammes } from "@/lib/exams/queries";
 import { getProgrammeCourse, listProgrammes } from "@/lib/lesson/queries";
 import { listPublishedPosts } from "@/lib/posts/queries";
 
-// Every public page a search engine may index (D-089, D-094): the front door, the course by
-// programme, its chapters and their documents, the blog and its posts. A chapter still being
+// Every public page a search engine may index (D-089, D-094, D-097): the front door, the course
+// by programme, its chapters and their documents, the past exams, the blog and its posts. A chapter still being
 // written is left out until it has something to read. Built from the same cached reads as the
 // pages.
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-  const [programmes, posts] = await Promise.all([listProgrammes(), listPublishedPosts()]);
+  const [programmes, posts, exams] = await Promise.all([
+    listProgrammes(),
+    listPublishedPosts(),
+    listExamProgrammes(),
+  ]);
   const courses = await Promise.all(
     programmes.map((programme) => getProgrammeCourse(programme.slug)),
   );
@@ -42,6 +47,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             ])
         : [],
     ),
+    { url: `${base}/examens`, changeFrequency: "monthly" as const, priority: 0.7 },
+    ...exams.map((programme) => ({
+      url: `${base}/examens/${programme.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
     ...posts.map((post) => ({
       url: `${base}/conseils/${post.slug}`,
       lastModified: post.updatedAt,

@@ -656,6 +656,8 @@ export type Database = {
           position: number
           published_at: string | null
           slug: string
+          source: string | null
+          source_hash: string | null
           status: Database["public"]["Enums"]["publication_status"]
           summary: string | null
           title: string
@@ -671,6 +673,8 @@ export type Database = {
           position?: number
           published_at?: string | null
           slug: string
+          source?: string | null
+          source_hash?: string | null
           status?: Database["public"]["Enums"]["publication_status"]
           summary?: string | null
           title: string
@@ -686,6 +690,8 @@ export type Database = {
           position?: number
           published_at?: string | null
           slug?: string
+          source?: string | null
+          source_hash?: string | null
           status?: Database["public"]["Enums"]["publication_status"]
           summary?: string | null
           title?: string
@@ -802,6 +808,59 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      national_exams: {
+        Row: {
+          created_at: string
+          id: string
+          programme_code: string
+          session: Database["public"]["Enums"]["exam_session"]
+          solution_path: string | null
+          solution_size: number | null
+          status: Database["public"]["Enums"]["publication_status"]
+          subject_path: string
+          subject_size: number
+          track: string | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          programme_code: string
+          session: Database["public"]["Enums"]["exam_session"]
+          solution_path?: string | null
+          solution_size?: number | null
+          status?: Database["public"]["Enums"]["publication_status"]
+          subject_path: string
+          subject_size: number
+          track?: string | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          programme_code?: string
+          session?: Database["public"]["Enums"]["exam_session"]
+          solution_path?: string | null
+          solution_size?: number | null
+          status?: Database["public"]["Enums"]["publication_status"]
+          subject_path?: string
+          subject_size?: number
+          track?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "national_exams_programme_code_fkey"
+            columns: ["programme_code"]
+            isOneToOne: false
+            referencedRelation: "programmes"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -1860,6 +1919,7 @@ export type Database = {
       attendance_status: "present" | "absent" | "excuse"
       choice_mode: "unique" | "multiple"
       document_kind: "cours" | "resume" | "serie" | "devoir"
+      exam_session: "normale" | "rattrapage"
       lesson_visibility: "public" | "enrolled" | "specific"
       notification_type:
         | "booking_requested"
@@ -2021,6 +2081,7 @@ export const Constants = {
       attendance_status: ["present", "absent", "excuse"],
       choice_mode: ["unique", "multiple"],
       document_kind: ["cours", "resume", "serie", "devoir"],
+      exam_session: ["normale", "rattrapage"],
       lesson_visibility: ["public", "enrolled", "specific"],
       notification_type: [
         "booking_requested",

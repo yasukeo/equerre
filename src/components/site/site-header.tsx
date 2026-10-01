@@ -7,7 +7,7 @@ const LINK =
   "inline-flex min-h-11 items-center text-sm underline decoration-transparent underline-offset-4 hover:decoration-encre";
 
 /**
- * The public site's header (D-089): the brand, the three places a visitor looks for, and the
+ * The public site's header (D-089, D-097): the brand, the places a visitor looks for, and the
  * way in for students. On a phone the links take a second line rather than a menu to open.
  */
 export async function SiteHeader() {
@@ -22,10 +22,15 @@ export async function SiteHeader() {
           aria-label={t("label")}
           className="order-last w-full sm:order-none sm:me-auto sm:w-auto"
         >
-          <ul role="list" className="flex gap-x-6">
+          <ul role="list" className="flex flex-wrap gap-x-5">
             <li>
               <Link href="/cours" className={LINK}>
                 {t("courses")}
+              </Link>
+            </li>
+            <li>
+              <Link href="/examens" className={LINK}>
+                {t("exams")}
               </Link>
             </li>
             <li>

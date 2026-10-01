@@ -36,6 +36,7 @@ export const CLIENT_NAMESPACES = {
     "tutor.assignment",
     "tutor.availability",
     "tutor.correction",
+    "tutor.exams",
     "tutor.exerciseEditor",
     "tutor.exercises.answerType",
     "tutor.groups",
