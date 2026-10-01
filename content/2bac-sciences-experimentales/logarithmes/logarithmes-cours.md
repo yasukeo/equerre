@@ -1,8 +1,8 @@
 ---
-title: Fonctions logarithmiques
+title: Fonctions logarithmiques — partie 1 : le logarithme népérien et ses règles
 kind: cours
-summary: Le logarithme népérien, ses propriétés algébriques, sa dérivée et ses limites, la fonction ln(u), et le logarithme de base a.
-position: 20
+summary: Définition du logarithme népérien, sens de variation, signe, le nombre e, propriétés algébriques, équations et inéquations avec ln, y compris celles qui se ramènent au second degré.
+position: 10
 visibility: public
 ---
 
@@ -55,59 +55,22 @@ Pour résoudre une équation ou une inéquation avec $\ln$ :
 $\ln(x - 1) + \ln(x + 1) = \ln 3$ n’a de sens que pour $x > 1$. Elle s’écrit $\ln(x^2 - 1) = \ln 3$, soit $x^2 = 4$, donc $x = 2$ ou $x = -2$. Seul $x = 2$ convient.
 :::
 
-## Limites
-
-:::propriete
-$$
-\lim_{x \to +\infty} \ln x = +\infty \qquad \lim_{x \to 0^+} \ln x = -\infty
-$$
-
-$$
-\lim_{x \to +\infty} \frac{\ln x}{x} = 0 \qquad \lim_{x \to 0^+} x \ln x = 0 \qquad \lim_{x \to 1} \frac{\ln x}{x - 1} = 1 \qquad \lim_{x \to 0} \frac{\ln(1 + x)}{x} = 1
-$$
-
-Plus généralement, pour $n \geq 1$ : $\lim_{x \to +\infty} \frac{\ln x}{x^n} = 0$ et $\lim_{x \to 0^+} x^n \ln x = 0$.
+:::exemple
+Résoudre $\ln(x + 2) < \ln(2x - 1)$ : elle a un sens pour $x > \frac{1}{2}$, et équivaut à $x + 2 < 2x - 1$, soit $x > 3$. Donc $S = ]3 ; +\infty[$.
 :::
 
-La courbe de $\ln$ a l’axe des ordonnées pour asymptote verticale, et une branche parabolique de direction l’axe des abscisses en $+\infty$. Sa tangente au point d’abscisse $1$ a pour équation $y = x - 1$, et la courbe est au-dessous : $\ln x \leq x - 1$ pour tout $x > 0$.
+### Équations qui se ramènent au second degré
+
+Quand $\ln x$ apparaît au carré, on pose $X = \ln x$.
 
 :::exemple
-$\lim_{x \to +\infty} \left(x - \ln x\right) = \lim_{x \to +\infty} x\left(1 - \frac{\ln x}{x}\right) = +\infty$, car $\frac{\ln x}{x} \to 0$.
+Résoudre $(\ln x)^2 - \ln x - 2 = 0$ sur $]0 ; +\infty[$. Avec $X = \ln x$ : $X^2 - X - 2 = 0$, donc $X = 2$ ou $X = -1$. Ainsi $\ln x = 2$, soit $x = e^2$, ou $\ln x = -1$, soit $x = \frac{1}{e}$. $S = \left\{\frac{1}{e} ; e^2\right\}$.
 :::
 
-## La fonction ln(u)
+### Écrire un nombre avec $e$
 
-:::propriete
-Si $u$ est dérivable et strictement positive sur $I$, alors $\ln u$ est dérivable sur $I$ et :
-
-$$
-(\ln u)' = \frac{u'}{u}
-$$
-
-Si $u$ est dérivable et ne s’annule pas sur $I$, $\left(\ln|u|\right)' = \frac{u'}{u}$ : les primitives de $\frac{u'}{u}$ sur $I$ sont les fonctions $\ln|u| + c$.
-:::
+Pour tout rationnel $r$, $\ln\left(e^r\right) = r$. Ainsi $\ln x = r \iff x = e^r$ : par exemple $\ln x = 3 \iff x = e^3$, et $\ln x \geq -2 \iff x \geq e^{-2}$.
 
 :::exemple
-- $f(x) = \ln(x^2 + 1)$ : $f'(x) = \frac{2x}{x^2 + 1}$.
-- Une primitive de $g(x) = \frac{\cos x}{\sin x}$ sur $]0 ; \pi[$ est $G(x) = \ln(\sin x)$.
-- Une primitive de $h(x) = \frac{1}{2x + 3}$ sur $]-\frac{3}{2} ; +\infty[$ est $H(x) = \frac{1}{2}\ln(2x + 3)$.
-:::
-
-## Logarithme de base a
-
-:::definition
-Soit $a > 0$ et $a \neq 1$. La **fonction logarithme de base** $a$ est définie sur $]0 ; +\infty[$ par :
-
-$$
-\log_a x = \frac{\ln x}{\ln a}
-$$
-
-Le logarithme décimal est $\log = \log_{10}$.
-:::
-
-:::propriete
-- $\log_a a = 1$, $\log_a 1 = 0$, et $\log_a\left(a^r\right) = r$ pour $r$ rationnel.
-- $\log_a$ a les mêmes propriétés algébriques que $\ln$.
-- $(\log_a x)' = \frac{1}{x \ln a}$ : $\log_a$ est croissante si $a > 1$, décroissante si $0 < a < 1$.
-- $\log(10^n) = n$ pour tout entier $n$.
+Simplifier $A = \ln\left(\frac{1}{e^3}\right) + \ln\sqrt{e} - 2\ln e$ : $A = -3 + \frac{1}{2} - 2 = -\frac{9}{2}$.
 :::

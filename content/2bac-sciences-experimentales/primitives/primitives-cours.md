@@ -1,8 +1,8 @@
 ---
-title: Fonctions primitives
+title: Fonctions primitives — partie 1 : définition et primitives usuelles
 kind: cours
-summary: Définition d’une primitive, primitives usuelles, opérations, et la primitive qui prend une valeur donnée en un point.
-position: 20
+summary: Définition d’une primitive, ensemble des primitives, primitive qui prend une valeur donnée, primitives des fonctions usuelles et lien entre une fonction et le sens de variation de ses primitives.
+position: 10
 visibility: public
 ---
 
@@ -45,36 +45,26 @@ Sur tout intervalle où la fonction est définie ($c$ réel) :
 - $\cos(ax + b)$ a pour primitives $\frac{1}{a} \sin(ax + b) + c$, et $\sin(ax + b)$ a pour primitives $-\frac{1}{a}\cos(ax + b) + c$ ($a \neq 0$).
 :::
 
-## Opérations
-
-:::propriete
-Si $F$ et $G$ sont des primitives de $f$ et $g$ sur $I$, et $k$ un réel, alors $F + G$ est une primitive de $f + g$ et $kF$ une primitive de $kf$.
+:::exemple
+- $f(x) = 4x^3 - 6x + 2$ : $F(x) = x^4 - 3x^2 + 2x$ sur $\mathbb{R}$.
+- $g(x) = \frac{1}{x^3}$ sur $]0 ; +\infty[$ : $G(x) = -\frac{1}{2x^2}$.
+- $h(x) = \sqrt{x} = x^{\frac{1}{2}}$ sur $]0 ; +\infty[$ : $H(x) = \frac{2}{3}x^{\frac{3}{2}} = \frac{2}{3}x\sqrt{x}$.
+- $k(x) = \cos(2x) - 3\sin x$ : $K(x) = \frac{1}{2}\sin(2x) + 3\cos x$.
 :::
 
-:::attention
-Il n’y a pas de règle pour le produit ni pour le quotient : on cherche à reconnaître une dérivée connue.
-:::
+## Primitives et sens de variation
+
+Si $F$ est une primitive de $f$ sur $I$, alors $F' = f$ : le sens de variation de $F$ se lit sur le **signe de $f$**.
 
 :::propriete
-Si $u$ est dérivable sur $I$ :
-
-- $u' u^n$ ($n \in \mathbb{N}$) a pour primitives $\frac{u^{n + 1}}{n + 1} + c$ ;
-- $\frac{u'}{u^2}$ a pour primitives $-\frac{1}{u} + c$, là où $u$ ne s’annule pas ;
-- $u' u^r$ ($r$ rationnel, $r \neq -1$) a pour primitives $\frac{u^{r + 1}}{r + 1} + c$, là où $u > 0$ ;
-- $\frac{u'}{\sqrt{u}}$ a pour primitives $2\sqrt{u} + c$, là où $u > 0$ ;
-- $u' \times v' \circ u$ a pour primitives $v \circ u + c$.
+- Si $f > 0$ sur $I$ (sauf en des points isolés), toute primitive de $f$ est strictement croissante sur $I$.
+- Si $f < 0$ sur $I$ (sauf en des points isolés), toute primitive de $f$ est strictement décroissante sur $I$.
 :::
 
 :::exemple
-- $f(x) = x(x^2 + 1)^3$ : avec $u(x) = x^2 + 1$, $f = \frac{1}{2} u' u^3$, donc $F(x) = \frac{1}{8}(x^2 + 1)^4$.
-- $g(x) = \frac{2x}{\sqrt{x^2 + 3}}$ : c’est $\frac{u'}{\sqrt{u}}$ avec $u(x) = x^2 + 3 > 0$, donc $G(x) = 2\sqrt{x^2 + 3}$.
-- $h(x) = \sin x \cos^2 x$ : avec $u = \cos$, $h = -u' u^2$, donc $H(x) = -\frac{1}{3}\cos^3 x$.
+Soit $F$ la primitive de $f(x) = \frac{1}{1 + x^2}$ sur $\mathbb{R}$ qui s’annule en $0$. On ne connaît pas d’expression de $F$ avec les fonctions du programme, mais $f > 0$, donc $F$ est strictement croissante sur $\mathbb{R}$ ; en particulier $F(x) > 0$ pour $x > 0$ et $F(x) < 0$ pour $x < 0$.
 :::
 
-## Méthode
-
-Pour trouver une primitive :
-
-1. on écrit la fonction comme une somme de termes simples ;
-2. pour chaque terme, on reconnaît une forme du tableau, quitte à multiplier et diviser par une constante ;
-3. on vérifie en dérivant le résultat.
+:::attention
+Pour vérifier une primitive, on la **dérive** : on doit retrouver exactement la fonction de départ.
+:::
