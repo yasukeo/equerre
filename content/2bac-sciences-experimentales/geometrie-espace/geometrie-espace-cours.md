@@ -1,8 +1,8 @@
 ---
-title: Géométrie dans l’espace
+title: Géométrie dans l’espace — partie 1 : produit scalaire, plans et sphères
 kind: cours
-summary: Produit scalaire dans l’espace, équation cartésienne d’un plan, distance d’un point à un plan, équation d’une sphère, produit vectoriel et ses applications.
-position: 20
+summary: Produit scalaire dans l’espace, vecteur normal et équation cartésienne d’un plan, distance d’un point à un plan, équation d’une sphère, positions relatives d’une sphère et d’un plan, plan tangent.
+position: 10
 visibility: public
 ---
 
@@ -88,46 +88,20 @@ Soit $S$ une sphère de centre $\Omega$ et de rayon $R$, $(P)$ un plan et $d = d
 - Si $d = R$, le plan est **tangent** à la sphère en un point $H$, projeté orthogonal de $\Omega$ sur $(P)$.
 - Si $d < R$, le plan coupe la sphère selon un **cercle** de centre $H$ (projeté orthogonal de $\Omega$ sur $(P)$) et de rayon $r = \sqrt{R^2 - d^2}$.
 
-## Produit vectoriel
-
-:::definition
-Le **produit vectoriel** de $\vec{u}(x ; y ; z)$ et $\vec{v}(x' ; y' ; z')$ est le vecteur :
-
-$$
-\vec{u} \wedge \vec{v} = (y z' - z y') \, \vec{i} - (x z' - z x') \, \vec{j} + (x y' - y x') \, \vec{k}
-$$
+:::exemple
+Soit $(S)$ la sphère de centre $\Omega(1 ; 2 ; -1)$ et de rayon $R = 3$, et $(P) : x + 2y + 2z + 4 = 0$. Alors $d(\Omega, (P)) = \frac{|1 + 4 - 2 + 4|}{\sqrt{1 + 4 + 4}} = \frac{7}{3} < 3$ : le plan coupe la sphère selon un cercle de rayon $r = \sqrt{9 - \frac{49}{9}} = \frac{\sqrt{32}}{3} = \frac{4\sqrt{2}}{3}$.
 :::
 
-:::propriete
-- $\vec{u} \wedge \vec{v}$ est orthogonal à $\vec{u}$ et à $\vec{v}$.
-- $\vec{v} \wedge \vec{u} = -\vec{u} \wedge \vec{v}$.
-- $\vec{u} \wedge \vec{v} = \vec{0} \iff \vec{u}$ et $\vec{v}$ sont colinéaires.
-- $\|\vec{u} \wedge \vec{v}\| = \|\vec{u}\| \, \|\vec{v}\| \, |\sin\theta|$, où $\theta$ est une mesure de l’angle entre $\vec{u}$ et $\vec{v}$.
-:::
-
-### Applications
+### Plan tangent à une sphère
 
 :::propriete
-- $A$, $B$, $C$ sont alignés $\iff \overrightarrow{AB} \wedge \overrightarrow{AC} = \vec{0}$.
-- Si $A$, $B$, $C$ ne sont pas alignés, $\overrightarrow{AB} \wedge \overrightarrow{AC}$ est un vecteur normal au plan $(ABC)$.
-- L’aire du triangle $ABC$ est $\frac{1}{2}\left\|\overrightarrow{AB} \wedge \overrightarrow{AC}\right\|$.
-- La distance d’un point $M$ à la droite $(D)$ passant par $A$ et de vecteur directeur $\vec{u}$ est $\dfrac{\left\|\overrightarrow{AM} \wedge \vec{u}\right\|}{\|\vec{u}\|}$.
+Le plan tangent à la sphère de centre $\Omega$ en un point $A$ de la sphère est le plan passant par $A$ et de vecteur normal $\overrightarrow{\Omega A}$.
 :::
 
 :::exemple
-$A(1 ; 0 ; 0)$, $B(0 ; 1 ; 0)$, $C(0 ; 0 ; 1)$ : $\overrightarrow{AB}(-1 ; 1 ; 0)$ et $\overrightarrow{AC}(-1 ; 0 ; 1)$, donc $\overrightarrow{AB} \wedge \overrightarrow{AC} = (1 \times 1 - 0 \times 0)\vec{i} - ((-1) \times 1 - 0 \times (-1))\vec{j} + ((-1) \times 0 - 1 \times (-1))\vec{k} = \vec{i} + \vec{j} + \vec{k}$.
-
-Le plan $(ABC)$ a pour équation $x + y + z - 1 = 0$, et l’aire du triangle $ABC$ vaut $\frac{1}{2}\sqrt{3}$.
+La sphère $x^2 + y^2 + z^2 = 9$ (centre $O$, rayon $3$) contient $A(1 ; 2 ; 2)$. Le plan tangent en $A$ a pour vecteur normal $\overrightarrow{OA}(1 ; 2 ; 2)$ : $x + 2y + 2z + d = 0$ avec $1 + 4 + 4 + d = 0$, soit $x + 2y + 2z - 9 = 0$. On vérifie que $d(O, (P)) = \frac{9}{3} = 3 = R$.
 :::
 
-## Représentation paramétrique d’une droite
+### Projeté orthogonal d’un point sur un plan
 
-:::propriete
-La droite passant par $A(x_A ; y_A ; z_A)$ et de vecteur directeur $\vec{u}(\alpha ; \beta ; \gamma)$ a pour représentation paramétrique :
-
-$$
-\begin{cases} x = x_A + \alpha t \\ y = y_A + \beta t \\ z = z_A + \gamma t \end{cases} \qquad t \in \mathbb{R}
-$$
-:::
-
-Pour trouver l’intersection d’une droite et d’un plan, on remplace $x$, $y$, $z$ par leurs expressions en $t$ dans l’équation du plan, et on résout en $t$.
+Pour trouver le projeté orthogonal $H$ de $\Omega$ sur $(P) : ax + by + cz + d = 0$, on écrit que $\overrightarrow{\Omega H} = t\,\vec{n}$ avec $\vec{n}(a ; b ; c)$, puis on remplace les coordonnées de $H$ dans l’équation de $(P)$ pour trouver $t$.
