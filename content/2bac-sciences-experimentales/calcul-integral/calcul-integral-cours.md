@@ -1,8 +1,8 @@
 ---
-title: Calcul intégral
+title: Calcul intégral — partie 1 : intégrale et propriétés
 kind: cours
-summary: Intégrale d’une fonction continue, propriétés, intégration par parties, calcul d’aires et de volumes, valeur moyenne.
-position: 20
+summary: Intégrale d’une fonction continue, lien avec les primitives, relation de Chasles, linéarité, positivité et ordre, encadrement, valeur moyenne, fonction définie par une intégrale.
+position: 10
 visibility: public
 ---
 
@@ -48,64 +48,31 @@ Soit $a \leq b$.
 La **valeur moyenne** de $f$ sur $[a ; b]$ ($a < b$) est $\mu = \frac{1}{b - a}\int_a^b f(x)\,dx$.
 :::
 
-## Intégration par parties
-
-:::theoreme
-Si $u$ et $v$ sont dérivables sur $I$ et $u'$, $v'$ continues sur $I$, alors pour $a$, $b$ dans $I$ :
-
-$$
-\int_a^b u(x) v'(x) \, dx = \big[u(x) v(x)\big]_a^b - \int_a^b u'(x) v(x) \, dx
-$$
-:::
-
 :::exemple
-$\int_0^1 x e^x \, dx$ : avec $u(x) = x$ et $v'(x) = e^x$, soit $u'(x) = 1$ et $v(x) = e^x$ :
-
-$$
-\int_0^1 x e^x \, dx = \big[x e^x\big]_0^1 - \int_0^1 e^x \, dx = e - (e - 1) = 1
-$$
+**Avec une valeur absolue.** $\int_0^3 |x - 1| \, dx = \int_0^1 (1 - x)\,dx + \int_1^3 (x - 1)\,dx = \frac{1}{2} + 2 = \frac{5}{2}$ (relation de Chasles, en coupant là où $x - 1$ change de signe).
 :::
-
-:::exemple
-$\int_1^e \ln x \, dx$ : avec $u(x) = \ln x$ et $v'(x) = 1$, soit $u'(x) = \frac{1}{x}$ et $v(x) = x$ :
-
-$$
-\int_1^e \ln x \, dx = \big[x \ln x\big]_1^e - \int_1^e 1 \, dx = e - (e - 1) = 1
-$$
-:::
-
-## Calcul d’aires
-
-Le plan est muni d’un repère orthogonal ; l’**unité d’aire** est l’aire du rectangle construit sur les vecteurs unitaires.
 
 :::propriete
-Soit $f$ continue sur $[a ; b]$, $a < b$. L’aire, en unités d’aire, du domaine limité par la courbe de $f$, l’axe des abscisses et les droites $x = a$ et $x = b$ est :
+Si $f$ est continue sur $[-a ; a]$ :
 
-$$
-\mathcal{A} = \int_a^b |f(x)| \, dx
-$$
-
-Si $f$ et $g$ sont continues sur $[a ; b]$, l’aire du domaine compris entre leurs courbes et les droites $x = a$, $x = b$ est $\int_a^b |f(x) - g(x)| \, dx$.
+- si $f$ est **paire**, $\int_{-a}^a f(x)\,dx = 2\int_0^a f(x)\,dx$ ;
+- si $f$ est **impaire**, $\int_{-a}^a f(x)\,dx = 0$.
 :::
 
 :::exemple
-Aire entre la courbe de $f(x) = x^2$ et la droite $y = x$ sur $[0 ; 1]$, où $x^2 \leq x$ : $\int_0^1 (x - x^2)\,dx = \frac{1}{2} - \frac{1}{3} = \frac{1}{6}$ unité d’aire.
+$\int_{-1}^{1} x^3 e^{x^2} \, dx = 0$, car la fonction intégrée est impaire.
 :::
 
-:::attention
-Si l’unité graphique est de $2$ cm sur chaque axe, une unité d’aire vaut $4 \text{ cm}^2$ : il faut convertir le résultat.
-:::
-
-## Calcul de volumes
-
-:::propriete
-Dans un repère orthonormé, le solide engendré par la rotation autour de l’axe des abscisses de la courbe de $f$ continue sur $[a ; b]$ a pour volume, en unités de volume :
-
-$$
-V = \int_a^b \pi \left(f(x)\right)^2 dx
-$$
-:::
+## Encadrer une intégrale
 
 :::exemple
-En faisant tourner la courbe de $f(x) = \sqrt{x}$ sur $[0 ; 1]$, on obtient $V = \int_0^1 \pi x \, dx = \frac{\pi}{2}$ unité de volume.
+Pour $n \in \mathbb{N}$, soit $I_n = \int_0^1 \frac{x^n}{1 + x} \, dx$. Pour $x \in [0 ; 1]$, $0 \leq \frac{x^n}{1 + x} \leq x^n$, donc $0 \leq I_n \leq \int_0^1 x^n \, dx = \frac{1}{n + 1}$. Par les gendarmes, $\lim I_n = 0$.
+:::
+
+## Fonction définie par une intégrale
+
+Soit $F(x) = \int_a^x f(t)\,dt$ avec $f$ continue. Alors $F$ est dérivable et $F' = f$ : le **signe de $f$** donne le sens de variation de $F$, et $F(a) = 0$.
+
+:::exemple
+$F(x) = \int_1^x \frac{dt}{t}$ pour $x > 0$ : c’est la primitive de $\frac{1}{x}$ qui s’annule en $1$, donc $F(x) = \ln x$.
 :::
