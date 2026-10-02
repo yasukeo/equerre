@@ -1,8 +1,8 @@
 ---
-title: Fonctions exponentielles
+title: Fonctions exponentielles — partie 1 : la fonction exponentielle et ses règles
 kind: cours
-summary: La fonction exponentielle népérienne, ses propriétés, sa dérivée et ses limites, la fonction exp(u), et l’exponentielle de base a.
-position: 20
+summary: Définition comme réciproque de ln, sens de variation et signe, règles de calcul, équations, inéquations et systèmes avec exp, y compris celles qui se ramènent au second degré.
+position: 10
 visibility: public
 ---
 
@@ -38,61 +38,28 @@ $$
 $e^{2x} - 3e^x + 2 = 0$ : avec $X = e^x > 0$, l’équation devient $X^2 - 3X + 2 = 0$, soit $X = 1$ ou $X = 2$. Donc $e^x = 1$ ou $e^x = 2$, c’est-à-dire $x = 0$ ou $x = \ln 2$.
 :::
 
-## Dérivée et limites
-
-:::propriete
-$\exp$ est dérivable sur $\mathbb{R}$ et $\left(e^x\right)' = e^x$.
+:::exemple
+- $e^{\ln 3 + 2\ln 2} = e^{\ln 3} \times \left(e^{\ln 2}\right)^2 = 3 \times 4 = 12$.
+- $\frac{e^{2x + 1}}{e^{x - 1}} = e^{x + 2}$.
+- $\left(e^x + e^{-x}\right)^2 = e^{2x} + 2 + e^{-2x}$.
 :::
 
-:::propriete
-$$
-\lim_{x \to +\infty} e^x = +\infty \qquad \lim_{x \to -\infty} e^x = 0
-$$
+### Équations et inéquations
 
-$$
-\lim_{x \to +\infty} \frac{e^x}{x} = +\infty \qquad \lim_{x \to -\infty} x e^x = 0 \qquad \lim_{x \to 0} \frac{e^x - 1}{x} = 1
-$$
+Pour résoudre une équation ou une inéquation avec $\exp$ :
 
-Plus généralement, pour $n \geq 1$ : $\lim_{x \to +\infty} \frac{e^x}{x^n} = +\infty$ et $\lim_{x \to -\infty} x^n e^x = 0$.
-:::
-
-La courbe de $\exp$ a pour asymptote horizontale l’axe des abscisses en $-\infty$ et une branche parabolique de direction l’axe des ordonnées en $+\infty$. Sa tangente en $0$ est la droite $y = x + 1$, et la courbe est au-dessus : $e^x \geq x + 1$ pour tout $x$.
+- $e^a = e^b \iff a = b$ et $e^a < e^b \iff a < b$ ;
+- pour $k > 0$, $e^x = k \iff x = \ln k$ et $e^x > k \iff x > \ln k$ ; pour $k \leq 0$, $e^x = k$ n’a pas de solution et $e^x > k$ est toujours vraie ;
+- quand $e^{2x}$ et $e^x$ apparaissent, on pose $X = e^x > 0$.
 
 :::exemple
-$\lim_{x \to +\infty} \left(e^x - x^2\right) = \lim_{x \to +\infty} x^2\left(\frac{e^x}{x^2} - 1\right) = +\infty$.
-:::
-
-## La fonction exp(u)
-
-:::propriete
-Si $u$ est dérivable sur $I$, alors $e^u$ est dérivable sur $I$ et :
-
-$$
-\left(e^{u}\right)' = u' e^{u}
-$$
-
-Les primitives de $u' e^u$ sur $I$ sont les fonctions $e^u + c$.
+$e^{2x} - e^x - 6 < 0$ : avec $X = e^x > 0$, $X^2 - X - 6 = (X - 3)(X + 2) < 0 \iff -2 < X < 3$. Comme $X > 0$, il reste $e^x < 3$, soit $x < \ln 3$. $S = ]-\infty ; \ln 3[$.
 :::
 
 :::exemple
-- $f(x) = e^{x^2 - x}$ : $f'(x) = (2x - 1)e^{x^2 - x}$.
-- Une primitive de $g(x) = x e^{x^2}$ est $G(x) = \frac{1}{2} e^{x^2}$.
-- Une primitive de $h(x) = e^{-3x + 1}$ est $H(x) = -\frac{1}{3} e^{-3x + 1}$.
+$e^{x^2} = e^{x + 2} \iff x^2 = x + 2 \iff x = 2$ ou $x = -1$.
 :::
 
-## Exponentielle de base a
-
-:::definition
-Soit $a > 0$. Pour tout réel $x$, on pose $a^x = e^{x \ln a}$.
-:::
-
-:::propriete
-- Pour $a > 0$, $b > 0$ et $x$, $y$ réels : $a^{x + y} = a^x a^y$, $a^{-x} = \frac{1}{a^x}$, $(a^x)^y = a^{xy}$, $(ab)^x = a^x b^x$.
-- $\ln(a^x) = x \ln a$.
-- $(a^x)' = (\ln a)\, a^x$ : pour $a > 1$, $x \mapsto a^x$ est croissante ; pour $0 < a < 1$, décroissante.
-- Pour $a \neq 1$, $x \mapsto a^x$ est la réciproque de $\log_a$ : $y = a^x \iff x = \log_a y$.
-:::
-
-:::exemple
-$2^x = 5 \iff x \ln 2 = \ln 5 \iff x = \frac{\ln 5}{\ln 2}$.
+:::attention
+$e^{a + b} = e^a e^b$, mais $e^{a} + e^{b}$ ne se simplifie pas. Et $e^x$ n’est jamais négatif ni nul.
 :::

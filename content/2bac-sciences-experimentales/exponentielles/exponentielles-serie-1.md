@@ -1,12 +1,12 @@
 ---
-title: Série 1 : fonctions exponentielles
+title: Série 1 — partie 1 : la fonction exponentielle et ses règles
 kind: serie
-summary: Équations, inéquations, limites, dérivées et étude d’une fonction avec l’exponentielle, avec les corrigés.
+summary: Simplifications, équations, inéquations et systèmes avec exp, équations qui se ramènent au second degré, avec les corrigés.
 position: 10
 visibility: public
 ---
 
-Quatre exercices sur la fonction exponentielle.
+Quatre exercices sur la première partie du cours.
 
 :::exercice Équations et inéquations
 Résoudre dans $\mathbb{R}$ :
@@ -22,44 +22,39 @@ Résoudre dans $\mathbb{R}$ :
 :::
 :::
 
-:::exercice Limites
-Calculer :
+:::exercice Simplifier
+Simplifier les expressions suivantes.
 
-1. $\displaystyle \lim_{x \to +\infty} \left(e^x - 3x\right)$
-2. $\displaystyle \lim_{x \to -\infty} (x + 1)e^x$
-3. $\displaystyle \lim_{x \to 0} \frac{e^{2x} - 1}{x}$
-
-:::corrige
-1. $e^x - 3x = x\left(\frac{e^x}{x} - 3\right)$ avec $\frac{e^x}{x} \to +\infty$ : la limite vaut $+\infty$.
-2. $(x + 1)e^x = x e^x + e^x$, et $x e^x \to 0$, $e^x \to 0$ en $-\infty$ : la limite vaut $0$.
-3. $\frac{e^{2x} - 1}{x} = 2 \times \frac{e^{2x} - 1}{2x}$, et $\frac{e^X - 1}{X} \to 1$ quand $X = 2x \to 0$ : la limite vaut $2$.
-:::
-:::
-
-:::exercice Dérivées
-Calculer la dérivée de chaque fonction sur $\mathbb{R}$.
-
-1. $f(x) = (x^2 + 1)e^{x}$
-2. $g(x) = e^{-x^2}$
-3. $h(x) = \dfrac{e^x}{e^x + 1}$
+$$
+A = e^{\ln 3 + 2\ln 2} \qquad B = \frac{e^{2x + 1}}{e^{x - 1}} \qquad C = \left(e^x + e^{-x}\right)^2 - \left(e^x - e^{-x}\right)^2 \qquad D = \ln\left(e^{3}\right) + e^{-\ln 2}
+$$
 
 :::corrige
-1. $f'(x) = 2x e^x + (x^2 + 1)e^x = (x + 1)^2 e^x$.
-2. $g'(x) = -2x e^{-x^2}$.
-3. $h'(x) = \dfrac{e^x(e^x + 1) - e^x \times e^x}{(e^x + 1)^2} = \dfrac{e^x}{(e^x + 1)^2}$.
+- $A = 3 \times \left(e^{\ln 2}\right)^2 = 3 \times 4 = 12$.
+- $B = e^{(2x + 1) - (x - 1)} = e^{x + 2}$.
+- $C = \left(e^{2x} + 2 + e^{-2x}\right) - \left(e^{2x} - 2 + e^{-2x}\right) = 4$.
+- $D = 3 + \frac{1}{e^{\ln 2}} = 3 + \frac{1}{2} = \frac{7}{2}$.
 :::
 :::
 
-:::exercice Étude d’une fonction
-Soit $f(x) = (2 - x)e^x$ sur $\mathbb{R}$.
+:::exercice Inéquations
+Résoudre dans $\mathbb{R}$ :
 
-1. Calculer les limites de $f$ en $-\infty$ et en $+\infty$.
-2. Étudier les variations de $f$ et dresser son tableau de variations.
-3. Déterminer l’équation de la tangente à la courbe au point d’abscisse $0$.
+1. $e^{x^2} \leq e^{3x - 2}$
+2. $e^{2x} - e^x - 6 < 0$
+3. $e^{1 - x} \geq 2$
 
 :::corrige
-1. En $-\infty$ : $f(x) = 2e^x - x e^x \to 0$ (asymptote horizontale $y = 0$). En $+\infty$ : $2 - x \to -\infty$ et $e^x \to +\infty$, donc $f(x) \to -\infty$.
-2. $f'(x) = -e^x + (2 - x)e^x = (1 - x)e^x$, du signe de $1 - x$ : $f$ est croissante sur $]-\infty ; 1]$ et décroissante sur $[1 ; +\infty[$, avec un maximum $f(1) = e$.
-3. $f(0) = 2$ et $f'(0) = 1$ : la tangente a pour équation $y = x + 2$.
+1. $x^2 \leq 3x - 2 \iff x^2 - 3x + 2 \leq 0 \iff (x - 1)(x - 2) \leq 0$ : $S = [1 ; 2]$.
+2. Avec $X = e^x > 0$ : $(X - 3)(X + 2) < 0 \iff -2 < X < 3$, et comme $X > 0$, $e^x < 3$ : $S = ]-\infty ; \ln 3[$.
+3. $1 - x \geq \ln 2 \iff x \leq 1 - \ln 2$ : $S = ]-\infty ; 1 - \ln 2]$.
+:::
+:::
+
+:::exercice Un système
+Résoudre dans $\mathbb{R}^2$ le système $\begin{cases} e^x \times e^y = e^5 \\ e^x + e^y = e^2 + e^3 \end{cases}$.
+
+:::corrige
+On pose $X = e^x > 0$ et $Y = e^y > 0$ : $XY = e^5$ et $X + Y = e^2 + e^3$. $X$ et $Y$ sont donc les solutions de $t^2 - \left(e^2 + e^3\right)t + e^5 = 0$, qui s’écrit $\left(t - e^2\right)\left(t - e^3\right) = 0$. Ainsi $\{X ; Y\} = \left\{e^2 ; e^3\right\}$, et les solutions sont $(2 ; 3)$ et $(3 ; 2)$.
 :::
 :::
