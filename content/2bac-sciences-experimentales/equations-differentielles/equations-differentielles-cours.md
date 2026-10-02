@@ -1,8 +1,8 @@
 ---
-title: Équations différentielles
+title: Équations différentielles — partie 1 : premier ordre
 kind: cours
-summary: Les équations y' = ay + b et y'' + ay' + by = 0 : solutions générales, solution qui vérifie des conditions initiales, et exemples.
-position: 20
+summary: Notion d’équation différentielle, équations y′ = ay et y′ = ay + b, solution vérifiant une condition initiale, équation avec une solution particulière donnée, applications en physique.
+position: 10
 visibility: public
 ---
 
@@ -38,40 +38,20 @@ Résoudre $y' = -2y + 6$ avec $y(0) = 1$. Les solutions sont $y(x) = C e^{-2x} +
 Mettez d’abord l’équation sous la forme $y' = ay + b$ : $2y' + y = 4$ s’écrit $y' = -\frac{1}{2} y + 2$, donc $a = -\frac{1}{2}$ et $b = 2$.
 :::
 
-## L’équation y″ + ay′ + by = 0
+## Une solution particulière donnée
 
-On associe à l’équation $y'' + ay' + by = 0$ ($a$ et $b$ réels) son **équation caractéristique** :
-
-$$
-r^2 + ar + b = 0, \qquad \Delta = a^2 - 4b
-$$
-
-:::theoreme
-- Si $\Delta > 0$, l’équation caractéristique a deux racines réelles $r_1$ et $r_2$, et les solutions sont les fonctions $x \mapsto \alpha e^{r_1 x} + \beta e^{r_2 x}$.
-- Si $\Delta = 0$, elle a une racine double $r$, et les solutions sont les fonctions $x \mapsto (\alpha x + \beta) e^{r x}$.
-- Si $\Delta < 0$, elle a deux racines complexes conjuguées $p + iq$ et $p - iq$ ($q \neq 0$), et les solutions sont les fonctions $x \mapsto e^{p x}\left(\alpha \cos(qx) + \beta \sin(qx)\right)$.
-
-Dans chaque cas, $\alpha$ et $\beta$ sont des réels quelconques.
-:::
+Il arrive qu’un énoncé donne une équation $(E) : y' = ay + g(x)$, où $g$ n’est pas constante, avec une solution particulière $u$. On s’y ramène à l’équation sans second membre.
 
 :::propriete
-Pour tous réels $x_0$, $y_0$ et $y_1$, il existe une unique solution qui vérifie $y(x_0) = y_0$ et $y'(x_0) = y_1$.
+Si $u$ est une solution de $(E) : y' = ay + g(x)$, alors $y$ est solution de $(E)$ si et seulement si $y - u$ est solution de $y' = ay$. Les solutions de $(E)$ sont donc les fonctions $x \mapsto Ce^{ax} + u(x)$.
 :::
 
 :::exemple
-$y'' - 3y' + 2y = 0$ : l’équation $r^2 - 3r + 2 = 0$ a pour racines $1$ et $2$. Les solutions sont $y(x) = \alpha e^{x} + \beta e^{2x}$.
+$(E) : y' + y = 2e^{-x}$. La fonction $u(x) = 2xe^{-x}$ est solution : $u'(x) = 2e^{-x} - 2xe^{-x}$, donc $u' + u = 2e^{-x}$. Les solutions de $(E)$ sont $y(x) = Ce^{-x} + 2xe^{-x} = (2x + C)e^{-x}$.
 :::
 
-:::exemple
-$y'' + 4y = 0$ avec $y(0) = 1$ et $y'(0) = 2$ : l’équation $r^2 + 4 = 0$ a pour racines $2i$ et $-2i$ ($p = 0$, $q = 2$), donc $y(x) = \alpha\cos(2x) + \beta\sin(2x)$. $y(0) = \alpha = 1$ ; $y'(x) = -2\alpha\sin(2x) + 2\beta\cos(2x)$, donc $y'(0) = 2\beta = 2$ et $\beta = 1$ : $y(x) = \cos(2x) + \sin(2x)$.
-:::
+## En physique et en chimie
 
 :::exemple
-$y'' + 2y' + y = 0$ : $r^2 + 2r + 1 = (r + 1)^2$, racine double $-1$. Les solutions sont $y(x) = (\alpha x + \beta)e^{-x}$.
-:::
-
-## Un exemple en physique
-
-:::exemple
-La charge $q$ d’un condensateur qui se décharge dans une résistance vérifie $RC\,q' + q = 0$, soit $q' = -\frac{1}{RC} q$. Donc $q(t) = q_0 \, e^{-\frac{t}{RC}}$, où $q_0$ est la charge à l’instant $t = 0$.
+**Refroidissement.** La température $T$ (en °C) d’un liquide dans une pièce à $20$ °C vérifie $T' = -0{,}2(T - 20)$, soit $T' = -0{,}2\,T + 4$, le temps $t$ étant en minutes. Avec $T(0) = 90$ : $T(t) = 20 + 70e^{-0{,}2t}$. Le liquide atteint $40$ °C quand $70e^{-0{,}2t} = 20$, soit $t = 5\ln 3{,}5 \approx 6{,}3$ minutes.
 :::
