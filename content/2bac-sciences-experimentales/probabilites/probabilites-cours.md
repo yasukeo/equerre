@@ -1,8 +1,8 @@
 ---
-title: Dénombrement et probabilités
+title: Dénombrement et probabilités — partie 1 : dénombrement et probabilités
 kind: cours
-summary: Principe du produit, arrangements, permutations et combinaisons ; probabilités, probabilités conditionnelles, indépendance, épreuves répétées et variables aléatoires.
-position: 20
+summary: Principe du produit, tirages avec ou sans remise, simultanés, arrangements, combinaisons et permutations, univers, événements, probabilité, équiprobabilité, événement contraire et réunion.
+position: 10
 visibility: public
 ---
 
@@ -52,71 +52,25 @@ Soit $\Omega$ l’ensemble fini des issues d’une expérience aléatoire (l’*
 Avec l’urne précédente, la probabilité de tirer deux boules rouges est $\frac{10}{28} = \frac{5}{14}$.
 :::
 
-## Probabilités conditionnelles
+## Choisir le bon modèle
 
-:::definition
-Soit $A$ un événement de probabilité non nulle. La probabilité de $B$ **sachant** $A$ est :
+Avant de compter, on se demande si **l’ordre compte** et si **les répétitions sont possibles** :
 
-$$
-p_A(B) = p(B / A) = \frac{p(A \cap B)}{p(A)}
-$$
-:::
+- l’ordre compte et les répétitions sont possibles (tirage successif avec remise, code, mot de passe) : $n^p$ ;
+- l’ordre compte sans répétition (tirage successif sans remise, classement, attribution de postes différents) : $A_n^p$ ;
+- l’ordre ne compte pas (tirage simultané, choix d’un groupe ou d’une main de cartes) : $C_n^p$.
 
-:::propriete
-- $p(A \cap B) = p(A) \times p_A(B)$.
-- **Probabilités totales** : si $A_1, \dots, A_n$ forment une partition de $\Omega$, alors $p(B) = p(A_1) p_{A_1}(B) + \cdots + p(A_n) p_{A_n}(B)$.
+:::exemple
+- Un code de carte bancaire a $4$ chiffres : $10^4 = 10\,000$ codes.
+- Une classe de $30$ élèves élit un président et un secrétaire : $A_{30}^2 = 30 \times 29 = 870$ possibilités.
+- On choisit $3$ délégués parmi $30$ élèves : $C_{30}^3 = \frac{30 \times 29 \times 28}{6} = 4060$ possibilités.
+- Les anagrammes du mot MAROC (cinq lettres distinctes) : $5! = 120$.
 :::
 
 :::exemple
-On tire successivement et sans remise deux boules de l’urne précédente. Soit $R_1$ : « la première est rouge » et $R_2$ : « la deuxième est rouge ».
-
-$$
-p(R_2) = p(R_1) p_{R_1}(R_2) + p(\bar{R_1}) p_{\bar{R_1}}(R_2) = \frac{5}{8} \times \frac{4}{7} + \frac{3}{8} \times \frac{5}{7} = \frac{35}{56} = \frac{5}{8}
-$$
+**Au moins un.** On tire simultanément $3$ boules d’une urne de $4$ blanches et $6$ noires. L’événement « au moins une blanche » est le contraire de « aucune blanche » : $p = 1 - \frac{C_6^3}{C_{10}^3} = 1 - \frac{20}{120} = \frac{5}{6}$.
 :::
 
-## Indépendance
-
-:::definition
-Deux événements $A$ et $B$ sont **indépendants** si $p(A \cap B) = p(A) \times p(B)$. Si $p(A) \neq 0$, cela revient à $p_A(B) = p(B)$.
-:::
-
-## Épreuves répétées
-
-:::theoreme
-On répète $n$ fois, de façon indépendante, une épreuve dont un événement $A$ a la probabilité $p$. La probabilité que $A$ se réalise exactement $k$ fois ($0 \leq k \leq n$) est :
-
-$$
-C_n^k \, p^k (1 - p)^{n - k}
-$$
-:::
-
-:::exemple
-On lance $4$ fois un dé équilibré. La probabilité d’obtenir exactement deux fois le $6$ est $C_4^2 \left(\frac{1}{6}\right)^2 \left(\frac{5}{6}\right)^2 = 6 \times \frac{25}{1296} = \frac{25}{216}$.
-:::
-
-## Variables aléatoires
-
-:::definition
-Une **variable aléatoire** $X$ associe un réel à chaque issue. Sa **loi de probabilité** donne, pour chaque valeur $x_i$ qu’elle prend, la probabilité $p(X = x_i)$.
-:::
-
-:::definition
-Si $X$ prend les valeurs $x_1, \dots, x_n$ avec les probabilités $p_1, \dots, p_n$ :
-
-- son **espérance** est $E(X) = \sum_{i = 1}^{n} x_i p_i$ ;
-- sa **variance** est $V(X) = \sum_{i = 1}^{n} x_i^2 p_i - \left(E(X)\right)^2$ ;
-- son **écart type** est $\sigma(X) = \sqrt{V(X)}$.
-:::
-
-:::propriete
-**Loi binomiale.** Si $X$ compte le nombre de réalisations de $A$ au cours de $n$ épreuves répétées indépendantes où $p(A) = p$, alors $p(X = k) = C_n^k p^k (1 - p)^{n - k}$, et :
-
-$$
-E(X) = np \qquad V(X) = np(1 - p)
-$$
-:::
-
-:::exemple
-Dans l’exemple du dé, $X$ = nombre de $6$ obtenus en $4$ lancers suit la loi binomiale de paramètres $4$ et $\frac{1}{6}$ : $E(X) = \frac{4}{6} = \frac{2}{3}$ et $V(X) = 4 \times \frac{1}{6} \times \frac{5}{6} = \frac{5}{9}$.
+:::attention
+« Au moins un » se calcule presque toujours par l’événement contraire « aucun ». Et dans un tirage avec remise, on ne peut pas utiliser les combinaisons.
 :::

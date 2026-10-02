@@ -1,12 +1,12 @@
 ---
-title: Série 1 : dénombrement et probabilités
+title: Série 1 — partie 1 : dénombrement et probabilités
 kind: serie
-summary: Tirages simultanés et successifs, probabilités conditionnelles, épreuves répétées et loi d’une variable aléatoire, avec les corrigés.
+summary: Choisir entre arrangements, combinaisons et listes, tirages simultanés et successifs, réunion et événement contraire, propriétés des combinaisons, avec les corrigés.
 position: 10
 visibility: public
 ---
 
-Trois exercices dans l’esprit de l’examen national.
+Cinq exercices sur la première partie du cours.
 
 :::exercice Tirage simultané
 Une urne contient $4$ boules blanches et $6$ boules noires. On tire simultanément $3$ boules.
@@ -22,28 +22,52 @@ Une urne contient $4$ boules blanches et $6$ boules noires. On tire simultanéme
 :::
 :::
 
-:::exercice Probabilités conditionnelles
-Dans un lycée, $60\,\%$ des élèves sont en filière PC et les autres en SVT. $30\,\%$ des élèves de PC et $50\,\%$ des élèves de SVT suivent des cours de soutien. On choisit un élève au hasard.
-
-1. Calculer la probabilité qu’il suive des cours de soutien.
-2. Il suit des cours de soutien : quelle est la probabilité qu’il soit en PC ?
+:::exercice Choisir le bon dénombrement
+1. Combien de codes de $4$ chiffres peut-on former ? Combien n’ont que des chiffres distincts ?
+2. Un club de $12$ membres choisit un président, un trésorier et un secrétaire, tous différents. Combien de bureaux possibles ?
+3. Combien de façons de choisir $5$ cartes parmi $32$ ?
+4. Combien d’anagrammes a le mot RABAT ?
 
 :::corrige
-Notons $P$ : « l’élève est en PC » et $S$ : « il suit des cours de soutien ».
-
-1. D’après la formule des probabilités totales : $p(S) = 0{,}6 \times 0{,}3 + 0{,}4 \times 0{,}5 = 0{,}18 + 0{,}2 = 0{,}38$.
-2. $p_S(P) = \dfrac{p(P \cap S)}{p(S)} = \dfrac{0{,}18}{0{,}38} = \dfrac{9}{19}$.
+1. $10^4 = 10\,000$ codes, dont $A_{10}^4 = 10 \times 9 \times 8 \times 7 = 5040$ à chiffres distincts.
+2. L’ordre compte (postes différents), sans répétition : $A_{12}^3 = 12 \times 11 \times 10 = 1320$.
+3. L’ordre ne compte pas : $C_{32}^5 = \frac{32 \times 31 \times 30 \times 29 \times 28}{120} = 201\,376$.
+4. Cinq lettres dont deux A identiques : $\frac{5!}{2!} = 60$ anagrammes.
 :::
 :::
 
-:::exercice Épreuves répétées et variable aléatoire
-On lance $3$ fois une pièce équilibrée. $X$ est le nombre de « pile » obtenus.
+:::exercice Tirages successifs
+Une urne contient $3$ boules rouges et $2$ boules vertes. On tire successivement $2$ boules.
 
-1. Donner la loi de probabilité de $X$.
-2. Calculer $E(X)$ et $V(X)$.
+1. Sans remise : combien de tirages ? Quelle est la probabilité de tirer deux boules de même couleur ?
+2. Avec remise : mêmes questions.
 
 :::corrige
-1. $X$ suit la loi binomiale de paramètres $n = 3$ et $p = \frac{1}{2}$ : $p(X = k) = C_3^k \left(\frac{1}{2}\right)^3$, soit $p(X = 0) = \frac{1}{8}$, $p(X = 1) = \frac{3}{8}$, $p(X = 2) = \frac{3}{8}$ et $p(X = 3) = \frac{1}{8}$.
-2. $E(X) = np = \frac{3}{2}$ et $V(X) = np(1 - p) = \frac{3}{4}$.
+1. $A_5^2 = 20$ tirages. Deux rouges : $A_3^2 = 6$ ; deux vertes : $A_2^2 = 2$. Probabilité : $\frac{6 + 2}{20} = \frac{2}{5}$.
+2. $5^2 = 25$ tirages. Deux rouges : $3^2 = 9$ ; deux vertes : $2^2 = 4$. Probabilité : $\frac{13}{25}$.
+:::
+:::
+
+:::exercice Réunion et contraire
+On lance deux dés équilibrés. On note $A$ : « la somme vaut $7$ » et $B$ : « au moins un des dés donne $6$ ».
+
+1. Calculer $p(A)$ et $p(B)$.
+2. Calculer $p(A \cap B)$ et $p(A \cup B)$.
+
+:::corrige
+1. Il y a $36$ issues équiprobables. $A = \{(1;6), (2;5), (3;4), (4;3), (5;2), (6;1)\}$ : $p(A) = \frac{6}{36} = \frac{1}{6}$. $\bar{B}$ : « aucun $6$ » a $25$ issues, donc $p(B) = 1 - \frac{25}{36} = \frac{11}{36}$.
+2. $A \cap B = \{(1;6), (6;1)\}$ : $p(A \cap B) = \frac{2}{36}$. $p(A \cup B) = \frac{6 + 11 - 2}{36} = \frac{15}{36} = \frac{5}{12}$.
+:::
+:::
+
+:::exercice Propriétés des combinaisons
+1. Calculer $C_7^3$ et $C_7^4$. Que remarque-t-on ?
+2. Vérifier que $C_6^2 + C_6^3 = C_7^3$.
+3. Résoudre dans $\mathbb{N}$ l’équation $C_n^2 = 15$.
+
+:::corrige
+1. $C_7^3 = \frac{7 \times 6 \times 5}{6} = 35 = C_7^4$, car $C_n^p = C_n^{n - p}$.
+2. $15 + 20 = 35 = C_7^3$.
+3. $\frac{n(n - 1)}{2} = 15 \iff n^2 - n - 30 = 0 \iff n = 6$ ou $n = -5$. Dans $\mathbb{N}$ : $n = 6$.
 :::
 :::
