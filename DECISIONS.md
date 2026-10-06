@@ -885,6 +885,14 @@ Asked on 2026-10-01, with a screenshot of the student home and one of a chapter 
 - **One blue for the one action.** Primary buttons are blue (`--bleu-bande`) instead of ink, and the current navigation item is a blue tint. The student home leads with the next session on a blue card, then homework (red edge, a bar for the exercises done), new documents in their kind's colour, and grades.
 - **Shape.** Radius 10px (`--radius`), cards 16px; tabs and filters are pills, buttons are not. Headings keep Readex Pro, at `HEXP 45` rather than 70–100: still wide, no longer stretched.
 
+**D-101 — Course documents go straight to production.**
+On 2026-10-06 the owner, having read the first 1 061 imported documents, published them all and asked that what comes next go « tout directement en production »: it no longer waits as a draft for the tutor's reading (this replaces that part of D-098).
+
+- **How.** The files are checked and imported as before (D-098), then the imported drafts (`lessons.source` set) are published the way the editor publishes: `status = 'published'`, `published_at` kept when it was already set. Lessons the tutor wrote, and the two demonstration lessons of the seed, are not touched.
+- **Then a deployment.** The course pages are cached and prerendered; a change made outside the app shows after the next production deployment (as for the exams, D-099), so each batch ends with one.
+- **Checks instead of a reader.** Since nobody reads a batch before students do, every figure is checked before import: lengths that fit together, counts recomputed, no drafting leftover. The tutor can still correct or unpublish any document from `/prof/lecons`; once she has, the import leaves it alone.
+- The 1re année collège came first this way: 17 chapters, 119 documents, published the same day.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
