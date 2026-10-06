@@ -91,13 +91,6 @@ set position = (select coalesce(max(position), 0) from public.levels where posit
 from leftover
 where l.code = leftover.code;
 
--- A chapter made before programmes existed follows its level's programme, so the upsert
--- below finds it by its slug instead of adding a second one.
-update public.chapters c
-set programme_code = l.programme_code
-from public.levels l
-where c.programme_code is null
-  and l.code = c.level_code;
 ${renames.length > 0 ? `\n-- Renamed chapters keep their id, and so their lessons and exercises.\n${renames.join("\n\n")}\n` : ""}
 insert into public.chapters (programme_code, slug, title, semester, position) values
 ${chapters.join(",\n")}

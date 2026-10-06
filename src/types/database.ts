@@ -213,7 +213,6 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          level_code: string | null
           position: number
           programme_code: string
           semester: number | null
@@ -225,7 +224,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          level_code?: string | null
           position?: number
           programme_code: string
           semester?: number | null
@@ -237,7 +235,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          level_code?: string | null
           position?: number
           programme_code?: string
           semester?: number | null
@@ -246,13 +243,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "chapters_level_code_fkey"
-            columns: ["level_code"]
-            isOneToOne: false
-            referencedRelation: "levels"
-            referencedColumns: ["code"]
-          },
           {
             foreignKeyName: "chapters_programme_code_fkey"
             columns: ["programme_code"]

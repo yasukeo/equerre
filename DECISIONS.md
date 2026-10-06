@@ -815,7 +815,7 @@ Asked on 2026-09-30: a course as complete as the sites students already use (All
   Chapters, and so lessons and exercises, belong to the programme: a course is written once, and a student reads her stream's programme (`private.my_programme()` in the lesson rule, `20260930031104`). The brief's « 1re bac SVT » is kept, following 1re bac Sciences expérimentales: no student uses it, and the official system has no such stream in 1re bac.
 
 - **Every chapter of the official programmes**, 166 in all, by semester, in `supabase/curriculum/maths.json`. `scripts/curriculum-sql.mjs` turns that file into upserts keyed on codes and slugs, so a correction is a new migration that keeps every chapter's id, lessons and exercises. The ministry's own documents (2007 guidelines for the lycée, 2009 for the collège) are no longer online; the lists come from the usual progressions, which agree with each other, and the tutor is to check them. The split into semesters of 1re bac Sciences économiques is a guess. The nine demo chapters were each an official chapter already and keep their content.
-- **`chapters.level_code` is no longer read**, and nullable. Dropping it is a destructive migration, left until the owner agrees.
+- **`chapters.level_code` is no longer read**, and nullable. Dropping it is a destructive migration, left until the owner agrees (dropped on 2026-10-06, D-102).
 - **A chapter's documents have a kind** (`lessons.kind`, `20260930031252`): the course, its summary, series of exercises with their corrections, practice tests. They are lessons in every other way: one editor, one rule of who reads what, one page, one PDF.
 - **Addresses.** The course is `/cours/{programme}/{chapitre}/{document}`: the programme's page lists every chapter by semester, written or « En préparation », and a chapter's page its documents by kind. An old address that named a stream (`/cours/2bac-pc/…`) redirects permanently to its programme's (`next.config.ts`, from the same curriculum file).
 - **A student's list** is her programme's documents and those shared with her by name. The other programmes' public documents are the public course's, one link away, rather than hundreds of lines in her space.
@@ -892,6 +892,13 @@ On 2026-10-06 the owner, having read the first 1 061 imported documents, publish
 - **Then a deployment.** The course pages are cached and prerendered; a change made outside the app shows after the next production deployment (as for the exams, D-099), so each batch ends with one.
 - **Checks instead of a reader.** Since nobody reads a batch before students do, every figure is checked before import: lengths that fit together, counts recomputed, no drafting leftover. The tutor can still correct or unpublish any document from `/prof/lecons`; once she has, the import leaves it alone.
 - The 1re année collège came first this way: 17 chapters, 119 documents, published the same day.
+
+**D-102 — The owner's answers of 2026-10-06.**
+
+- **The older lessons are unpublished.** Twelve lessons were not made by the import: the demonstration lessons and a few written before the course files (limits, continuity, derivatives, sequences, complex numbers, arithmetic, barycentre, scalar product, first-degree equations, Thalès). They sat in the same chapters as the imported courses, so students saw the same subject twice. The eleven published ones went back to drafts the way « Dépublier » does (`published_at` kept); none was deleted, and the tutor can publish one again from `/prof/lecons`. The one student access that pointed to one of them belonged to a test account.
+- **`chapters.level_code` is dropped** (`20261006210000_drop_chapter_level.sql`), with its foreign key, its unique key and its index. The migration first checks that every chapter has its programme. `scripts/curriculum-sql.mjs` no longer writes the step that moved a chapter from its level to its programme, and `src/types/database.ts` lost the column by hand (the generator needs a Supabase CLI login).
+- **The database requires SSL and the scripts check its certificate.** The owner turned on « Enforce SSL connections » and downloaded Supabase's root certificate (Supabase Root 2021 CA, valid until 2031); `SUPABASE_DB_CA` in `.env.local` names it, kept outside the repository, so the scripts verify the server instead of only encrypting.
+- **1re bac SVT stays** as it is: hidden from visitors, kept in `levels` for any student who would be in it (D-094).
 
 ## Secret key usage
 
