@@ -1,7 +1,7 @@
 ---
 title: Les quatre opérations sur les rationnels — partie 1 : priorités
 kind: cours
-summary: Ordre des calculs avec des rationnels, rôle des parenthèses, fractions étagées et distributivité pour calculer plus simplement.
+summary: Ordre des calculs avec des rationnels, rôle des parenthèses, fractions étagées et distributivité pour simplifier les calculs.
 position: 10
 visibility: public
 ---
