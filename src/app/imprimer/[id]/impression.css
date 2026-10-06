@@ -55,6 +55,15 @@ body:has(.impression) {
     color: var(--encre-douce);
   }
 
+  /* Équerre's own correction of an exam says so on paper too (D-103), apart from its summary. */
+  .impression-avis {
+    margin-top: 0.75rem;
+    border-inline-start: 3px solid var(--trait);
+    padding-inline-start: 0.75rem;
+    font-size: 9.5pt;
+    color: var(--encre-douce);
+  }
+
   .impression-marque {
     font-weight: 600;
     color: var(--encre);

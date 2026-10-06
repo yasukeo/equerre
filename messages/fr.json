@@ -1170,7 +1170,21 @@
         "ar": "Arabe"
       },
       "officialChip": "Officiel",
-      "officialHint": "Sujet officiel du ministère, publié tel quel. Remplacer ou retirer un de ses fichiers en fait un sujet ordinaire."
+      "officialHint": "Sujet officiel du ministère, publié tel quel. Remplacer ou retirer un de ses fichiers en fait un sujet ordinaire.",
+      "correction": {
+        "title": "Corrigé Équerre",
+        "online": "En ligne : les visiteurs le lisent sur la page du sujet et le téléchargent en PDF.",
+        "offline": "Retiré du site : vous seule le voyez.",
+        "hiddenBySolution": "Masqué : ce sujet a déjà un corrigé en PDF, celui d’Équerre ne s’affiche plus.",
+        "hiddenByPaper": "Masqué : le sujet n’est pas en ligne, son corrigé non plus.",
+        "view": "Voir la page",
+        "unpublish": "Retirer du site",
+        "publish": "Remettre en ligne",
+        "unpublished": "Le corrigé est retiré du site.",
+        "published": "Le corrigé est de nouveau en ligne.",
+        "gone": "Ce corrigé n’existe plus. Rechargez la page.",
+        "failed": "Le corrigé n’a pas pu être mis à jour. Réessayez."
+      }
     }
   },
   "student": {
@@ -2244,14 +2258,14 @@
   },
   "exams": {
     "title": "Examens nationaux",
-    "lead": "Les sujets officiels du baccalauréat des années précédentes, session normale et session de rattrapage, avec les éléments de réponse publiés par le ministère quand ils existent, sinon notre propre corrigé.",
+    "lead": "Les sujets officiels du baccalauréat des années précédentes, session normale et session de rattrapage, avec les éléments de réponse publiés par le ministère quand ils existent et des corrigés rédigés par Équerre, à télécharger en PDF.",
     "empty": "Les premiers sujets arrivent bientôt. En attendant, les cours de chaque programme sont en ligne.",
     "toCourses": "Voir les cours",
     "count": "{count, plural, one {# sujet} other {# sujets}} · de {first} à {latest}",
     "back": "Tous les examens",
     "programmeTitle": "Examens nationaux · {programme}",
     "programmeDescription": "{programme} : les sujets de l’examen national des années précédentes et leurs corrigés, en PDF.",
-    "programmeLead": "Chaque sujet tel qu’il a été donné à l’examen, avec les éléments de réponse du ministère quand il les a publiés, sinon un corrigé rédigé par Équerre.",
+    "programmeLead": "Chaque sujet tel qu’il a été donné à l’examen, avec les éléments de réponse du ministère quand il les a publiés et, pour d’autres sujets, un corrigé rédigé par Équerre.",
     "toProgramme": "Réviser avec les cours du programme",
     "session": {
       "normale": "Session normale",
@@ -2281,8 +2295,10 @@
       "rattrapage": "session de rattrapage"
     },
     "nationalExam": "Examen national {year}",
-    "notOfficial": "Corrigé rédigé par Équerre, non officiel : le ministère n’a pas publié d’éléments de réponse pour ce sujet. Essayez d’abord le sujet seul, puis comparez.",
-    "arabicSubject": "Le sujet a été donné en arabe ; le corrigé est rédigé en français.",
-    "subjectPdf": "Sujet officiel"
+    "notOfficial": "Rédigé par Équerre, non officiel : le ministère n’a pas publié d’éléments de réponse pour ce sujet. Cherchez d’abord le sujet sans aide, puis comparez.",
+    "arabicSubject": "Le sujet a été donné en arabe ; le corrigé est rédigé en français.",
+    "subjectPdf": "Sujet officiel",
+    "correctionMetaTitle": "Corrigé du bac {year}, {session} · {programme}",
+    "correctionMetaDescription": "Corrigé détaillé de l’examen national de mathématiques {year}, {session}, {programme}."
   }
 }

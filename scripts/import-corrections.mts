@@ -6,8 +6,10 @@
 //                                      one rewritten from its file
 //
 // A file names its paper: `2021-normale.md`, `2019-normale-pc-svt-et-sciences-agronomiques.md`
-// (src/lib/exams/files.ts, examPaperSlug). A correction the tutor took off the site keeps that
-// status: only its text follows the file. A file with the least mistake stops the whole import.
+// (src/lib/exams/files.ts, examPaperSlug). Once imported, a correction follows its file even if
+// the tutor changes the paper's address, and a renamed file takes its correction over. A
+// correction the tutor took off the site keeps that status: only its text follows the file. A
+// file with the least mistake stops the whole import.
 // The public pages are cached: they show what changed after the next deployment.
 
 import { createHash } from "node:crypto";
@@ -119,7 +121,28 @@ try {
     left join public.exam_corrections c on c.exam_id = e.id`;
 
   const plan: { document: Parsed; paper: PaperRow; action: "create" | "update" | "keep" }[] = [];
+  const files = new Set(parsed.map((document) => document.file));
+  // A correction already imported follows its file, wherever its paper now is: the tutor may
+  // correct a paper's year, session or track, which moves its address (D-103).
+  const bySource = new Map(
+    papers.filter((paper) => paper.source !== null).map((paper) => [paper.source!, paper]),
+  );
+  const moved: string[] = [];
   for (const document of parsed) {
+    const hash = fingerprint(document);
+    const known = bySource.get(document.file);
+    if (known) {
+      if (known.programme !== document.programme || examPaperSlug(known) !== document.paper) {
+        moved.push(`${document.file} → corriges/${known.programme}/${examPaperSlug(known)}.md`);
+      }
+      plan.push({
+        document,
+        paper: known,
+        action: known.source_hash === hash ? "keep" : "update",
+      });
+      continue;
+    }
+
     const matches = papers.filter(
       (paper) => paper.programme === document.programme && examPaperSlug(paper) === document.paper,
     );
@@ -132,21 +155,22 @@ try {
       continue;
     }
     const paper = matches[0]!;
+    if (paper.source !== null) {
+      // The paper's correction came from another file: a renamed file takes it over, two files
+      // for one paper are a mistake.
+      if (files.has(paper.source)) {
+        problems.push(`${document.file} : ce sujet a déjà un corrigé, importé de ${paper.source}`);
+        continue;
+      }
+      plan.push({ document, paper, action: "update" });
+      continue;
+    }
     // Where the ministry, or the tutor, gave a correction, Équerre does not add a second one.
     if (paper.solution_path !== null) {
       problems.push(`${document.file} : ce sujet a déjà un corrigé en PDF`);
       continue;
     }
-    if (paper.source !== null && paper.source !== document.file) {
-      problems.push(`${document.file} : ce sujet a déjà un corrigé, importé de ${paper.source}`);
-      continue;
-    }
-    const hash = fingerprint(document);
-    plan.push({
-      document,
-      paper,
-      action: paper.source === null ? "create" : paper.source_hash === hash ? "keep" : "update",
-    });
+    plan.push({ document, paper, action: "create" });
   }
 
   if (problems.length > 0) {
@@ -168,7 +192,7 @@ try {
             await tx`
               update public.exam_corrections set
                 summary = ${document.summary}, content = ${tx.json(document.content as never)},
-                source_hash = ${hash}
+                source = ${document.file}, source_hash = ${hash}
               where exam_id = ${paper.id}`;
           }
         }
@@ -176,8 +200,10 @@ try {
     }
 
     // A correction whose file is gone stays as it is: removing one is the tutor's decision.
-    const files = new Set(parsed.map((document) => document.file));
-    const orphans = papers.filter((paper) => paper.source !== null && !files.has(paper.source));
+    const taken = new Set(plan.map((entry) => entry.paper.id));
+    const orphans = papers.filter(
+      (paper) => paper.source !== null && !files.has(paper.source) && !taken.has(paper.id),
+    );
 
     const named = (action: string) =>
       plan.filter((entry) => entry.action === action).map((entry) => entry.document.file);
@@ -187,6 +213,7 @@ try {
       [`Publiés${verb}`, named("create")],
       [`Réécrits depuis leur fichier${verb}`, named("update")],
       ["Sans fichier, laissés tels quels", orphans.map((paper) => paper.source!)],
+      ["Sujets qui ont changé d’adresse : renommez le fichier", moved],
     ] as const) {
       if (list.length === 0) continue;
       console.log(`\n${label} : ${list.length}`);

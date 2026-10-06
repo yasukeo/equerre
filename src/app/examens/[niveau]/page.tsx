@@ -270,12 +270,9 @@ async function Paper({ paper }: { paper: ExamPaper }) {
             {/* Équerre's own correction (D-103): a page of the site, not one of the ministry's files. */}
             <Link
               href={paper.correctionHref}
-              className={cn(
-                "inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold hover:opacity-90",
-                colour.chip,
-              )}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-trait bg-surface px-3 text-sm font-semibold hover:border-encre"
             >
-              <FileText aria-hidden="true" className="size-4 shrink-0" />
+              <FileText aria-hidden="true" className={cn("size-4 shrink-0", colour.text)} />
               {t("ourCorrection")}
               <span className="sr-only">{`, ${paper.year}, ${name}`}</span>
             </Link>

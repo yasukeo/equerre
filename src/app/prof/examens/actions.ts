@@ -328,3 +328,47 @@ export async function discardUploads(id: string, paths: string[]): Promise<void>
     paths.filter((path) => isExamFileName(id, path) && !keep.has(path)),
   );
 }
+
+/**
+ * Takes Équerre's correction of a paper off the site, or puts it back (D-103). It keeps its
+ * first publication date, as a lesson does, and the public pages are refreshed at once.
+ */
+export async function setCorrectionPublished(
+  _previous: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireViewer("tutor");
+  const t = await getTranslations("tutor.exams.correction");
+  const parsed = z
+    .object({
+      id: z.uuid(),
+      published: z.enum(["true", "false"]).transform((value) => value === "true"),
+    })
+    .safeParse({ id: textField(formData, "id"), published: textField(formData, "published") });
+  if (!parsed.success) return { status: "error", message: t("gone") };
+  const { id, published } = parsed.data;
+
+  const supabase = await createClient();
+  const { data: current } = await supabase
+    .from("exam_corrections")
+    .select("published_at")
+    .eq("exam_id", id)
+    .maybeSingle();
+  if (!current) return { status: "error", message: t("gone") };
+
+  const { data, error } = await supabase
+    .from("exam_corrections")
+    .update({
+      status: published ? "published" : "draft",
+      published_at: published
+        ? (current.published_at ?? new Date().toISOString())
+        : current.published_at,
+    })
+    .eq("exam_id", id)
+    .select("exam_id");
+  if (error) return { status: "error", message: t("failed") };
+  if (data.length === 0) return { status: "error", message: t("gone") };
+
+  updateTag(EXAMS_TAG);
+  return { status: "success", message: published ? t("published") : t("unpublished") };
+}

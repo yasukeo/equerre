@@ -11,6 +11,7 @@ import { getExamCorrection, listExamCorrections } from "@/lib/exams/queries";
 import { correctionTitle } from "@/lib/exams/titles";
 import { formatFileSize } from "@/lib/lesson/file-size";
 import { programmeName } from "@/lib/lesson/streams";
+import { frenchSpaces } from "@/lib/typography";
 // Only the correction pages set maths under /examens.
 import "katex/dist/katex.min.css";
 import "@/app/cours/lecon.css";
@@ -33,9 +34,15 @@ export async function generateMetadata({
     getExamCorrection(niveau, sujet),
   ]);
   if (!correction) return {};
+  // Short enough for a tab or a search result: the year, the session and the stream come first.
+  const facts = {
+    year: correction.year,
+    session: t(`sessionInTitle.${correction.session}`),
+    programme: programmeName(correction.programmeLabel),
+  };
   return {
-    title: `${correctionTitle(t, correction)} · ${programmeName(correction.programmeLabel)}`,
-    description: correction.summary,
+    title: t("correctionMetaTitle", facts),
+    description: `${t("correctionMetaDescription", facts)} ${correction.summary}`,
     alternates: { canonical: `/examens/${correction.programmeSlug}/${sujet}` },
   };
 }
@@ -94,27 +101,29 @@ async function Correction({ params }: { params: Promise<{ niveau: string; sujet:
           <p className={`flex gap-2 rounded-xl px-4 py-3 text-sm ${colour.chip}`}>
             <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
             <span>
-              {t("notOfficial")}
-              {correction.language === "ar" ? ` ${t("arabicSubject")}` : null}
+              {frenchSpaces(t("notOfficial"))}
+              {correction.language === "ar" ? ` ${frenchSpaces(t("arabicSubject"))}` : null}
             </span>
           </p>
           <div className="flex flex-wrap items-start gap-2">
-            {/* The ministry's paper, as it was given: a plain link to its PDF. */}
+            {/* The paper as it was given: a plain link to its PDF. */}
             <a
               href={correction.subjectUrl}
               hrefLang={correction.language}
               className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-trait bg-surface px-3 text-sm font-semibold hover:border-encre"
             >
               <FileDown aria-hidden="true" className="size-4 shrink-0" />
-              {t("subjectPdf")}
+              {correction.official ? t("subjectPdf") : t("subject")}
               <span className="text-xs font-normal text-encre-douce">
                 {formatFileSize(correction.subjectSize)}
               </span>
-              {correction.language === "ar" ? (
-                <span className="text-xs font-normal text-encre-douce">{`· ${t("arabic")}`}</span>
-              ) : null}
             </a>
-            <PdfLinks id={correction.id} version={correction.version} kind="cours" />
+            <PdfLinks
+              id={correction.id}
+              version={correction.version}
+              kind="cours"
+              title={correctionTitle(t, correction)}
+            />
           </div>
         </div>
       }

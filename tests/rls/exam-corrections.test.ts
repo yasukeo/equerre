@@ -9,12 +9,14 @@ import { anonymousClient, signedInAs, type Client } from "./clients";
 describe("exam corrections", () => {
   let tutor: Client;
   let student: Client;
-  // A published paper with a published correction, one whose correction is a draft, and a
-  // draft paper whose correction is published: only the first is anyone's to read.
+  // A published paper with a published correction, one whose correction is a draft, a draft
+  // paper whose correction is published, and a paper that has a correction file of its own:
+  // only the first is anyone's to read.
   const open = randomUUID();
   const draftCorrection = randomUUID();
   const draftPaper = randomUUID();
-  const papers = [open, draftCorrection, draftPaper];
+  const withSolution = randomUUID();
+  const papers = [open, draftCorrection, draftPaper, withSolution];
   const content = { type: "doc", content: [{ type: "paragraph" }] };
   const hash = "0".repeat(64);
 
@@ -31,6 +33,8 @@ describe("exam corrections", () => {
         session: "normale" as const,
         subject_path: `${id}/${randomUUID()}.pdf`,
         subject_size: 1000,
+        solution_path: id === withSolution ? `${id}/${randomUUID()}.pdf` : null,
+        solution_size: id === withSolution ? 1000 : null,
         status: id === draftPaper ? ("draft" as const) : ("published" as const),
       })),
     );
@@ -54,7 +58,7 @@ describe("exam corrections", () => {
     await tutor.from("national_exams").delete().in("id", papers);
   });
 
-  it("shows visitors and students a published correction of a published paper only", async () => {
+  it("shows visitors and students a published correction of a published paper without one of its own", async () => {
     for (const client of [anonymousClient(), student]) {
       const { data } = await client
         .from("exam_corrections")
@@ -63,7 +67,7 @@ describe("exam corrections", () => {
       expect(data?.map((row) => row.exam_id)).toEqual([open]);
     }
     const { data } = await tutor.from("exam_corrections").select("exam_id").in("exam_id", papers);
-    expect(data).toHaveLength(3);
+    expect(data).toHaveLength(4);
   });
 
   it("lets nobody but the tutor write a correction", async () => {
@@ -106,5 +110,6 @@ describe("exam corrections", () => {
     expect(await quota(open)).toBe(true);
     expect(await quota(draftCorrection)).toBe(false);
     expect(await quota(draftPaper)).toBe(false);
+    expect(await quota(withSolution)).toBe(false);
   });
 });

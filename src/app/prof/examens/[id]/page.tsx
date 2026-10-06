@@ -5,8 +5,10 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { z } from "zod";
 import { requireViewer } from "@/lib/auth";
+import { examPaperSlug } from "@/lib/exams/files";
 import { listProgrammes } from "@/lib/lesson/queries";
 import { createClient } from "@/lib/supabase/server";
+import { CorrectionStatus } from "../correction-status";
 import { DeletePaper } from "../delete-paper";
 import { PaperForm } from "../paper-form";
 
@@ -43,7 +45,7 @@ async function EditPaper({ params }: { params: Promise<{ id: string }> }) {
     supabase
       .from("national_exams")
       .select(
-        "id, programme_code, year, session, track, language, official, status, subject_path, solution_path, subject_source_url",
+        "id, programme_code, year, session, track, language, official, status, subject_path, solution_path, subject_source_url, correction:exam_corrections(status)",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -51,6 +53,9 @@ async function EditPaper({ params }: { params: Promise<{ id: string }> }) {
     getTranslations("tutor.exams"),
   ]);
   if (!paper) notFound();
+  const programmeSlug = programmes.find(
+    (programme) => programme.code === paper.programme_code,
+  )?.slug;
 
   const bucket = supabase.storage.from("national-exams");
   return (
@@ -98,6 +103,20 @@ async function EditPaper({ params }: { params: Promise<{ id: string }> }) {
           published: paper.status === "published",
         }}
       />
+      {paper.correction && programmeSlug ? (
+        <CorrectionStatus
+          id={paper.id}
+          published={paper.correction.status === "published"}
+          hidden={
+            paper.solution_path !== null
+              ? "solution"
+              : paper.status !== "published"
+                ? "paper"
+                : null
+          }
+          href={`/examens/${programmeSlug}/${examPaperSlug(paper)}`}
+        />
+      ) : null}
       <DeletePaper id={paper.id} hasSolution={paper.solution_path !== null} />
     </div>
   );

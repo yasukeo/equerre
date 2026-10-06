@@ -909,6 +909,20 @@ Asked on 2026-10-06: a correction for each of the 47 papers the ministry publish
 - **The PDF** is the course's (D-096): `/imprimer/[id]` and `/pdf/[id]` take a correction's id (its paper's) as well as a lesson's, and `take_public_print_quota` counts a public correction like a public lesson. The sheet says « Corrigé Équerre » and carries the notice too.
 - **The files.** `content/corriges/<programme>/<paper>.md`: a `summary` in the front matter, then the course syntax, one `##` per exercise and each question in bold. `pnpm corrections:import` checks everything as the course import does (syntax, schema, every formula through KaTeX), then `--write` publishes the new ones (D-101) and rewrites the changed ones, keeping their status. `scripts/content-checks.mts` holds what both imports share; the course import skips `content/corriges/`.
 - **How they are written.** From the ministry's paper, every step justified as a student would be expected to, with the theorem named where it is used. A graph to draw is described (asymptotes, tangents, positions), since a lesson holds no image. Numbers are recomputed before a file is imported.
+- **After review** (security, logic and interface, three reviewers):
+  - **Équerre's correction steps aside by itself** when its paper gets a correction file later, from the ministry or the tutor (`20261006230000_exam_corrections_step_aside.sql`). The select policy and the PDF quota both require the paper to have no `solution_path`, so the page, the list link, the sitemap and the PDF all go. Nobody has to remember to unpublish it, and it comes back if the file is removed.
+  - **The tutor's paper page has a « Corrigé Équerre » section.** It says where the correction stands (online, taken off, or hidden because the paper is off the site or has its own correction) and switches it off or back on (`setCorrectionPublished`). The exams tag is refreshed at once, so the public pages follow without a deployment.
+  - **The import follows a correction by its file.** If the tutor corrects a paper's year, session or track, the file keeps feeding its correction and the import says to rename it. A renamed file takes its correction over. A correction file added later to an already-corrected paper no longer stops the import. Only a new correction is refused for a paper that has a file.
+  - **Addresses.** A track with no Latin letter adds nothing to the paper's address, rather than leaving a dash. An address two papers would share shows neither.
+  - **Copy and pages.**
+    - The exams' leads speak of « des corrigés rédigés par Équerre » without promising one for every paper.
+    - The notice has its non-breaking spaces and reads « Rédigé par Équerre, non officiel ». On paper it is set apart from the summary.
+    - The subject button says « Sujet officiel » only for the ministry's own file.
+    - The PDF link names the correction for screen readers.
+    - The list link looks like the card's other buttons.
+    - The page's title and description put the year, the session and the stream first.
+    - The PDF of an Arabic paper's correction is not named « arabe », since the correction is in French.
+  - **Accepted, as for lessons (D-096):** a correction's public PDF stays in the CDN under its old address after the paper is taken off the site.
 
 ## Secret key usage
 

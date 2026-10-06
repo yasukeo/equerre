@@ -75,7 +75,10 @@ async function Printable({
         <p className="impression-type">{tExams("correctionKind")}</p>
         <h1 className="impression-titre">{frenchSpaces(correctionTitle(tExams, correction))}</h1>
         <p className="impression-resume">{frenchSpaces(correction.summary)}</p>
-        <p className="impression-resume">{frenchSpaces(tExams("notOfficial"))}</p>
+        <p className="impression-avis">
+          {frenchSpaces(tExams("notOfficial"))}
+          {correction.language === "ar" ? ` ${frenchSpaces(tExams("arabicSubject"))}` : null}
+        </p>
 
         <div className="lecon-corps">
           {renderLesson(correction.content, {

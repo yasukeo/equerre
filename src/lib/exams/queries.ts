@@ -174,6 +174,8 @@ export type ExamCorrection = {
   track: string | null;
   /** The paper's language: the correction itself is always in French. */
   language: "fr" | "ar";
+  /** Whether the subject is the ministry's own file (D-099), or one the tutor replaced. */
+  official: boolean;
   subjectUrl: string;
   subjectSize: number;
   summary: string;
@@ -205,14 +207,16 @@ async function readExamCorrection(niveau: string, sujet: string): Promise<ExamCo
   const { data, error } = await client
     .from("national_exams")
     .select(
-      "id, year, session, track, language, subject_path, subject_size, updated_at, programme:programmes!inner(slug, label), correction:exam_corrections!inner(summary, content, published_at, updated_at)",
+      "id, year, session, track, language, official, subject_path, subject_size, updated_at, programme:programmes!inner(slug, label), correction:exam_corrections!inner(summary, content, published_at, updated_at)",
     )
     .eq("programme.slug", niveau)
     .eq("year", Number(match[1]))
     .eq("session", match[2] as ExamSession);
   if (error) throw new Error("Could not read the exam correction", { cause: error });
 
-  const exam = data.find((row) => examPaperSlug(row) === sujet);
+  // Two papers whose tracks read the same once simplified would share it: neither is shown.
+  const found = data.filter((row) => examPaperSlug(row) === sujet);
+  const exam = found.length === 1 ? found[0] : undefined;
   if (!exam) {
     cacheLife("minutes");
     return null;
@@ -227,6 +231,7 @@ async function readExamCorrection(niveau: string, sujet: string): Promise<ExamCo
     session: exam.session,
     track: exam.track,
     language: exam.language === "ar" ? "ar" : "fr",
+    official: exam.official,
     subjectUrl: client.storage.from("national-exams").getPublicUrl(exam.subject_path, {
       download: examFileName(exam.programme.slug, exam, "sujet"),
     }).data.publicUrl,

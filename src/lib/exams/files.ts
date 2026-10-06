@@ -41,7 +41,9 @@ export function examPaperSlug(exam: {
   session: ExamSession;
   track: string | null;
 }): string {
-  return `${exam.year}-${exam.session}${exam.track ? `-${slugify(exam.track)}` : ""}`;
+  // A track with no Latin letter (written in Arabic) adds nothing rather than a dangling dash.
+  const track = exam.track ? slugify(exam.track) : "";
+  return `${exam.year}-${exam.session}${track ? `-${track}` : ""}`;
 }
 
 function slugify(value: string): string {

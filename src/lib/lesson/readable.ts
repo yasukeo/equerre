@@ -120,6 +120,8 @@ export type PrintableCorrection = {
   year: number;
   session: ExamSession;
   track: string | null;
+  /** The paper's language: the correction is always in French. */
+  language: "fr" | "ar";
   summary: string;
   content: StoredLesson;
 };
@@ -145,13 +147,19 @@ export const getPrintableCorrection = cache(
 
     return {
       id: data.exam_id,
-      fileName: examFileName(data.exam.programme.slug, data.exam, "corrige-equerre"),
+      // No « arabe » in the name: the correction is in French, whatever the paper's language.
+      fileName: examFileName(
+        data.exam.programme.slug,
+        { year: data.exam.year, session: data.exam.session, track: data.exam.track },
+        "corrige-equerre",
+      ),
       isPublic: data.status === "published" && data.exam.status === "published",
       version: documentVersion(data.updated_at, data.exam.updated_at, data.exam.programme.label),
       programmeLabel: data.exam.programme.label,
       year: data.exam.year,
       session: data.exam.session,
       track: data.exam.track,
+      language: data.exam.language === "ar" ? "ar" : "fr",
       summary: data.summary,
       content: readStoredLesson(data.content),
     };

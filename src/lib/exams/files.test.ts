@@ -17,6 +17,10 @@ describe("examPaperSlug", () => {
       "2017-rattrapage-ste-et-stm",
     );
   });
+
+  it("never ends on a dash, even for a track with no Latin letter", () => {
+    expect(examPaperSlug({ year: 2019, session: "normale", track: "علوم" })).toBe("2019-normale");
+  });
 });
 
 describe("examFileName", () => {
@@ -24,9 +28,9 @@ describe("examFileName", () => {
     expect(
       examFileName(
         "2bac-economie",
-        { year: 2010, session: "normale", track: null, language: "ar" },
+        { year: 2010, session: "normale", track: null },
         "corrige-equerre",
       ),
-    ).toBe("examen-2010-normale-2bac-economie-corrige-equerre-arabe.pdf");
+    ).toBe("examen-2010-normale-2bac-economie-corrige-equerre.pdf");
   });
 });
