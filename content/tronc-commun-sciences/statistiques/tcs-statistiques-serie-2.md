@@ -9,7 +9,7 @@ visibility: enrolled
 Quatre exercices sur la deuxième partie du cours.
 
 :::exercice Une série discrète
-Reprenons les $40$ familles : $0$ enfant : $4$ ; $1$ : $10$ ; $2$ : $14$ ; $3$ : $8$ ; $4$ : $4$.
+On reprend les $40$ familles de la partie 1 : $0$ enfant : $4$ ; $1$ : $10$ ; $2$ : $14$ ; $3$ : $8$ ; $4$ : $4$.
 
 1. Donner le mode et l’étendue.
 2. Calculer le nombre moyen d’enfants par famille.
