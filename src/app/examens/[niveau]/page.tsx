@@ -1,4 +1,4 @@
-import { FileDown } from "lucide-react";
+import { FileDown, FileText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -265,8 +265,26 @@ async function Paper({ paper }: { paper: ExamPaper }) {
             </a>
           </li>
         ))}
+        {paper.correctionHref ? (
+          <li>
+            {/* Équerre's own correction (D-103): a page of the site, not one of the ministry's files. */}
+            <Link
+              href={paper.correctionHref}
+              className={cn(
+                "inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold hover:opacity-90",
+                colour.chip,
+              )}
+            >
+              <FileText aria-hidden="true" className="size-4 shrink-0" />
+              {t("ourCorrection")}
+              <span className="sr-only">{`, ${paper.year}, ${name}`}</span>
+            </Link>
+          </li>
+        ) : null}
       </ul>
-      {paper.solutionUrl ? null : <p className="text-sm text-encre-douce">{t("noSolution")}</p>}
+      {paper.solutionUrl || paper.correctionHref ? null : (
+        <p className="text-sm text-encre-douce">{t("noSolution")}</p>
+      )}
     </li>
   );
 }

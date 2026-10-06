@@ -142,6 +142,8 @@ The database allows only one tutor.
 | `pnpm db:types`             | Regenerate `src/types/database.ts` (needs `supabase login`)                       |
 | `pnpm db:seed`              | Load `supabase/seed.sql`                                                          |
 | `pnpm storage:sweep`        | List lesson files nothing refers to any more; `--delete` removes them (D-054)     |
+| `pnpm content:import`       | Check the course files in `content/`; `--write` imports them (D-098)              |
+| `pnpm corrections:import`   | Check the exam corrections in `content/corriges/`; `--write` publishes them       |
 
 ## Project layout
 

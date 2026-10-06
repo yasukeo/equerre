@@ -324,6 +324,50 @@ export type Database = {
           },
         ]
       }
+      exam_corrections: {
+        Row: {
+          content: Json
+          created_at: string
+          exam_id: string
+          published_at: string | null
+          source: string
+          source_hash: string
+          status: Database["public"]["Enums"]["publication_status"]
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          exam_id: string
+          published_at?: string | null
+          source: string
+          source_hash: string
+          status?: Database["public"]["Enums"]["publication_status"]
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          exam_id?: string
+          published_at?: string | null
+          source?: string
+          source_hash?: string
+          status?: Database["public"]["Enums"]["publication_status"]
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_corrections_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: true
+            referencedRelation: "national_exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_reveals: {
         Row: {
           assignment_id: string

@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { formatLocalDate, withFirst } from "@/lib/dates";
 import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "@/lib/lesson/document";
-import { kindHue } from "@/lib/design/colors";
+import { kindHue, type HueClasses } from "@/lib/design/colors";
 import type { DocumentKind } from "@/lib/lesson/kinds";
 import { renderLesson } from "@/lib/lesson/render";
 import { frenchSpaces } from "@/lib/typography";
@@ -18,6 +18,8 @@ type Props = {
   downloads?: ReactNode;
   /** What it is, in its colour above the title (D-100): « Cours », « Série d’exercices »… */
   kind?: { kind: DocumentKind; label: string };
+  /** The same for what is not a course's document: « Corrigé Équerre », in the exams' hue. */
+  badge?: { label: string; colour: HueClasses };
   /** Beside the text on a wide screen: the chapter's other documents. */
   aside?: ReactNode;
   /** After the text: the document before and after it in the chapter. */
@@ -37,6 +39,7 @@ export async function LessonArticle({
   context,
   downloads,
   kind,
+  badge,
   aside,
   pager,
   content,
@@ -46,7 +49,8 @@ export async function LessonArticle({
     CALLOUT_KINDS.map((kind) => [kind, t(`callout.${kind}`)]),
   ) as Record<CalloutKind, string>;
 
-  const colour = kind ? kindHue(kind.kind) : null;
+  const colour = kind ? kindHue(kind.kind) : (badge?.colour ?? null);
+  const label = kind?.label ?? badge?.label ?? null;
   const body = (
     <article className="min-w-0">
       {/* The document's card: where it sits, what it is, its PDF. */}
@@ -59,14 +63,14 @@ export async function LessonArticle({
       >
         <div className="text-sm text-encre-douce">{context}</div>
 
-        {kind && colour ? (
+        {label && colour ? (
           <p
             className={cn(
               "mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase",
               colour.chip,
             )}
           >
-            {kind.label}
+            {label}
           </p>
         ) : null}
 

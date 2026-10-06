@@ -3,7 +3,9 @@ import { cacheLife, cacheTag } from "next/cache";
 import { isSlug } from "@/lib/lesson/queries";
 import { publicStreams } from "@/lib/lesson/streams";
 import { publicClient } from "@/lib/supabase/public";
-import { examFileName, type ExamSession } from "./files";
+import { documentVersion } from "@/lib/pdf/links";
+import { readStoredLesson, type StoredLesson } from "@/lib/lesson/document";
+import { examFileName, examPaperSlug, type ExamSession } from "./files";
 
 // The past national exams a visitor may download (D-097), read anonymously and cached: the
 // select policy narrows the public client to published papers, whatever is asked.
@@ -24,6 +26,8 @@ export type ExamPaper = {
   subjectSize: number;
   solutionUrl: string | null;
   solutionSize: number | null;
+  /** Équerre's own correction, a page of the site (D-103): only where it is published. */
+  correctionHref: string | null;
 };
 
 export type ExamProgramme = {
@@ -88,7 +92,7 @@ async function readProgrammeExams(slug: string): Promise<ProgrammeExams | null> 
   const { data, error } = await client
     .from("programmes")
     .select(
-      "code, slug, label, national_exams(id, year, session, track, language, official, subject_path, subject_size, solution_path, solution_size)",
+      "code, slug, label, national_exams(id, year, session, track, language, official, subject_path, subject_size, solution_path, solution_size, exam_corrections(exam_id))",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -127,6 +131,8 @@ async function readProgrammeExams(slug: string): Promise<ProgrammeExams | null> 
           )
         : null,
       solutionSize: exam.solution_size,
+      // The select policy leaves only a published correction here.
+      correctionHref: exam.exam_corrections ? `/examens/${data.slug}/${examPaperSlug(exam)}` : null,
     };
     const last = years.at(-1);
     if (last?.year === exam.year) last.papers.push(paper);
@@ -142,3 +148,92 @@ async function readProgrammeExams(slug: string): Promise<ProgrammeExams | null> 
 }
 
 const SESSIONS: readonly ExamSession[] = ["normale", "rattrapage"];
+
+/** Every published correction's address (D-103), for the pages built ahead and the sitemap. */
+export async function listExamCorrections(): Promise<{ niveau: string; sujet: string }[]> {
+  "use cache";
+  cacheTag(EXAMS_TAG);
+  cacheLife("max");
+
+  // The select policies leave a published correction of a published paper.
+  const { data, error } = await publicClient()
+    .from("exam_corrections")
+    .select("exam:national_exams!inner(year, session, track, programme:programmes!inner(slug))");
+  if (error) throw new Error("Could not list the exam corrections", { cause: error });
+
+  return data.map((row) => ({ niveau: row.exam.programme.slug, sujet: examPaperSlug(row.exam) }));
+}
+
+export type ExamCorrection = {
+  /** The paper's id, which is the correction's too: its PDF is printed under it. */
+  id: string;
+  programmeSlug: string;
+  programmeLabel: string;
+  year: number;
+  session: ExamSession;
+  track: string | null;
+  /** The paper's language: the correction itself is always in French. */
+  language: "fr" | "ar";
+  subjectUrl: string;
+  subjectSize: number;
+  summary: string;
+  publishedAt: string | null;
+  /** Its last change, which names its PDF (D-096). */
+  version: string;
+  content: StoredLesson;
+};
+
+/** Équerre's correction of one paper, by the paper's address. Null when there is none. */
+export async function getExamCorrection(
+  niveau: string,
+  sujet: string,
+): Promise<ExamCorrection | null> {
+  return isSlug(niveau) && isSlug(sujet) ? readExamCorrection(niveau, sujet) : null;
+}
+
+async function readExamCorrection(niveau: string, sujet: string): Promise<ExamCorrection | null> {
+  "use cache";
+  cacheTag(EXAMS_TAG);
+
+  // `2021-normale`, then the track if any: the year and session narrow the read.
+  const match = /^(\d{4})-(normale|rattrapage)(?:-|$)/.exec(sujet);
+  if (!match) {
+    cacheLife("minutes");
+    return null;
+  }
+  const client = publicClient();
+  const { data, error } = await client
+    .from("national_exams")
+    .select(
+      "id, year, session, track, language, subject_path, subject_size, updated_at, programme:programmes!inner(slug, label), correction:exam_corrections!inner(summary, content, published_at, updated_at)",
+    )
+    .eq("programme.slug", niveau)
+    .eq("year", Number(match[1]))
+    .eq("session", match[2] as ExamSession);
+  if (error) throw new Error("Could not read the exam correction", { cause: error });
+
+  const exam = data.find((row) => examPaperSlug(row) === sujet);
+  if (!exam) {
+    cacheLife("minutes");
+    return null;
+  }
+  cacheLife("max");
+
+  return {
+    id: exam.id,
+    programmeSlug: exam.programme.slug,
+    programmeLabel: exam.programme.label,
+    year: exam.year,
+    session: exam.session,
+    track: exam.track,
+    language: exam.language === "ar" ? "ar" : "fr",
+    subjectUrl: client.storage.from("national-exams").getPublicUrl(exam.subject_path, {
+      download: examFileName(exam.programme.slug, exam, "sujet"),
+    }).data.publicUrl,
+    subjectSize: exam.subject_size,
+    summary: exam.correction.summary,
+    publishedAt: exam.correction.published_at,
+    version: documentVersion(exam.correction.updated_at, exam.updated_at, exam.programme.label),
+    content: readStoredLesson(exam.correction.content),
+  };
+}

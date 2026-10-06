@@ -10,10 +10,10 @@
 // with the least mistake stops the whole import, with its line.
 
 import { createHash } from "node:crypto";
-import { readdir, readFile } from "node:fs/promises";
-import { join, relative, sep } from "node:path";
-import katex from "katex";
+import { readFile } from "node:fs/promises";
+import { relative, sep } from "node:path";
 import { connect } from "./database.mjs";
+import { canonical, formulaProblems, markdownFiles } from "./content-checks.mjs";
 import { ContentSyntaxError, parseDocument } from "../src/lib/content/markdown";
 import { lessonDocumentSchema } from "../src/lib/lesson/document";
 
@@ -21,35 +21,6 @@ const ROOT = new URL("../content/", import.meta.url);
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const write = process.argv.includes("--write");
 const update = process.argv.includes("--update");
-
-async function files(dir: string): Promise<string[]> {
-  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
-  const nested = await Promise.all(
-    entries.map((entry) =>
-      entry.isDirectory()
-        ? files(join(dir, entry.name))
-        : entry.name.endsWith(".md") && entry.name !== "README.md"
-          ? [join(dir, entry.name)]
-          : [],
-    ),
-  );
-  return nested.flat();
-}
-
-function formulas(node: unknown): { latex: string; display: boolean }[] {
-  if (Array.isArray(node)) return node.flatMap(formulas);
-  if (typeof node !== "object" || node === null) return [];
-  const { type, attrs, content } = node as {
-    type?: string;
-    attrs?: { latex?: unknown };
-    content?: unknown;
-  };
-  const own =
-    (type === "inlineMath" || type === "blockMath") && typeof attrs?.latex === "string"
-      ? [{ latex: attrs.latex, display: type === "blockMath" }]
-      : [];
-  return [...own, ...formulas(content)];
-}
 
 type StoredRow = {
   slug: string;
@@ -62,17 +33,6 @@ type StoredRow = {
   visibility: string;
   content: unknown;
 };
-
-/** The same JSON whatever the order of its keys: the database gives them back reordered. */
-function canonical(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(canonical);
-  if (typeof value !== "object" || value === null) return value;
-  return Object.fromEntries(
-    Object.keys(value)
-      .sort()
-      .map((key) => [key, canonical((value as Record<string, unknown>)[key])]),
-  );
-}
 
 /** What the tutor may have changed in a document: its words and who reads it. */
 function fingerprint(document: {
@@ -101,8 +61,10 @@ const root = decodeURIComponent(ROOT.pathname).replace(/^\/([A-Za-z]:)/, "$1");
 const problems: string[] = [];
 const parsed: Parsed[] = [];
 
-for (const path of (await files(root)).sort()) {
+for (const path of (await markdownFiles(root)).sort()) {
   const file = relative(root, path).split(sep).join("/");
+  // Équerre's corrections of the national exams have their own import (D-103).
+  if (file.startsWith("corriges/")) continue;
   const parts = file.replace(/\.md$/, "").split("/");
   if (parts.length !== 3 || !parts.every((part) => SLUG.test(part))) {
     problems.push(`${file} : le chemin doit être programme/chapitre/slug.md, en minuscules`);
@@ -118,13 +80,7 @@ for (const path of (await files(root)).sort()) {
       continue;
     }
     // Every formula as the site draws it, but refusing what KaTeX would show in red.
-    for (const { latex, display } of formulas(content)) {
-      try {
-        katex.renderToString(latex, { displayMode: display, throwOnError: true, strict: false });
-      } catch (error) {
-        problems.push(`${file} : formule « ${latex} » : ${(error as Error).message}`);
-      }
-    }
+    problems.push(...formulaProblems(content).map((problem) => `${file} : ${problem}`));
     parsed.push({ file, programme, chapter, slug, meta, content: document });
   } catch (error) {
     if (!(error instanceof ContentSyntaxError)) throw error;

@@ -900,6 +900,16 @@ On 2026-10-06 the owner, having read the first 1 061 imported documents, publish
 - **The database requires SSL and the scripts check its certificate.** The owner turned on « Enforce SSL connections » and downloaded Supabase's root certificate (Supabase Root 2021 CA, valid until 2031); `SUPABASE_DB_CA` in `.env.local` names it, kept outside the repository, so the scripts verify the server instead of only encrypting.
 - **1re bac SVT stays** as it is: hidden from visitors, kept in `levels` for any student who would be in it (D-094).
 
+**D-103 — Équerre's own corrections of the national exams.**
+Asked on 2026-10-06: a correction for each of the 47 papers the ministry published no « éléments de réponse » for (D-099). The owner chose French for all of them, the Arabic papers included (students study maths in French now, and the site is in French), and a page per paper, read online and downloaded as a PDF like a course, always marked as not official.
+
+- **Apart from the ministry's.** A correction is a row of `exam_corrections` beside its paper (`20261006220000_exam_corrections.sql`), never one of the paper's files: the paper's « Corrigé » stays what the ministry or the tutor uploaded. A paper that has one gets no correction from Équerre; the import refuses it. Deleting a paper deletes its correction.
+- **Who reads it.** Everyone reads a published correction of a published paper; the tutor reads them all. Only the tutor writes them through the API; the import writes as the database owner. Visitors only select.
+- **Where.** `/examens/<programme>/<paper>`, the paper named by its year and session, and its streams when they are not the whole programme (`2021-normale`, `2019-normale-pc-svt-et-sciences-agronomiques`; `examPaperSlug`). The exams list links it as « Corrigé Équerre » in place of « Éléments de réponse non publiés ». The page has the exams' violet, the summary, a notice that it is Équerre's and not official (and that the subject was in Arabic, when it was), the ministry's subject, and its PDF. It is in the sitemap.
+- **The PDF** is the course's (D-096): `/imprimer/[id]` and `/pdf/[id]` take a correction's id (its paper's) as well as a lesson's, and `take_public_print_quota` counts a public correction like a public lesson. The sheet says « Corrigé Équerre » and carries the notice too.
+- **The files.** `content/corriges/<programme>/<paper>.md`: a `summary` in the front matter, then the course syntax, one `##` per exercise and each question in bold. `pnpm corrections:import` checks everything as the course import does (syntax, schema, every formula through KaTeX), then `--write` publishes the new ones (D-101) and rewrites the changed ones, keeping their status. `scripts/content-checks.mts` holds what both imports share; the course import skips `content/corriges/`.
+- **How they are written.** From the ministry's paper, every step justified as a student would be expected to, with the theorem named where it is used. A graph to draw is described (asymptotes, tangents, positions), since a lesson holds no image. Numbers are recomputed before a file is imported.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.

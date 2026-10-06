@@ -2244,14 +2244,14 @@
   },
   "exams": {
     "title": "Examens nationaux",
-    "lead": "Les sujets officiels du baccalauréat des années précédentes, session normale et session de rattrapage, avec les éléments de réponse publiés par le ministère quand ils existent, à télécharger en PDF.",
+    "lead": "Les sujets officiels du baccalauréat des années précédentes, session normale et session de rattrapage, avec les éléments de réponse publiés par le ministère quand ils existent, sinon notre propre corrigé.",
     "empty": "Les premiers sujets arrivent bientôt. En attendant, les cours de chaque programme sont en ligne.",
     "toCourses": "Voir les cours",
     "count": "{count, plural, one {# sujet} other {# sujets}} · de {first} à {latest}",
     "back": "Tous les examens",
     "programmeTitle": "Examens nationaux · {programme}",
     "programmeDescription": "{programme} : les sujets de l’examen national des années précédentes et leurs corrigés, en PDF.",
-    "programmeLead": "Chaque sujet tel qu’il a été donné à l’examen, et ses éléments de réponse quand le ministère les a publiés.",
+    "programmeLead": "Chaque sujet tel qu’il a été donné à l’examen, avec les éléments de réponse du ministère quand il les a publiés, sinon un corrigé rédigé par Équerre.",
     "toProgramme": "Réviser avec les cours du programme",
     "session": {
       "normale": "Session normale",
@@ -2272,6 +2272,17 @@
     "statAnswered": "avec éléments de réponse",
     "years": "Aller à l’année",
     "paperTitle": "Sujet de {year}",
-    "countOneYear": "{count, plural, one {# sujet} other {# sujets}} · {year}"
+    "countOneYear": "{count, plural, one {# sujet} other {# sujets}} · {year}",
+    "ourCorrection": "Corrigé Équerre",
+    "correctionKind": "Corrigé Équerre",
+    "correctionTitle": "Corrigé de l’examen national {year}, {session}",
+    "sessionInTitle": {
+      "normale": "session normale",
+      "rattrapage": "session de rattrapage"
+    },
+    "nationalExam": "Examen national {year}",
+    "notOfficial": "Corrigé rédigé par Équerre, non officiel : le ministère n’a pas publié d’éléments de réponse pour ce sujet. Essayez d’abord le sujet seul, puis comparez.",
+    "arabicSubject": "Le sujet a été donné en arabe ; le corrigé est rédigé en français.",
+    "subjectPdf": "Sujet officiel"
   }
 }

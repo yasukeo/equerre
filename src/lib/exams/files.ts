@@ -23,11 +23,25 @@ export function newExamFileName(examId: string): string {
 export function examFileName(
   programmeSlug: string,
   exam: { year: number; session: ExamSession; track: string | null; language?: string },
-  part: "sujet" | "corrige" | "elements-de-reponse",
+  part: "sujet" | "corrige" | "elements-de-reponse" | "corrige-equerre",
 ): string {
   const track = exam.track ? `-${slugify(exam.track)}` : "";
   const language = exam.language === "ar" ? "-arabe" : "";
   return `examen-${exam.year}-${exam.session}-${programmeSlug}${track}-${part}${language}.pdf`;
+}
+
+/**
+ * A paper's address within its programme (D-103): `2021-normale`, or with the streams that sat
+ * it, `2019-normale-pc-svt-et-sciences-agronomiques`. One programme has one paper per year,
+ * session and track, so the address names one paper. Also the name of its correction's file
+ * in content/corriges/<programme>/.
+ */
+export function examPaperSlug(exam: {
+  year: number;
+  session: ExamSession;
+  track: string | null;
+}): string {
+  return `${exam.year}-${exam.session}${exam.track ? `-${slugify(exam.track)}` : ""}`;
 }
 
 function slugify(value: string): string {

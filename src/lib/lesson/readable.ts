@@ -5,6 +5,7 @@ import type { Database } from "@/types/database";
 import { readStoredLesson, type StoredLesson } from "./document";
 import { DOCUMENT_KINDS } from "./kinds";
 import { documentVersion } from "@/lib/pdf/links";
+import { examFileName, type ExamSession } from "@/lib/exams/files";
 
 // Lessons read through the visitor's own session, so the lessons select policy decides what
 // comes back (DECISIONS.md, D-050, D-060): her programme’s lessons and those shared with her
@@ -107,6 +108,55 @@ export const getPrintableLesson = cache(async (id: string): Promise<PrintableLes
     content: readStoredLesson(data.content),
   };
 });
+
+export type PrintableCorrection = {
+  id: string;
+  /** What its PDF is saved as. */
+  fileName: string;
+  /** A published correction of a published paper, which anyone may cache. */
+  isPublic: boolean;
+  version: string;
+  programmeLabel: string;
+  year: number;
+  session: ExamSession;
+  track: string | null;
+  summary: string;
+  content: StoredLesson;
+};
+
+/**
+ * Équerre's correction of a national exam (D-103), printed like a course: what this visitor may
+ * read, which the select policies decide (published for everyone, drafts for the tutor). Its id
+ * is its paper's. Deduplicated per request.
+ */
+export const getPrintableCorrection = cache(
+  async (id: string): Promise<PrintableCorrection | null> => {
+    if (!UUID.test(id)) return null;
+
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("exam_corrections")
+      .select(
+        "exam_id, summary, status, content, updated_at, exam:national_exams!inner(year, session, track, language, status, updated_at, programme:programmes!inner(slug, label))",
+      )
+      .eq("exam_id", id)
+      .maybeSingle();
+    if (!data) return null;
+
+    return {
+      id: data.exam_id,
+      fileName: examFileName(data.exam.programme.slug, data.exam, "corrige-equerre"),
+      isPublic: data.status === "published" && data.exam.status === "published",
+      version: documentVersion(data.updated_at, data.exam.updated_at, data.exam.programme.label),
+      programmeLabel: data.exam.programme.label,
+      year: data.exam.year,
+      session: data.exam.session,
+      track: data.exam.track,
+      summary: data.summary,
+      content: readStoredLesson(data.content),
+    };
+  },
+);
 
 export type ReadableLessonEntry = {
   id: string;

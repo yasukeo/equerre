@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { publicEnv } from "@/lib/env";
-import { getPrintableLesson } from "@/lib/lesson/readable";
+import { getPrintableCorrection, getPrintableLesson } from "@/lib/lesson/readable";
 import { launchBrowser } from "@/lib/pdf/browser";
 import { pdfHref } from "@/lib/pdf/links";
 import { createClient } from "@/lib/supabase/server";
@@ -24,21 +24,24 @@ const FRESH_FOR_MS = 5 * 60 * 1000;
 
 export async function GET(request: Request, { params }: RouteContext<"/pdf/[id]">) {
   const { id } = await params;
+  // A course's document, or Équerre's correction of a national exam (D-103), printed alike.
   const lesson = await getPrintableLesson(id);
-  if (!lesson) return new Response("Document introuvable.", { status: 404 });
+  const correction = lesson ? null : await getPrintableCorrection(id);
+  const printable = lesson ?? correction;
+  if (!printable) return new Response("Document introuvable.", { status: 404 });
 
   const url = new URL(request.url);
-  const exercises = lesson.kind === "serie" || lesson.kind === "devoir";
+  const exercises = lesson !== null && (lesson.kind === "serie" || lesson.kind === "devoir");
   const withSolutions = exercises && url.searchParams.get("corriges") === "1";
   const supabase = await createClient();
 
-  if (lesson.isPublic) {
-    const canonical = pdfHref(lesson.id, lesson.version, withSolutions);
+  if (printable.isPublic) {
+    const canonical = pdfHref(printable.id, printable.version, withSolutions);
     if (`${url.pathname}${url.search}` !== canonical) {
       // A relative address: the Host header has no say in where the reader is sent.
       return new Response(null, { status: 307, headers: { location: canonical } });
     }
-    const quota = await supabase.rpc("take_public_print_quota", { p_lesson_id: lesson.id });
+    const quota = await supabase.rpc("take_public_print_quota", { p_lesson_id: printable.id });
     if (quota.error) return failed();
     if (quota.data !== true) return busy(503);
   } else {
@@ -57,7 +60,7 @@ export async function GET(request: Request, { params }: RouteContext<"/pdf/[id]"
 
   // The site's own address, never the request's Host: the browser must not be pointed
   // elsewhere, and it carries the reader's cookies.
-  const printUrl = new URL(`/imprimer/${lesson.id}`, publicEnv.NEXT_PUBLIC_SITE_URL);
+  const printUrl = new URL(`/imprimer/${printable.id}`, publicEnv.NEXT_PUBLIC_SITE_URL);
   if (withSolutions) printUrl.searchParams.set("corriges", "1");
 
   // Whatever goes wrong from here is answered, not thrown: Next adds the cookies set above (a
@@ -66,7 +69,7 @@ export async function GET(request: Request, { params }: RouteContext<"/pdf/[id]"
   let browser: Awaited<ReturnType<typeof launchBrowser>> | undefined;
   try {
     browser = await launchBrowser();
-    if (!lesson.isPublic) {
+    if (!printable.isPublic) {
       // Only the session's cookies, set as the site's own, so the browser sends them to the site
       // and nowhere else: not to the storage host the images come from, nor anywhere a redirect
       // might lead. Other cookies stay behind; an odd one (`__Host-`, `__Secure-` on http) would
@@ -113,19 +116,21 @@ export async function GET(request: Request, { params }: RouteContext<"/pdf/[id]"
       footerTemplate: `<div style="width:100%;padding:0 16mm;display:flex;justify-content:space-between;font-family:sans-serif;font-size:8px;color:#4e5d73"><span>${host}</span><span><span class="pageNumber"></span>/<span class="totalPages"></span></span></div>`,
     });
 
-    const name = `${lesson.slug}${withSolutions ? "-corrige" : ""}.pdf`;
+    const name = lesson
+      ? `${lesson.slug}${withSolutions ? "-corrige" : ""}.pdf`
+      : (correction?.fileName ?? "corrige.pdf");
     return new Response(Buffer.from(pdf), {
       headers: {
         "content-type": "application/pdf",
         "content-disposition": `attachment; filename="${name}"`,
         // s-maxage lets the CDN keep it too, not only the reader's browser.
-        "cache-control": lesson.isPublic
+        "cache-control": printable.isPublic
           ? "public, max-age=31536000, s-maxage=31536000, immutable"
           : "private, no-store",
       },
     });
   } catch (error) {
-    console.error("Could not print the PDF", lesson.id, error);
+    console.error("Could not print the PDF", printable.id, error);
     return failed();
   } finally {
     await browser?.close();
