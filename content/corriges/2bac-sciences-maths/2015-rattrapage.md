@@ -72,7 +72,7 @@ $$p(X = 2) = \binom{3}{2}\,p^2(1 - p) = 3 \times \frac{4}{625} \times \frac{23}{
 
 $$\frac{z_2 - d}{c - d} \times \frac{c - z_1}{z_2 - z_1} = i \times \left(-\frac{i}{2}\right) = \frac{1}{2}$$
 
-C’est un réel. Interprétation : ce nombre est le quotient $\frac{z_2 - d}{c - d} \div \frac{z_2 - z_1}{c - z_1}$. Il est réel et les points $B$, $C$, $D$ ne sont pas alignés ($B$ et $D$ ont la même abscisse, pas $C$), donc $A$, $B$, $C$ et $D$ sont cocycliques. Plus précisément, $\frac{z_2 - d}{c - d} = i$ et $\frac{z_2 - z_1}{c - z_1} = 2i$ sont imaginaires purs : $(DB) \perp (DC)$ et $(AB) \perp (AC)$. Les points $A$ et $D$ sont sur le cercle de diamètre $[BC]$.
+C’est un réel. Interprétation : ce nombre est le quotient $\frac{z_2 - d}{c - d} \div \frac{z_2 - z_1}{c - z_1}$. Il est réel et les points $B$, $C$, $D$ ne sont pas alignés ($B$ et $D$ ont la même abscisse, pas $C$), donc $A$, $B$, $C$ et $D$ sont cocycliques. On le voit aussi directement : $\frac{z_2 - d}{c - d} = i$ et $\frac{z_2 - z_1}{c - z_1} = 2i$ sont imaginaires purs : $(DB) \perp (DC)$ et $(AB) \perp (AC)$. Les points $A$ et $D$ sont sur le cercle de diamètre $[BC]$.
 
 ## Exercice 4 : analyse (6 points)
 
