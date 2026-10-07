@@ -13,6 +13,8 @@ type NavLinkProps = {
   exact?: boolean;
   /** Other places it stands for, as « Plus » does on a phone for pages the bar cannot hold. */
   also?: string[];
+  /** A count that streams in beside it: unread messages, copies to correct (D-104). */
+  badge?: ReactNode;
 };
 
 /**
@@ -44,6 +46,7 @@ function NavLinkView({
   href,
   icon,
   children,
+  badge,
   active,
 }: Omit<NavLinkProps, "also"> & { active: boolean }) {
   return (
@@ -66,6 +69,11 @@ function NavLinkView({
         {icon}
       </span>
       <span className="max-w-full truncate">{children}</span>
+      {badge ? (
+        <span className="absolute top-1 start-[calc(50%+0.5rem)] md:static md:ms-auto">
+          {badge}
+        </span>
+      ) : null}
     </Link>
   );
 }

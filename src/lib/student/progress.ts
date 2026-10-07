@@ -50,108 +50,121 @@ type ProgressRow = {
   last_opened_at: string;
 };
 
-/** Her programme, chapter by chapter, with where she stands in each document. */
-export const getStudentCourse = cache(async (viewer: Viewer): Promise<StudentCourse> => {
-  const supabase = await createClient();
-  const [programmes, lessons, chapters, progress, bookmarks] = await Promise.all([
-    listProgrammes(),
-    listReadableLessons(viewer.programmeCode),
-    viewer.programmeCode
-      ? supabase
-          .from("chapters")
-          .select("id, slug, title, semester, position, description")
-          .eq("programme_code", viewer.programmeCode)
-          .order("semester")
-          .order("position")
-      : Promise.resolve({ data: [] as never[] }),
-    supabase
-      .from("lesson_progress")
-      .select("lesson_id, position, understood_at, last_opened_at")
-      .eq("student_id", viewer.id),
-    supabase.from("lesson_bookmarks").select("lesson_id").eq("student_id", viewer.id),
-  ]);
+/** Whose course: the student herself, or one the tutor opens (D-104). */
+export type CourseOwner = Pick<Viewer, "id" | "programmeCode">;
 
-  const mine = programmes.find((programme) => programme.code === viewer.programmeCode);
-  const byLesson = new Map(
-    ((progress.data ?? []) as ProgressRow[]).map((row) => [row.lesson_id, row]),
-  );
-  const saved = new Set((bookmarks.data ?? []).map((row) => row.lesson_id));
+/**
+ * Her programme, chapter by chapter, with where she stands in each document. The tutor reads
+ * it for a student with `shared: false`: the lessons shared by name are the student's own list
+ * to read, and from the tutor's session they would be every shared lesson.
+ */
+export const getStudentCourse = cache(
+  async (viewer: CourseOwner, options?: { shared?: boolean }): Promise<StudentCourse> => {
+    const supabase = await createClient();
+    const [programmes, readable, chapters, progress, bookmarks] = await Promise.all([
+      listProgrammes(),
+      listReadableLessons(viewer.programmeCode),
+      viewer.programmeCode
+        ? supabase
+            .from("chapters")
+            .select("id, slug, title, semester, position, description")
+            .eq("programme_code", viewer.programmeCode)
+            .order("semester")
+            .order("position")
+        : Promise.resolve({ data: [] as never[] }),
+      supabase
+        .from("lesson_progress")
+        .select("lesson_id, position, understood_at, last_opened_at")
+        .eq("student_id", viewer.id),
+      supabase.from("lesson_bookmarks").select("lesson_id").eq("student_id", viewer.id),
+    ]);
 
-  const withProgress = (lesson: ReadableLessonEntry): DocumentProgress => {
-    const row = byLesson.get(lesson.id);
-    return {
-      id: lesson.id,
-      slug: lesson.slug,
-      title: lesson.title,
-      summary: lesson.summary,
-      kind: lesson.kind,
-      shared: lesson.shared,
-      otherProgramme: lesson.otherProgramme,
-      opened: row !== undefined,
-      position: row?.position ?? 0,
-      understood: Boolean(row?.understood_at),
-      bookmarked: saved.has(lesson.id),
-      lastOpenedAt: row?.last_opened_at ?? null,
+    const lessons =
+      options?.shared === false
+        ? readable.filter((lesson) => lesson.otherProgramme === null && !lesson.shared)
+        : readable;
+    const mine = programmes.find((programme) => programme.code === viewer.programmeCode);
+    const byLesson = new Map(
+      ((progress.data ?? []) as ProgressRow[]).map((row) => [row.lesson_id, row]),
+    );
+    const saved = new Set((bookmarks.data ?? []).map((row) => row.lesson_id));
+
+    const withProgress = (lesson: ReadableLessonEntry): DocumentProgress => {
+      const row = byLesson.get(lesson.id);
+      return {
+        id: lesson.id,
+        slug: lesson.slug,
+        title: lesson.title,
+        summary: lesson.summary,
+        kind: lesson.kind,
+        shared: lesson.shared,
+        otherProgramme: lesson.otherProgramme,
+        opened: row !== undefined,
+        position: row?.position ?? 0,
+        understood: Boolean(row?.understood_at),
+        bookmarked: saved.has(lesson.id),
+        lastOpenedAt: row?.last_opened_at ?? null,
+      };
     };
-  };
 
-  const ownChapters = chapters.data ?? [];
-  const ownChapterIds = new Set(ownChapters.map((chapter) => chapter.id));
-  const documentsByChapter = new Map<string, DocumentProgress[]>();
-  const shared: StudentCourse["shared"] = [];
-  for (const lesson of lessons) {
-    if (ownChapterIds.has(lesson.chapterId)) {
-      const list = documentsByChapter.get(lesson.chapterId) ?? [];
-      list.push(withProgress(lesson));
-      documentsByChapter.set(lesson.chapterId, list);
-    } else {
-      shared.push({
-        ...withProgress(lesson),
-        chapterTitle: lesson.otherProgramme
-          ? `${lesson.otherProgramme} · ${lesson.chapterTitle}`
-          : lesson.chapterTitle,
-      });
+    const ownChapters = chapters.data ?? [];
+    const ownChapterIds = new Set(ownChapters.map((chapter) => chapter.id));
+    const documentsByChapter = new Map<string, DocumentProgress[]>();
+    const shared: StudentCourse["shared"] = [];
+    for (const lesson of lessons) {
+      if (ownChapterIds.has(lesson.chapterId)) {
+        const list = documentsByChapter.get(lesson.chapterId) ?? [];
+        list.push(withProgress(lesson));
+        documentsByChapter.set(lesson.chapterId, list);
+      } else {
+        shared.push({
+          ...withProgress(lesson),
+          chapterTitle: lesson.otherProgramme
+            ? `${lesson.otherProgramme} · ${lesson.chapterTitle}`
+            : lesson.chapterTitle,
+        });
+      }
     }
-  }
 
-  const result: ChapterProgress[] = ownChapters.map((chapter, index) => {
-    const documents = documentsByChapter.get(chapter.id) ?? [];
-    const opened = documents.filter((document) => document.opened).length;
-    const understood = documents.filter((document) => document.understood).length;
+    const result: ChapterProgress[] = ownChapters.map((chapter, index) => {
+      const documents = documentsByChapter.get(chapter.id) ?? [];
+      const opened = documents.filter((document) => document.opened).length;
+      const understood = documents.filter((document) => document.understood).length;
+      return {
+        id: chapter.id,
+        slug: chapter.slug,
+        title: chapter.title,
+        semester: chapter.semester,
+        description: chapter.description,
+        number: index + 1,
+        documents,
+        opened,
+        understood,
+        state:
+          documents.length > 0 && understood === documents.length
+            ? "compris"
+            : opened > 0
+              ? "en_cours"
+              : "a_commencer",
+      };
+    });
+
+    const all = [...result.flatMap((chapter) => chapter.documents), ...shared];
     return {
-      id: chapter.id,
-      slug: chapter.slug,
-      title: chapter.title,
-      semester: chapter.semester,
-      description: chapter.description,
-      number: index + 1,
-      documents,
-      opened,
-      understood,
-      state:
-        documents.length > 0 && understood === documents.length
-          ? "compris"
-          : opened > 0
-            ? "en_cours"
-            : "a_commencer",
+      programme: mine
+        ? { code: mine.code, slug: mine.slug, label: mine.label, cycle: mine.cycle }
+        : null,
+      chapters: result,
+      shared,
+      totals: {
+        documents: all.length,
+        opened: all.filter((document) => document.opened).length,
+        understood: all.filter((document) => document.understood).length,
+        chaptersDone: result.filter((chapter) => chapter.state === "compris").length,
+      },
     };
-  });
-
-  const all = [...result.flatMap((chapter) => chapter.documents), ...shared];
-  return {
-    programme: mine
-      ? { code: mine.code, slug: mine.slug, label: mine.label, cycle: mine.cycle }
-      : null,
-    chapters: result,
-    shared,
-    totals: {
-      documents: all.length,
-      opened: all.filter((document) => document.opened).length,
-      understood: all.filter((document) => document.understood).length,
-      chaptersDone: result.filter((chapter) => chapter.state === "compris").length,
-    },
-  };
-});
+  },
+);
 
 export type ResumePoint = {
   document: DocumentProgress;

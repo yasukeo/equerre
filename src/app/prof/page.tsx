@@ -8,12 +8,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-export default async function TutorTodayPage() {
-  const t = await getTranslations("tutor.today");
-
+export default function TutorTodayPage() {
   return (
-    <div className="grid max-w-6xl gap-6">
-      <h1 className="text-xl font-semibold">{t("title")}</h1>
+    <div className="grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-6">
       <Suspense fallback={<TodaySkeleton />}>
         <TodayView />
       </Suspense>
@@ -23,9 +20,17 @@ export default async function TutorTodayPage() {
 
 function TodaySkeleton() {
   return (
-    <div aria-hidden="true" className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-      <div className="h-72 rounded-md bg-sunken" />
-      <div className="h-40 rounded-md bg-sunken" />
+    <div aria-hidden="true" className="grid gap-6">
+      <div className="h-16 w-72 rounded-xl bg-sunken" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {Array.from({ length: 5 }, (_, index) => (
+          <div key={index} className="h-28 rounded-2xl bg-sunken" />
+        ))}
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="h-80 rounded-2xl bg-sunken" />
+        <div className="h-80 rounded-2xl bg-sunken" />
+      </div>
     </div>
   );
 }

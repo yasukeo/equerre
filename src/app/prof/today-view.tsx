@@ -1,12 +1,13 @@
 import {
-  CalendarDays,
+  ArrowRight,
   CalendarPlus,
+  Check,
   ClipboardCheck,
+  ClipboardList,
   Hourglass,
   MessageCircle,
   NotebookPen,
   UserPlus,
-  Users,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
@@ -18,7 +19,15 @@ import { RefreshOnReturn } from "@/components/chat/inbox-live";
 import { countUnread } from "@/lib/chat/queries";
 import { countCorrectionQueue } from "@/lib/correction/queries";
 import { getAccounts } from "@/lib/payments/queries";
-import { formatLocal, localDayBounds, localMinutesOfDay, localWeekBounds } from "@/lib/dates";
+import {
+  formatLocal,
+  localDateKey,
+  localDateKeyInDays,
+  localDayBounds,
+  localMinutesOfDay,
+  localWeekBounds,
+} from "@/lib/dates";
+import { listQuietStudents, listRecentActivity, type ActivityItem } from "@/lib/student/activity";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/types/database";
@@ -46,10 +55,12 @@ function whoFor(session: DaySession): string {
 }
 
 export async function TodayView() {
-  await requireViewer("tutor");
-  const [t, tSession] = await Promise.all([
+  const viewer = await requireViewer("tutor");
+  const [t, tSession, tKind, tExams] = await Promise.all([
     getTranslations("tutor.today"),
     getTranslations("session"),
+    getTranslations("documentKind"),
+    getTranslations("exams"),
   ]);
   const supabase = await createClient();
 
@@ -67,6 +78,8 @@ export async function TodayView() {
     toClose,
     unread,
     accounts,
+    activity,
+    quiet,
   ] = await Promise.all([
     supabase
       .from("sessions")
@@ -95,10 +108,11 @@ export async function TodayView() {
       .eq("status", "actif"),
     supabase
       .from("sessions")
-      .select("id", { count: "exact", head: true })
+      .select("id, starts_at, status")
       .gte("starts_at", week.start.toISOString())
       .lt("starts_at", week.end.toISOString())
-      .in("status", ["planifiee", "terminee", "absent"]),
+      .in("status", ["en_attente", "planifiee", "terminee", "absent"])
+      .order("starts_at"),
     countCorrectionQueue(supabase),
     // Sessions that took place and that she has not said anything about yet.
     supabase
@@ -108,129 +122,345 @@ export async function TodayView() {
       .lt("starts_at", now.toISOString()),
     countUnread(),
     getAccounts(),
+    listRecentActivity({ limit: 10 }),
+    listQuietStudents(now),
   ]);
   // Accounts that owe hours (D-087): the dashboard names how many, the payments page who.
   const overdue = [...accounts.values()].filter((account) => account.owes).length;
 
   const sessions: DaySession[] = todayResult.data ?? [];
   const next: DaySession | null = nextResult.data;
+  const firstName = viewer.fullName.split(" ")[0] || viewer.fullName;
+
+  // The week as seven days: how many sessions each holds, today marked.
+  const todayKey = localDateKey(now);
+  const weekSessions = weekResult.data ?? [];
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const key = localDateKeyInDays(week.start, index);
+    const count = weekSessions.filter((session) => localDateKey(session.starts_at) === key).length;
+    return { key, count };
+  });
+  const weekdayFormat = new Intl.DateTimeFormat("fr-FR", { weekday: "short", timeZone: "UTC" });
+
+  // What waits for her, in the order she usually deals with it.
+  const tiles = [
+    {
+      key: "messages",
+      href: "/prof/messages",
+      icon: MessageCircle,
+      count: unread,
+      label: t("tileMessages", { count: unread }),
+      tone: "bg-orange-fond text-orange-texte",
+    },
+    {
+      key: "corrections",
+      href: "/prof/devoirs/corrections",
+      icon: ClipboardCheck,
+      count: toCorrect,
+      label: t("tileCorrections", { count: toCorrect }),
+      tone: "bg-lavis-rouge text-stylo-rouge",
+    },
+    {
+      key: "requests",
+      href: "/prof/seances",
+      icon: Hourglass,
+      count: pendingResult.count ?? 0,
+      label: t("tileRequests", { count: pendingResult.count ?? 0 }),
+      tone: "bg-bleu-fond text-bleu-texte",
+    },
+    {
+      key: "close",
+      href: "/prof/seances",
+      icon: NotebookPen,
+      count: toClose.count ?? 0,
+      label: t("toCloseTile", { count: toClose.count ?? 0 }),
+      tone: "bg-violet-fond text-violet-texte",
+    },
+    {
+      key: "payments",
+      href: "/prof/paiements",
+      icon: Wallet,
+      count: overdue,
+      label: t("tileOverdue", { count: overdue }),
+      tone: "bg-jaune-fond text-jaune-texte",
+    },
+  ];
+
+  const quick = [
+    { href: "/prof/seances/nouvelle", icon: CalendarPlus, label: t("planAction") },
+    { href: "/prof/devoirs/nouveau", icon: ClipboardList, label: t("assignAction") },
+    { href: "/prof/paiements/nouveau", icon: Wallet, label: t("paymentAction") },
+    { href: "/prof/eleves/inviter", icon: UserPlus, label: t("inviteAction") },
+  ];
+
+  const activityText = (item: ActivityItem) => {
+    switch (item.kind) {
+      case "understood":
+        return t("didUnderstand", {
+          kind: tKind(`one.${item.lesson.kind}`).toLowerCase(),
+          title: item.lesson.title,
+        });
+      case "opened":
+        return t("didOpen", {
+          kind: tKind(`one.${item.lesson.kind}`).toLowerCase(),
+          title: item.lesson.title,
+        });
+      case "handedIn":
+        return t("didHandIn", { title: item.exercise });
+      case "exam":
+        return t("didExam", {
+          year: item.year,
+          session: tExams(`sessionInTitle.${item.session}`),
+          score: item.score === null ? "none" : String(item.score).replace(".", ","),
+        });
+    }
+  };
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
+    <div className="grid gap-8">
       <RefreshOnReturn />
-      <section aria-labelledby="today-sessions">
-        <h2
-          id="today-sessions"
-          className="flex flex-wrap items-baseline gap-x-3 text-lg font-medium"
-        >
-          {t("sessionsHeading")}
-          <span className="text-sm font-normal text-encre-douce">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="grid gap-1">
+          <p className="text-sm text-encre-douce first-letter:uppercase">
             {formatLocal(now, "EEEE d MMMM")}
-          </span>
-        </h2>
+          </p>
+          <h1 className="text-[clamp(1.6rem,1.3rem+1.4vw,2.1rem)] leading-tight font-semibold [font-variation-settings:'HEXP'_45]">
+            {t("greeting", { name: firstName })}
+          </h1>
+        </div>
+        <nav aria-label={t("quickActions")} className="flex flex-wrap gap-2">
+          {quick.map((action, index) => (
+            <Link
+              key={action.href}
+              href={action.href}
+              className={buttonVariants({ variant: index === 0 ? "default" : "outline", size: "sm" })}
+            >
+              <action.icon aria-hidden="true" className="size-4" />
+              {action.label}
+            </Link>
+          ))}
+        </nav>
+      </header>
 
-        {sessions.length === 0 ? (
-          <div className="mt-4 rounded-md border border-dashed border-trait px-4 py-6">
-            <p>{t("empty")}</p>
-            <p className="mt-1 text-sm text-encre-douce">
-              {next
-                ? t("nextSession", {
-                    when: formatLocal(next.starts_at, "EEEE d MMMM 'à' HH:mm"),
-                    who: whoFor(next),
-                  })
-                : t("noUpcoming")}
-            </p>
-          </div>
-        ) : (
-          <DayRuler
-            sessions={sessions}
-            label={t("rulerLabel", { date: formatLocal(now, "d MMMM") })}
-            statusLabel={(status) => tSession(`status.${status}`)}
-            modeLabel={(mode) => tSession(`mode.${mode}`)}
-          />
-        )}
-      </section>
-
-      <aside aria-labelledby="todo-heading">
-        <h2 id="todo-heading" className="text-lg font-medium">
+      <section aria-labelledby="todo-heading">
+        <h2 id="todo-heading" className="sr-only">
           {t("todoHeading")}
         </h2>
-        <ul className="mt-4 divide-y divide-quadrillage border-y border-quadrillage" role="list">
-          <li>
-            <Link
-              href="/prof/messages"
-              className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
-            >
-              <MessageCircle aria-hidden="true" className="size-5 text-encre-douce" />
-              {t("unreadMessages", { count: unread })}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/prof/devoirs/corrections"
-              className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
-            >
-              <ClipboardCheck aria-hidden="true" className="size-5 text-encre-douce" />
-              {t("toCorrect", { count: toCorrect })}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/prof/seances"
-              className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
-            >
-              <Hourglass aria-hidden="true" className="size-5 text-encre-douce" />
-              {t("pendingRequests", { count: pendingResult.count ?? 0 })}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/prof/paiements"
-              className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
-            >
-              <Wallet aria-hidden="true" className="size-5 text-encre-douce" />
-              {t("overdue", { count: overdue })}
-            </Link>
-          </li>
-          {(toClose.count ?? 0) > 0 ? (
-            <li>
+        <ul role="list" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {tiles.map((tile) => (
+            <li key={tile.key} className="grid">
               <Link
-                href="/prof/seances"
-                className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+                href={tile.href}
+                className={cn(
+                  "grid content-between gap-3 rounded-2xl border p-4 transition-colors",
+                  tile.count > 0
+                    ? cn("border-transparent hover:brightness-95", tile.tone)
+                    : "border-quadrillage bg-surface text-encre-douce hover:border-trait",
+                )}
               >
-                <NotebookPen aria-hidden="true" className="size-5 text-encre-douce" />
-                {t("toClose", { count: toClose.count ?? 0 })}
+                <span className="flex items-center justify-between gap-2">
+                  <tile.icon aria-hidden="true" className="size-5" />
+                  {tile.count === 0 ? <Check aria-hidden="true" className="size-4" /> : null}
+                </span>
+                <span className="grid gap-0.5">
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "text-3xl font-semibold tabular [font-variation-settings:'HEXP'_45]",
+                      tile.count === 0 && "text-trait",
+                    )}
+                  >
+                    {tile.count}
+                  </span>
+                  <span className="text-sm font-medium">
+                    <span className="sr-only">{tile.count} </span>
+                    {tile.label}
+                  </span>
+                </span>
               </Link>
             </li>
-          ) : null}
-          <li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        <section aria-labelledby="week-heading" className="grid min-w-0 gap-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="week-heading" className="text-lg font-semibold">
+              {t("weekHeading")}
+            </h2>
             <Link
               href="/prof/seances"
-              className="flex min-h-11 items-center gap-3 py-2.5 underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+              className="inline-flex min-h-11 items-center gap-1.5 text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
             >
-              <CalendarDays aria-hidden="true" className="size-5 text-encre-douce" />
-              {t("weekSessions", { count: weekResult.count ?? 0 })}
+              {t("fullCalendar")}
+              <ArrowRight aria-hidden="true" className="size-4 rtl:rotate-180" />
             </Link>
-          </li>
-          <li className="flex min-h-11 items-center gap-3 py-2.5">
-            <Users aria-hidden="true" className="size-5 text-encre-douce" />
+          </div>
+          <ol role="list" className="grid grid-cols-7 gap-1.5">
+            {days.map((entry) => {
+              const isToday = entry.key === todayKey;
+              const past = entry.key < todayKey;
+              return (
+                <li
+                  key={entry.key}
+                  aria-current={isToday ? "date" : undefined}
+                  className={cn(
+                    "grid justify-items-center gap-1 rounded-xl border px-1 py-2 text-center",
+                    isToday
+                      ? "border-encre-fixe bg-surligneur text-encre-fixe"
+                      : "border-quadrillage bg-surface",
+                    past && "text-encre-douce",
+                  )}
+                >
+                  <span className="text-xs capitalize">
+                    {weekdayFormat.format(new Date(`${entry.key}T12:00:00Z`)).replace(".", "")}
+                  </span>
+                  <span className="text-lg font-semibold tabular">
+                    {Number(entry.key.slice(8, 10))}
+                  </span>
+                  <span className="flex min-h-2 items-center gap-0.5" aria-hidden="true">
+                    {Array.from({ length: Math.min(entry.count, 4) }, (_, dot) => (
+                      <span
+                        key={dot}
+                        className={cn("size-1.5 rounded-full", isToday ? "bg-encre-fixe" : "bg-bleu")}
+                      />
+                    ))}
+                  </span>
+                  <span className="sr-only">{t("daySessions", { count: entry.count })}</span>
+                </li>
+              );
+            })}
+          </ol>
+
+          <div className="grid gap-3 rounded-2xl border border-quadrillage bg-surface p-4 sm:p-5">
+            <h3 className="flex flex-wrap items-baseline gap-x-3 font-semibold">
+              {t("sessionsHeading")}
+              <span className="text-sm font-normal text-encre-douce">
+                {t("sessionsCount", { count: sessions.length })}
+              </span>
+            </h3>
+            {sessions.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-trait px-4 py-5">
+                <p>{t("empty")}</p>
+                <p className="mt-1 text-sm text-encre-douce">
+                  {next
+                    ? t("nextSession", {
+                        when: formatLocal(next.starts_at, "EEEE d MMMM 'à' HH:mm"),
+                        who: whoFor(next),
+                      })
+                    : t("noUpcoming")}
+                </p>
+              </div>
+            ) : (
+              <DayRuler
+                sessions={sessions}
+                label={t("rulerLabel", { date: formatLocal(now, "d MMMM") })}
+                statusLabel={(status) => tSession(`status.${status}`)}
+                modeLabel={(mode) => tSession(`mode.${mode}`)}
+              />
+            )}
+          </div>
+          <p className="text-sm text-encre-douce">
+            {t("weekSessions", { count: weekSessions.length })} ·{" "}
             {t("activeStudents", { count: studentsResult.count ?? 0 })}
-          </li>
-        </ul>
-        <Link href="/prof/seances/nouvelle" className={cn(buttonVariants(), "mt-6 w-full")}>
-          <CalendarPlus aria-hidden="true" />
-          {t("planAction")}
-        </Link>
-        <Link
-          href="/prof/eleves/inviter"
-          className={cn(buttonVariants({ variant: "outline" }), "mt-2 w-full")}
-        >
-          <UserPlus aria-hidden="true" />
-          {t("inviteAction")}
-        </Link>
-      </aside>
+          </p>
+        </section>
+
+        <aside className="grid gap-6">
+          <section aria-labelledby="activity-heading" className="grid gap-3">
+            <h2 id="activity-heading" className="text-lg font-semibold">
+              {t("activityHeading")}
+            </h2>
+            {activity.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-trait bg-surface px-4 py-4 text-sm text-encre-douce">
+                {t("activityEmpty")}
+              </p>
+            ) : (
+              <ol
+                role="list"
+                className="grid gap-px overflow-hidden rounded-2xl border border-quadrillage bg-quadrillage"
+              >
+                {activity.map((item, index) => (
+                  <li key={index} className="flex gap-3 bg-surface px-4 py-3">
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "mt-1.5 size-2 shrink-0 rounded-full",
+                        item.kind === "understood"
+                          ? "bg-encre"
+                          : item.kind === "opened"
+                            ? "bg-stylo-bleu"
+                            : item.kind === "handedIn"
+                              ? "bg-rouge"
+                              : "bg-violet",
+                      )}
+                    />
+                    <span className="grid min-w-0 gap-0.5 text-sm">
+                      <span>
+                        <Link
+                          href={`/prof/eleves/${item.student.id}`}
+                          className="font-semibold underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+                        >
+                          {item.student.name}
+                        </Link>{" "}
+                        {activityText(item)}
+                      </span>
+                      <span className="text-xs text-encre-douce">{ago(item.at, now, t)}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+
+          {quiet.length > 0 ? (
+            <section aria-labelledby="quiet-heading" className="grid gap-3">
+              <div className="grid gap-0.5">
+                <h2 id="quiet-heading" className="text-lg font-semibold">
+                  {t("quietHeading")}
+                </h2>
+                <p className="text-sm text-encre-douce">{t("quietHint")}</p>
+              </div>
+              <ul role="list" className="flex flex-wrap gap-2">
+                {quiet.slice(0, 8).map((student) => (
+                  <li key={student.id}>
+                    <Link
+                      href={`/prof/eleves/${student.id}`}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-quadrillage bg-surface ps-1 pe-3 text-sm hover:border-trait"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="flex size-8 items-center justify-center rounded-full bg-sunken text-xs font-semibold"
+                      >
+                        {initialsOf(student.name)}
+                      </span>
+                      {student.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </aside>
+      </div>
     </div>
   );
+}
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const letters = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts;
+  return letters.map((part) => part?.charAt(0).toLocaleUpperCase("fr") ?? "").join("");
+}
+
+/** « il y a 5 min », « il y a 3 h », « il y a 4 j ». */
+function ago(at: string, now: Date, t: (key: "agoMinutes" | "agoHours" | "agoDays", values: { count: number }) => string) {
+  const minutes = Math.max(Math.round((now.getTime() - Date.parse(at)) / 60_000), 0);
+  if (minutes < 60) return t("agoMinutes", { count: Math.max(minutes, 1) });
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return t("agoHours", { count: hours });
+  return t("agoDays", { count: Math.round(hours / 24) });
 }
 
 type DayRulerProps = {

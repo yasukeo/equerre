@@ -15,6 +15,8 @@ type AppShellProps = {
   /** Her own page, behind her initials in the header: the student's profile (D-104). */
   accountHref?: string;
   accountLabel?: string;
+  /** A search box in the header, which streams in (the tutor's, D-104). */
+  search?: ReactNode;
   children: ReactNode;
 };
 
@@ -28,6 +30,7 @@ export async function AppShell({
   nav,
   accountHref,
   accountLabel,
+  search,
   children,
 }: AppShellProps) {
   const t = await getTranslations("common");
@@ -62,6 +65,13 @@ export async function AppShell({
           <Link href={homeHref} className="inline-flex min-h-11 items-center rounded-md md:hidden">
             <BrandMark />
           </Link>
+          {search ? (
+            <div className="flex flex-1 justify-end md:justify-start">
+              <Suspense fallback={<span className="h-11 w-11 rounded-xl bg-sunken md:w-64" />}>
+                {search}
+              </Suspense>
+            </div>
+          ) : null}
           <Suspense fallback={<span className="h-5 w-28 rounded-sm bg-sunken" />}>
             <ViewerMenu
               signOutLabel={t("signOut")}
