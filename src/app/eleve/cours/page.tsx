@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ReviseHubPage() {
   const t = await getTranslations("student.progress");
   return (
-    <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-5xl gap-8">
+    <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)] gap-8">
       <h1 className="text-[clamp(1.75rem,1.4rem+1.6vw,2.25rem)] leading-tight font-semibold [font-variation-settings:'HEXP'_45]">
         {t("reviseTitle")}
       </h1>
@@ -68,6 +68,7 @@ async function Hub() {
     })),
   ];
   const withDocuments = course.chapters.filter((chapter) => chapter.documents.length > 0);
+  const inProgress = withDocuments.filter((chapter) => chapter.state === "en_cours").length;
   const semesters = [1, 2, null].flatMap((semester) => {
     const chapters = course.chapters.filter((chapter) => chapter.semester === semester);
     return chapters.length > 0 ? [{ semester, chapters }] : [];
@@ -87,9 +88,34 @@ async function Hub() {
         {/* Where she stands, and the three ways in: resume, kept to revise, past papers. */}
         <div className="grid gap-4 lg:grid-cols-[minmax(0,20rem)_1fr]">
           {course.programme ? (
+            /* On a phone, one line: the chapters come first there (D-104). */
             <Link
               href="/eleve/progression"
-              className="group grid justify-items-center gap-2 rounded-2xl border border-quadrillage bg-surface px-5 pt-5 pb-4 hover:border-trait"
+              className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-quadrillage bg-surface px-4 py-3 hover:border-trait lg:hidden"
+            >
+              <span className="grid">
+                <span className="font-semibold tabular">
+                  {t("chaptersDoneLine", {
+                    done: course.totals.chaptersDone,
+                    total: withDocuments.length,
+                  })}
+                </span>
+                <span className="text-sm text-encre-douce">
+                  {inProgress > 0
+                    ? t("inProgressLine", { count: inProgress })
+                    : programmeName(course.programme.label)}
+                </span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-sm underline decoration-trait underline-offset-4">
+                {t("myProgress")}
+                <ArrowRight aria-hidden="true" className="size-4 rtl:rotate-180" />
+              </span>
+            </Link>
+          ) : null}
+          {course.programme ? (
+            <Link
+              href="/eleve/progression"
+              className="group hidden justify-items-center gap-2 rounded-2xl border border-quadrillage bg-surface px-5 pt-5 pb-4 hover:border-trait lg:grid"
             >
               <Protractor
                 states={withDocuments.map((chapter) => chapter.state)}
@@ -100,12 +126,17 @@ async function Hub() {
                   total: withDocuments.length,
                 })}
               />
+              {inProgress > 0 ? (
+                <span className="text-sm text-stylo-bleu">
+                  {t("inProgressLine", { count: inProgress })}
+                </span>
+              ) : null}
               <span className="text-center text-sm font-medium">
                 {programmeName(course.programme.label)}
               </span>
               <span className="inline-flex items-center gap-1.5 text-sm underline decoration-trait underline-offset-4 group-hover:decoration-encre">
                 {t("myProgress")}
-                <ArrowRight aria-hidden="true" className="size-4" />
+                <ArrowRight aria-hidden="true" className="size-4 rtl:rotate-180" />
               </span>
             </Link>
           ) : null}
@@ -114,7 +145,7 @@ async function Hub() {
             {resume ? (
               <Link
                 href={`/eleve/cours/${resume.document.slug}`}
-                className="group grid gap-3 rounded-2xl bg-encre p-5 text-papier"
+                className="group grid gap-3 rounded-2xl bg-encre-fixe p-5 text-white"
               >
                 <span className="flex items-center gap-2 text-sm font-medium tracking-[0.08em] uppercase opacity-80">
                   <Play aria-hidden="true" className="size-4" />
@@ -123,15 +154,17 @@ async function Hub() {
                 <span className="grid gap-1">
                   <span className={cn("text-xs font-semibold uppercase opacity-80")}>
                     {tKind(`one.${resume.document.kind}`)}
-                    {resume.chapter ? ` · ${t("chapterNumber", { number: resume.chapter.number })}` : null}
+                    {resume.chapter
+                      ? ` · ${t("chapterNumber", { number: resume.chapter.number })}`
+                      : null}
                   </span>
-                  <span className="text-xl font-semibold leading-snug">
+                  <span className="text-xl leading-snug font-semibold">
                     {frenchSpaces(resume.document.title)}
                   </span>
                 </span>
                 {resume.document.opened && resume.document.position > 0.02 ? (
                   <span className="flex items-center gap-3 text-sm">
-                    <ReadingRuler position={resume.document.position} className="flex-1 bg-white/20 [background-image:none]" />
+                    <ReadingRuler position={resume.document.position} onInk className="flex-1" />
                     <span className="tabular">
                       {t("readPercent", { percent: Math.round(resume.document.position * 100) })}
                     </span>
@@ -200,7 +233,10 @@ async function Hub() {
 
         <section id="a-revoir" aria-labelledby="saved-heading" className="grid scroll-mt-6 gap-4">
           <h2 id="saved-heading" className="flex items-center gap-3 text-lg font-semibold">
-            <span aria-hidden="true" className="size-3 rounded-sm bg-surligneur ring-1 ring-encre-fixe/30" />
+            <span
+              aria-hidden="true"
+              className="size-3 rounded-sm bg-surligneur ring-1 ring-encre-fixe/30"
+            />
             {t("savedTitle")}
             <span aria-hidden="true" className="h-px flex-1 bg-quadrillage" />
           </h2>
@@ -250,7 +286,7 @@ async function Hub() {
             className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium underline decoration-trait underline-offset-4 hover:decoration-encre"
           >
             {t("browse")}
-            <ArrowRight aria-hidden="true" className="size-4" />
+            <ArrowRight aria-hidden="true" className="size-4 rtl:rotate-180" />
           </Link>
         </section>
       </div>
@@ -274,4 +310,3 @@ function HubSkeleton() {
     </div>
   );
 }
-

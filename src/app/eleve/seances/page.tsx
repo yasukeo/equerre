@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function StudentAgendaPage() {
   return (
-    <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-3xl gap-6">
+    <div className="mx-auto grid max-w-3xl grid-cols-[minmax(0,1fr)] gap-6">
       <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <Agenda />
       </Suspense>
@@ -51,7 +51,9 @@ async function Agenda() {
   const entries: Entry[] = [
     ...upcoming.map((session) => ({ kind: "session" as const, at: session.startsAt, session })),
     ...homework
-      .filter((entry) => open && entry.progress.left > 0 && Date.parse(entry.dueAt) >= now.getTime())
+      .filter(
+        (entry) => open && entry.progress.left > 0 && Date.parse(entry.dueAt) >= now.getTime(),
+      )
       .map((entry) => ({
         kind: "homework" as const,
         at: entry.dueAt,
@@ -180,7 +182,10 @@ async function Agenda() {
                         </span>
                         <span className="grid min-w-0 gap-0.5">
                           <span className="flex items-center gap-1.5 font-medium">
-                            <ClipboardList aria-hidden="true" className="size-4 shrink-0 text-rouge" />
+                            <ClipboardList
+                              aria-hidden="true"
+                              className="size-4 shrink-0 text-rouge"
+                            />
                             <span className="truncate">{entry.title}</span>
                           </span>
                           <span className="text-sm text-encre-douce">

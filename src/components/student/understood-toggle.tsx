@@ -1,15 +1,16 @@
 "use client";
 
-import { Check, RotateCcw } from "lucide-react";
+import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useOptimistic, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { setUnderstood } from "@/app/eleve/cours/actions";
 import type { DocumentKind } from "@/lib/lesson/kinds";
 import { cn } from "@/lib/utils";
 
 /**
- * « J’ai compris » at the end of a lesson, « Série faite » at the end of exercises: the mark
- * that moves her ruler. Once given it reads as done, in ink, and can be taken back.
+ * « J’ai compris » at the end of a lesson, « J’ai fini » at the end of exercises: the mark that
+ * moves her ruler. One button that stays where it is, pressed once given, so focus never drops;
+ * pressing it again takes the mark back. What happened is said in a status line.
  */
 export function UnderstoodToggle({
   lessonId,
@@ -23,46 +24,45 @@ export function UnderstoodToggle({
   const t = useTranslations("student.progress");
   const [optimistic, setOptimistic] = useOptimistic(understood);
   const [pending, startTransition] = useTransition();
+  const [failed, setFailed] = useState(false);
   const practice = kind === "serie" || kind === "devoir";
 
-  const toggle = (value: boolean) =>
+  const toggle = () =>
     startTransition(async () => {
-      setOptimistic(value);
-      await setUnderstood(lessonId, value);
+      const next = !optimistic;
+      setOptimistic(next);
+      const result = await setUnderstood(lessonId, next);
+      setFailed(!result.ok);
     });
 
-  if (optimistic) {
-    return (
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2" data-pending={pending || undefined}>
-        <p className="inline-flex items-center gap-2 font-semibold">
-          <span className="flex size-8 items-center justify-center rounded-full bg-encre text-papier">
-            <Check aria-hidden="true" className="size-5" />
-          </span>
-          {t(practice ? "doneDone" : "understoodDone")}
-        </p>
-        <button
-          type="button"
-          onClick={() => toggle(false)}
-          className="inline-flex min-h-11 items-center gap-1.5 text-sm text-encre-douce underline decoration-trait underline-offset-4 hover:text-encre"
-        >
-          <RotateCcw aria-hidden="true" className="size-4" />
-          {t("undo")}
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <button
-      type="button"
-      onClick={() => toggle(true)}
-      data-pending={pending || undefined}
-      className={cn(
-        "inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-encre px-5 text-lg font-medium text-papier transition-colors hover:bg-encre/90",
-      )}
-    >
-      <Check aria-hidden="true" className="size-5" />
-      {t(practice ? "markDone" : "markUnderstood")}
-    </button>
+    <div className="grid gap-2">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-pressed={optimistic}
+        data-pending={pending || undefined}
+        className={cn(
+          "inline-flex min-h-12 items-center justify-center gap-2 justify-self-start rounded-md border-2 px-5 text-lg font-medium transition-colors",
+          optimistic
+            ? "border-encre bg-surface text-encre hover:bg-sunken"
+            : "border-encre bg-encre text-papier hover:bg-encre/90",
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className={cn(
+            "flex size-6 items-center justify-center rounded-full",
+            optimistic ? "bg-encre text-papier" : "border-2 border-papier/70",
+          )}
+        >
+          {optimistic ? <Check className="size-4" /> : null}
+        </span>
+        {t(practice ? "markDone" : "markUnderstood")}
+      </button>
+      <p role="status" className="text-sm text-encre-douce">
+        {failed ? t("notSaved") : optimistic ? t(practice ? "doneDone" : "understoodDone") : null}
+      </p>
+    </div>
   );
 }

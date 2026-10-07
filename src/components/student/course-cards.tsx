@@ -36,13 +36,7 @@ export async function ChapterStateChip({ state }: { state: ChapterState }) {
 }
 
 /** One chapter of her programme: its number on the level's colour, its ruler, its state. */
-export async function ChapterCard({
-  chapter,
-  cycle,
-}: {
-  chapter: ChapterProgress;
-  cycle: string;
-}) {
+export async function ChapterCard({ chapter, cycle }: { chapter: ChapterProgress; cycle: string }) {
   const t = await getTranslations("student.progress");
   const band = cycleHue(cycle).band;
   const empty = chapter.documents.length === 0;
@@ -60,7 +54,7 @@ export async function ChapterCard({
         {number}
       </span>
       <span className="grid min-w-0 flex-1 gap-2">
-        <span className="font-semibold leading-snug">
+        <span className="leading-snug font-semibold">
           <span className="sr-only">{t("chapterNumber", { number: chapter.number })} </span>
           {frenchSpaces(chapter.title)}
         </span>
@@ -137,7 +131,7 @@ export async function DocumentRow({
           </span>
           {context ? <span className="text-encre-douce">{context}</span> : null}
         </span>
-        <span className="font-medium leading-snug">{frenchSpaces(document.title)}</span>
+        <span className="leading-snug font-medium">{frenchSpaces(document.title)}</span>
         <span className="flex items-center gap-2 text-xs text-encre-douce">
           {document.understood ? (
             <Check aria-hidden="true" className="size-3.5 text-encre" />

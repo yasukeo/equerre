@@ -13,10 +13,13 @@ const format = new Intl.NumberFormat("fr", { maximumFractionDigits: 2 });
  */
 export function GradeChart({
   points,
+  average,
   averageLabel,
   pointLabel,
 }: {
   points: GradePoint[];
+  /** The mean the label names, over every grade: the line is drawn at it. */
+  average: number;
   averageLabel: string;
   /** « {title} : {grade}/20, {date} » for a dot's tooltip and its accessible name. */
   pointLabel: (point: GradePoint, grade: string, date: string) => string;
@@ -25,14 +28,17 @@ export function GradeChart({
   const count = shown.length;
   const x = (index: number) => (count === 1 ? 50 : 4 + (index / (count - 1)) * 92);
   const y = (grade: number) => 100 - (grade / 20) * 100;
-  const average = shown.reduce((sum, point) => sum + point.grade, 0) / Math.max(count, 1);
 
   return (
-    <div className="grid grid-cols-[2rem_1fr] gap-x-2">
+    <div className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-2 overflow-x-clip">
       {/* The scale: 0, 10 and 20, the marks a 20-point grade is read against. */}
       <div aria-hidden="true" className="relative h-48 text-xs text-encre-douce tabular">
         {[20, 10, 0].map((value) => (
-          <span key={value} className="absolute end-0 -translate-y-1/2" style={{ top: `${y(value)}%` }}>
+          <span
+            key={value}
+            className="absolute end-0 -translate-y-1/2"
+            style={{ top: `${y(value)}%` }}
+          >
             {value}
           </span>
         ))}
@@ -85,10 +91,15 @@ export function GradeChart({
             const grade = format.format(point.grade);
             const label = pointLabel(point, grade, formatLocal(point.correctedAt, "d MMMM"));
             const last = index === count - 1;
+            // On a phone, the last ten dots only: more would overlap under a thumb.
+            const phoneHidden = index < count - 10;
             return (
               <li
                 key={`${point.assignmentId}/${point.exerciseId}`}
-                className="absolute -translate-x-1/2 -translate-y-1/2 rtl:translate-x-1/2"
+                className={cn(
+                  "absolute -translate-x-1/2 -translate-y-1/2 rtl:translate-x-1/2",
+                  phoneHidden && "hidden sm:block",
+                )}
                 style={{ insetInlineStart: `${x(index)}%`, top: `${y(point.grade)}%` }}
               >
                 <Link
@@ -107,7 +118,11 @@ export function GradeChart({
                   ) : null}
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none invisible absolute bottom-full z-10 mb-1 w-max max-w-56 rounded-md bg-encre px-2.5 py-1.5 text-xs text-papier shadow-md group-hover:visible group-focus-visible:visible"
+                    className={cn(
+                      "pointer-events-none invisible absolute bottom-full z-10 mb-1 w-max max-w-48 rounded-md bg-encre px-2.5 py-1.5 text-xs text-papier shadow-md group-hover:visible group-focus-visible:visible",
+                      // Kept inside the chart: opening towards its middle.
+                      x(index) < 50 ? "start-0" : "end-0",
+                    )}
                   >
                     {label}
                   </span>

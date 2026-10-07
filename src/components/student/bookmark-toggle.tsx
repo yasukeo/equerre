@@ -34,7 +34,7 @@ export function BookmarkToggle({
       type="button"
       onClick={toggle}
       aria-pressed={optimistic}
-      aria-label={compact ? t(optimistic ? "unsaveFor" : "saveFor", { title }) : undefined}
+      aria-label={compact ? t("saveFor", { title }) : undefined}
       data-pending={pending || undefined}
       className={cn(
         "inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md border text-sm font-medium transition-colors",
@@ -50,7 +50,7 @@ export function BookmarkToggle({
       ) : (
         <Bookmark aria-hidden="true" className="size-5" />
       )}
-      {compact ? null : <span>{t(optimistic ? "saved" : "save")}</span>}
+      {compact ? null : <span>{t("save")}</span>}
     </button>
   );
 }

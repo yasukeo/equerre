@@ -30,12 +30,9 @@ export async function Countdown({
       </span>
     );
     return href ? (
-      <Link
-        href={href}
-        aria-label={t("countdownLabel", { days: countdown.daysLeft, exam, date })}
-        className="rounded-full"
-      >
+      <Link href={href} className="inline-flex min-h-11 items-center rounded-full">
         {chip}
+        <span className="sr-only">{t("countdownDate", { date })}</span>
       </Link>
     ) : (
       chip
@@ -53,7 +50,9 @@ export async function Countdown({
         >
           {countdown.daysLeft}
         </span>
-        <span className="text-lg font-medium">{t("daysBefore", { days: countdown.daysLeft, exam })}</span>
+        <span className="text-lg font-medium">
+          {t("daysBefore", { days: countdown.daysLeft, exam })}
+        </span>
       </p>
       <p className="text-sm text-encre-douce">
         {countdown.confirmed ? t("dateSet", { date }) : t("dateIndicative", { date })}

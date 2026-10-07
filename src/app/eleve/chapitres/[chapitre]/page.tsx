@@ -29,7 +29,7 @@ export default async function StudentChapterPage({
 }: PageProps<"/eleve/chapitres/[chapitre]">) {
   const t = await getTranslations("student.progress");
   return (
-    <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-3xl gap-6">
+    <div className="mx-auto grid max-w-3xl grid-cols-[minmax(0,1fr)] gap-6">
       <Link
         href="/eleve/cours"
         className="inline-flex min-h-11 items-center gap-1.5 justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
@@ -61,9 +61,7 @@ async function Chapter({ params }: { params: Promise<{ chapitre: string }> }) {
     .slice(0, index)
     .reverse()
     .find((entry) => entry.documents.length > 0);
-  const following = course.chapters
-    .slice(index + 1)
-    .find((entry) => entry.documents.length > 0);
+  const following = course.chapters.slice(index + 1).find((entry) => entry.documents.length > 0);
   const groups = DOCUMENT_KINDS.flatMap((kind) => {
     const documents = chapter.documents.filter((document) => document.kind === kind);
     return documents.length > 0 ? [{ kind, documents }] : [];
@@ -110,8 +108,7 @@ async function Chapter({ params }: { params: Promise<{ chapitre: string }> }) {
               "relative justify-self-start bg-white text-encre-fixe hover:bg-white/90",
             )}
           >
-            {next.opened ? t("continueWith") : t("startWith")}
-            <span className="font-normal">{tKind(`one.${next.kind}`)}</span>
+            {next.opened ? t("continueChapter") : t("startChapter")}
             <ArrowRight aria-hidden="true" className="rtl:rotate-180" />
           </Link>
         ) : (

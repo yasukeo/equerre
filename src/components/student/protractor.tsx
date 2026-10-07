@@ -77,13 +77,20 @@ export function Protractor({
                 ? "fill-encre"
                 : state === "en_cours"
                   ? "fill-stylo-bleu"
-                  : "fill-quadrillage"
+                  : "fill-trait/30"
             }
           />
         );
       })}
       {/* The base line and the centre mark of a real protractor. */}
-      <line x1={cx - outer - 12} y1={cy} x2={cx + outer + 12} y2={cy} strokeWidth="1.5" className="stroke-encre" />
+      <line
+        x1={cx - outer - 12}
+        y1={cy}
+        x2={cx + outer + 12}
+        y2={cy}
+        strokeWidth="1.5"
+        className="stroke-encre"
+      />
       <line x1={cx} y1={cy - 6} x2={cx} y2={cy} strokeWidth="1.5" className="stroke-encre" />
       <text
         x={cx}

@@ -70,7 +70,7 @@ function NavLinkView({
       </span>
       <span className="max-w-full truncate">{children}</span>
       {badge ? (
-        <span className="absolute top-1 start-[calc(50%+0.5rem)] md:static md:ms-auto">
+        <span className="absolute start-[calc(50%+0.5rem)] top-1 md:static md:ms-auto">
           {badge}
         </span>
       ) : null}

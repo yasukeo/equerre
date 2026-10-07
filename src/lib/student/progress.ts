@@ -54,14 +54,14 @@ type ProgressRow = {
 export type CourseOwner = Pick<Viewer, "id" | "programmeCode">;
 
 /**
- * Her programme, chapter by chapter, with where she stands in each document. The tutor reads
- * it for a student with `shared: false`: the lessons shared by name are the student's own list
- * to read, and from the tutor's session they would be every shared lesson.
+ * Her programme, chapter by chapter, with where she stands in each document. The tutor reads it
+ * for a student with `tutorView`: from her session every lesson shared by name would come back,
+ * so only those shared with this student are kept.
  */
 export const getStudentCourse = cache(
-  async (viewer: CourseOwner, options?: { shared?: boolean }): Promise<StudentCourse> => {
+  async (viewer: CourseOwner, tutorView = false): Promise<StudentCourse> => {
     const supabase = await createClient();
-    const [programmes, readable, chapters, progress, bookmarks] = await Promise.all([
+    const [programmes, readable, chapters, progress, bookmarks, access] = await Promise.all([
       listProgrammes(),
       listReadableLessons(viewer.programmeCode),
       viewer.programmeCode
@@ -77,12 +77,18 @@ export const getStudentCourse = cache(
         .select("lesson_id, position, understood_at, last_opened_at")
         .eq("student_id", viewer.id),
       supabase.from("lesson_bookmarks").select("lesson_id").eq("student_id", viewer.id),
+      tutorView
+        ? supabase.from("lesson_access").select("lesson_id").eq("student_id", viewer.id)
+        : Promise.resolve({ data: [] as { lesson_id: string }[] }),
     ]);
 
-    const lessons =
-      options?.shared === false
-        ? readable.filter((lesson) => lesson.otherProgramme === null && !lesson.shared)
-        : readable;
+    const sharedWithHer = new Set((access.data ?? []).map((row) => row.lesson_id));
+    const lessons = tutorView
+      ? readable.filter(
+          (lesson) =>
+            (!lesson.shared && lesson.otherProgramme === null) || sharedWithHer.has(lesson.id),
+        )
+      : readable;
     const mine = programmes.find((programme) => programme.code === viewer.programmeCode);
     const byLesson = new Map(
       ((progress.data ?? []) as ProgressRow[]).map((row) => [row.lesson_id, row]),
@@ -172,8 +178,9 @@ export type ResumePoint = {
 };
 
 /**
- * Where « Reprendre » takes her: the document she opened last and has not finished; else
- * the next one in her programme after the last she finished; else the very first.
+ * Where « Reprendre » takes her: the document she opened last, if she has not finished it;
+ * if she has, the next one after it she has not; with nothing opened yet, the very first. An
+ * old document glanced at once does not hold her back from where she now is.
  */
 export function resumePoint(course: StudentCourse): ResumePoint | null {
   const located = course.chapters.flatMap((chapter) =>
@@ -182,18 +189,18 @@ export function resumePoint(course: StudentCourse): ResumePoint | null {
       chapter: { slug: chapter.slug, title: chapter.title, number: chapter.number },
     })),
   );
-  const recent = located
+  const last = located
     .filter((entry) => entry.document.lastOpenedAt)
-    .sort((a, b) => (b.document.lastOpenedAt ?? "").localeCompare(a.document.lastOpenedAt ?? ""));
-  const unfinished = recent.find((entry) => !entry.document.understood);
-  if (unfinished) return unfinished;
-  const last = recent[0];
-  if (last) {
-    const index = located.indexOf(last);
-    const next = located.slice(index + 1).find((entry) => !entry.document.understood);
-    if (next) return next;
-  }
-  return located.find((entry) => !entry.document.understood) ?? null;
+    .sort((a, b) =>
+      (b.document.lastOpenedAt ?? "").localeCompare(a.document.lastOpenedAt ?? ""),
+    )[0];
+  if (last && !last.document.understood) return last;
+  const from = last ? located.indexOf(last) + 1 : 0;
+  return (
+    located.slice(from).find((entry) => !entry.document.understood) ??
+    located.find((entry) => !entry.document.understood) ??
+    null
+  );
 }
 
 // ─────────────────────────────────────────────────────────────── the exam ahead
@@ -288,7 +295,8 @@ export function revisionPlan(
   const today = localDateKey(now);
   const weekday = (new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7;
   const monday = Date.parse(`${today}T00:00:00Z`) - weekday * DAY;
-  const weeks = Math.max(Math.ceil((countdown.daysLeft + weekday + 1) / 7), 1);
+  // The weeks before the exam's: its own week is the exam, not revision.
+  const weeks = Math.max(Math.ceil((countdown.daysLeft + weekday) / 7), 1);
   const paperWeeks = weeks > PAPER_WEEKS + 2 ? PAPER_WEEKS : 0;
   const studyWeeks = weeks - paperWeeks;
   const left = course.chapters
@@ -342,6 +350,8 @@ export function revisionPlan(
 export type ExamAttempt = {
   id: string;
   examId: string;
+  /** The paper, to name it in her lists. */
+  exam: { year: number; session: "normale" | "rattrapage"; track: string | null } | null;
   startedAt: string;
   finishedAt: string | null;
   durationMinutes: number;
@@ -352,13 +362,16 @@ export async function listMyExamAttempts(viewer: Viewer): Promise<ExamAttempt[]>
   const supabase = await createClient();
   const { data } = await supabase
     .from("exam_attempts")
-    .select("id, exam_id, started_at, finished_at, duration_minutes, self_score")
+    .select(
+      "id, exam_id, started_at, finished_at, duration_minutes, self_score, exam:national_exams(year, session, track)",
+    )
     .eq("student_id", viewer.id)
     .order("started_at", { ascending: false })
     .limit(200);
   return (data ?? []).map((row) => ({
     id: row.id,
     examId: row.exam_id,
+    exam: row.exam,
     startedAt: row.started_at,
     finishedAt: row.finished_at,
     durationMinutes: row.duration_minutes,
@@ -384,7 +397,7 @@ export type GradePoint = {
   correctedAt: string;
 };
 
-/** Every grade she received, oldest first: the line of her progress. */
+/** Her latest 500 grades, oldest first: the line of her progress. */
 export async function listMyGradeHistory(): Promise<GradePoint[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -393,9 +406,9 @@ export async function listMyGradeHistory(): Promise<GradePoint[]> {
     .eq("status", "corrige")
     .not("grade", "is", null)
     .not("corrected_at", "is", null)
-    .order("corrected_at", { ascending: true })
+    .order("corrected_at", { ascending: false })
     .limit(500);
-  return (data ?? []).flatMap((row) =>
+  return [...(data ?? [])].reverse().flatMap((row) =>
     row.grade === null || !row.corrected_at || !(row.exercise as { title: string } | null)
       ? []
       : [

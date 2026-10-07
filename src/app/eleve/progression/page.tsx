@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ProgressPage() {
   const t = await getTranslations("student.progress");
   return (
-    <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-5xl gap-8">
+    <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)] gap-8">
       <h1 className="text-[clamp(1.75rem,1.4rem+1.6vw,2.25rem)] leading-tight font-semibold [font-variation-settings:'HEXP'_45]">
         {t("myProgress")}
       </h1>
@@ -45,8 +45,9 @@ const format = new Intl.NumberFormat("fr", { maximumFractionDigits: 2 });
 async function Progress() {
   const viewer = await requireViewer("student");
   const now = new Date();
-  const [t, course, countdown, grades, attempts] = await Promise.all([
+  const [t, tExams, course, countdown, grades, attempts] = await Promise.all([
     getTranslations("student.progress"),
+    getTranslations("exams"),
     getStudentCourse(viewer),
     getExamCountdown(viewer.programmeCode, now),
     listMyGradeHistory(),
@@ -57,9 +58,10 @@ async function Progress() {
   const average =
     grades.length > 0 ? grades.reduce((sum, point) => sum + point.grade, 0) / grades.length : null;
   const scored = attempts.filter((attempt) => attempt.finishedAt && attempt.selfScore !== null);
-  const saved = [...course.chapters.flatMap((chapter) => chapter.documents), ...course.shared].filter(
-    (document) => document.bookmarked,
-  ).length;
+  const saved = [
+    ...course.chapters.flatMap((chapter) => chapter.documents),
+    ...course.shared,
+  ].filter((document) => document.bookmarked).length;
 
   return (
     <div className="grid gap-10">
@@ -81,7 +83,9 @@ async function Progress() {
             })}
           />
           {course.programme ? (
-            <p className="text-center text-sm font-medium">{programmeName(course.programme.label)}</p>
+            <p className="text-center text-sm font-medium">
+              {programmeName(course.programme.label)}
+            </p>
           ) : null}
           <dl className="grid w-full grid-cols-3 gap-2 border-t border-quadrillage pt-3 text-center">
             <div>
@@ -133,7 +137,7 @@ async function Progress() {
                       {week.pastPapers ? (
                         <Link
                           href="/eleve/examens"
-                          className="inline-flex items-center gap-1.5 rounded-full bg-violet-fond px-2.5 py-1 text-sm font-medium text-violet-texte hover:brightness-95"
+                          className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-violet-fond px-3 text-sm font-medium text-violet-texte hover:brightness-95"
                         >
                           <GraduationCap aria-hidden="true" className="size-4" />
                           {t("planPapers")}
@@ -145,7 +149,7 @@ async function Progress() {
                           <Link
                             key={chapter.slug}
                             href={`/eleve/chapitres/${chapter.slug}`}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-quadrillage bg-surface px-2.5 py-1 text-sm hover:border-trait"
+                            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-quadrillage bg-surface px-3 text-sm hover:border-trait"
                           >
                             <span className="font-semibold tabular">{chapter.number}</span>
                             {frenchSpaces(chapter.title)}
@@ -188,14 +192,20 @@ async function Progress() {
             </p>
             <GradeChart
               points={grades}
+              average={average ?? 0}
               averageLabel={t("averageShort", { average: format.format(average ?? 0) })}
-              pointLabel={(point, grade, date) => t("gradePoint", { title: point.title, grade, date })}
+              pointLabel={(point, grade, date) =>
+                t("gradePoint", { title: point.title, grade, date })
+              }
             />
             <details>
               <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm underline decoration-trait underline-offset-4">
                 {t("gradesList")}
               </summary>
-              <ul role="list" className="mt-2 divide-y divide-quadrillage border-y border-quadrillage">
+              <ul
+                role="list"
+                className="mt-2 divide-y divide-quadrillage border-y border-quadrillage"
+              >
                 {[...grades].reverse().map((point) => (
                   <li key={`${point.assignmentId}/${point.exerciseId}`}>
                     <Link
@@ -230,10 +240,17 @@ async function Progress() {
               <li key={attempt.id}>
                 <Link
                   href={`/eleve/examens/${attempt.examId}`}
-                  className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-quadrillage bg-surface px-4 hover:border-trait"
+                  className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-quadrillage bg-surface px-4 py-2 hover:border-trait"
                 >
-                  <span className="text-sm">
-                    {formatLocal(attempt.finishedAt ?? attempt.startedAt, "d MMMM")}
+                  <span className="grid text-sm">
+                    <span className="font-medium">
+                      {attempt.exam
+                        ? `${tExams("nationalExam", { year: attempt.exam.year })} · ${tExams(`session.${attempt.exam.session}`)}`
+                        : null}
+                    </span>
+                    <span className="text-encre-douce">
+                      {formatLocal(attempt.finishedAt ?? attempt.startedAt, "d MMMM")}
+                    </span>
                   </span>
                   <span className="font-semibold tabular">
                     {format.format(attempt.selfScore ?? 0)}/20
@@ -250,7 +267,10 @@ async function Progress() {
           {t("chaptersTitle")}
           <span aria-hidden="true" className="h-px flex-1 bg-quadrillage" />
         </h2>
-        <ul role="list" className="divide-y divide-quadrillage rounded-2xl border border-quadrillage bg-surface">
+        <ul
+          role="list"
+          className="divide-y divide-quadrillage rounded-2xl border border-quadrillage bg-surface"
+        >
           {withDocuments.map((chapter) => (
             <li key={chapter.id}>
               <Link
@@ -262,7 +282,10 @@ async function Progress() {
                 <Ruler marks={marksOf(chapter.documents)} />
                 <span className="flex items-center gap-2">
                   <ChapterStateChip state={chapter.state} />
-                  <ArrowRight aria-hidden="true" className="hidden size-4 text-encre-douce sm:block rtl:rotate-180" />
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="hidden size-4 text-encre-douce sm:block rtl:rotate-180"
+                  />
                 </span>
               </Link>
             </li>

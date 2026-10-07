@@ -56,17 +56,35 @@ export function Ruler({
 }
 
 /** How far into one document she read, as a ruler filled to her place. */
-export function ReadingRuler({ position, className }: { position: number; className?: string }) {
+export function ReadingRuler({
+  position,
+  onInk = false,
+  className,
+}: {
+  position: number;
+  /** On the dark « Reprendre » card: chalk on ink, in both themes. */
+  onInk?: boolean;
+  className?: string;
+}) {
   const percent = Math.round(Math.min(Math.max(position, 0), 1) * 100);
   return (
     <span
       aria-hidden="true"
       className={cn(
-        "relative block h-2 overflow-hidden rounded-full bg-sunken [background-image:repeating-linear-gradient(90deg,var(--quadrillage)_0_1px,transparent_1px_10%)]",
+        "relative block h-2 overflow-hidden rounded-full",
+        onInk
+          ? "bg-white/25"
+          : "bg-sunken [background-image:repeating-linear-gradient(90deg,var(--quadrillage)_0_1px,transparent_1px_10%)]",
         className,
       )}
     >
-      <span className="absolute inset-y-0 start-0 rounded-full bg-stylo-bleu" style={{ width: `${percent}%` }} />
+      <span
+        className={cn(
+          "absolute inset-y-0 start-0 rounded-full",
+          onInk ? "bg-white" : "bg-stylo-bleu",
+        )}
+        style={{ width: `${percent}%` }}
+      />
     </span>
   );
 }

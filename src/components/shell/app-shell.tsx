@@ -114,13 +114,14 @@ async function ViewerMenu({
   return (
     <div className="flex min-w-0 items-center gap-1 sm:gap-2">
       {accountHref ? null : (
-        <span className="hidden truncate text-sm text-encre-douce sm:inline">{viewer.fullName}</span>
+        <span className="hidden truncate text-sm text-encre-douce sm:inline">
+          {viewer.fullName}
+        </span>
       )}
       {href ? <Bell href={href} profileId={viewer.id} initial={unread} /> : null}
       {accountHref ? (
         <Link
           href={accountHref}
-          aria-label={accountLabel}
           className="flex min-h-11 items-center gap-2 rounded-full ps-1 pe-1 hover:bg-sunken sm:pe-3"
         >
           <span
@@ -130,6 +131,7 @@ async function ViewerMenu({
             {initials(viewer.fullName)}
           </span>
           <span className="hidden max-w-40 truncate text-sm sm:inline">{viewer.fullName}</span>
+          <span className="sr-only sm:hidden">{accountLabel}</span>
         </Link>
       ) : null}
       <SignOutForm label={signOutLabel} />

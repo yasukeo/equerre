@@ -83,6 +83,8 @@ export type HomeworkEntry = {
   title: string;
   dueAt: string;
   progress: HomeworkProgress;
+  /** Exercises handed in and waiting for the tutor. */
+  waiting: number;
   /** Exercises the tutor has corrected, and the mean of their grades out of 20. */
   corrected: number;
   grade: number | null;
@@ -104,21 +106,17 @@ export async function listMyHomework(now: Date): Promise<HomeworkEntry[]> {
 
   return assignments.map((assignment) => {
     const exerciseIds = assignment.items.map((item) => item.exercise_id);
-    const corrected = submissions.filter(
-      (submission) =>
-        submission.assignment_id === assignment.id &&
-        submission.status === "corrige" &&
-        exerciseIds.includes(submission.exercise_id),
+    const works = exerciseIds.map((exerciseId) =>
+      workOn(assignment.id, exerciseId, submissions, reveals),
     );
-    const grades = corrected.flatMap((submission) =>
-      submission.grade === null ? [] : [Number(submission.grade)],
-    );
+    const grades = works.flatMap((work) => (work.kind === "graded" ? [Number(work.grade)] : []));
     return {
       id: assignment.id,
       title: assignment.title,
       dueAt: assignment.due_at,
       progress: progressOf(assignment.id, exerciseIds, assignment.due_at, now, submissions, reveals),
-      corrected: corrected.length,
+      waiting: works.filter((work) => work.kind === "handedIn").length,
+      corrected: grades.length,
       grade:
         grades.length === 0 ? null : grades.reduce((sum, grade) => sum + grade, 0) / grades.length,
     };

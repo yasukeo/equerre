@@ -22,7 +22,7 @@ export default async function StudentExamsPage() {
     getTranslations("student.progress"),
   ]);
   return (
-    <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-3xl gap-6">
+    <div className="mx-auto grid max-w-3xl grid-cols-[minmax(0,1fr)] gap-6">
       <Link
         href="/eleve/cours"
         className="inline-flex min-h-11 items-center gap-1.5 justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
@@ -79,22 +79,27 @@ async function Papers() {
   return (
     <div className="grid gap-8">
       <dl className="grid grid-cols-3 divide-x divide-quadrillage rounded-2xl border border-quadrillage bg-surface rtl:divide-x-reverse">
-        <div className="grid gap-0.5 p-4">
+        <div className="grid min-w-0 gap-0.5 p-3 sm:p-4">
           <dt className="text-xs text-encre-douce">{t("statDone")}</dt>
-          <dd className="text-2xl font-semibold tabular">
+          <dd className="text-xl font-semibold tabular sm:text-2xl">
             {done}
-            <span className="text-base font-normal text-encre-douce">/{total}</span>
+            <span className="text-sm font-normal text-encre-douce sm:text-base">/{total}</span>
           </dd>
         </div>
-        <div className="grid gap-0.5 p-4">
+        <div className="grid min-w-0 gap-0.5 p-3 sm:p-4">
           <dt className="text-xs text-encre-douce">{t("statAverage")}</dt>
-          <dd className="text-2xl font-semibold text-violet-texte tabular">
-            {average === null ? "—" : `${format.format(average)}/20`}
+          <dd className="text-xl font-semibold text-violet-texte tabular sm:text-2xl">
+            {average === null ? "—" : format.format(average)}
+            {average === null ? null : (
+              <span className="text-sm font-normal text-encre-douce sm:text-base">/20</span>
+            )}
           </dd>
         </div>
-        <div className="grid gap-0.5 p-4">
+        <div className="grid min-w-0 gap-0.5 p-3 sm:p-4">
           <dt className="text-xs text-encre-douce">{t("statDuration")}</dt>
-          <dd className="text-2xl font-semibold tabular">{t("hours", { hours: minutes / 60 })}</dd>
+          <dd className="text-xl font-semibold tabular sm:text-2xl">
+            {t("hours", { hours: minutes / 60 })}
+          </dd>
         </div>
       </dl>
 
@@ -136,7 +141,7 @@ async function Papers() {
                       </span>
                     </span>
                     {ongoing ? (
-                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-lavis-rouge px-2.5 py-1 text-xs font-semibold text-stylo-rouge">
+                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-encre px-2.5 py-1 text-xs font-semibold text-papier">
                         <Timer aria-hidden="true" className="size-3.5" />
                         {t("ongoing")}
                       </span>
@@ -145,7 +150,9 @@ async function Papers() {
                         <span className="inline-flex items-center gap-1 font-semibold text-encre">
                           <Check aria-hidden="true" className="size-3.5" />
                           {last.selfScore === null
-                            ? t("doneOn", { date: formatLocal(last.finishedAt ?? last.startedAt, "d MMM") })
+                            ? t("doneOn", {
+                                date: formatLocal(last.finishedAt ?? last.startedAt, "d MMM"),
+                              })
                             : `${format.format(last.selfScore)}/20`}
                         </span>
                         {mine.length > 1 ? t("attempts", { count: mine.length }) : null}

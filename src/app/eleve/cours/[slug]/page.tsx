@@ -34,7 +34,7 @@ export async function generateMetadata({
 
 export default function StudentLessonPage({ params }: PageProps<"/eleve/cours/[slug]">) {
   return (
-    <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-2xl gap-6">
+    <div className="mx-auto grid max-w-2xl grid-cols-[minmax(0,1fr)] gap-6">
       <Suspense fallback={<ReaderSkeleton />}>
         <Reader params={params} />
       </Suspense>
@@ -77,12 +77,14 @@ async function Reader({ params }: { params: Promise<{ slug: string }> }) {
         >
           <ArrowLeft aria-hidden="true" className="size-4 shrink-0 rtl:rotate-180" />
           <span className="truncate">
-            {chapter
-              ? t("backToChapter", { number: chapter.number })
-              : t("reviseTitle")}
+            {chapter ? t("backToChapter", { number: chapter.number }) : t("reviseTitle")}
           </span>
         </Link>
-        <BookmarkToggle lessonId={lesson.id} saved={mine?.bookmarked ?? false} title={lesson.title} />
+        <BookmarkToggle
+          lessonId={lesson.id}
+          saved={mine?.bookmarked ?? false}
+          title={lesson.title}
+        />
       </div>
 
       <LessonArticle

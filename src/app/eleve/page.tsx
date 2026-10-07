@@ -6,6 +6,7 @@ import {
   MessageCircle,
   PencilLine,
   Play,
+  Timer,
   Video,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -27,6 +28,7 @@ import { kindHue } from "@/lib/design/colors";
 import { getMyGrades, listMyHomework } from "@/lib/homework/queries";
 import {
   getExamCountdown,
+  listMyExamAttempts,
   getStudentCourse,
   resumePoint,
   revisionPlan,
@@ -63,22 +65,25 @@ async function StudentHome() {
   const now = new Date();
   const nowIso = now.toISOString();
 
-  const [sessionsResult, homework, grades, unread, course, countdown] = await Promise.all([
-    supabase
-      .from("sessions")
-      .select(
-        "id, starts_at, ends_at, status, mode, location, meeting_url, group:groups(name), session_type:session_types(name)",
-      )
-      .gte("ends_at", nowIso)
-      .in("status", ["en_attente", "planifiee"])
-      .order("starts_at")
-      .limit(3),
-    listMyHomework(now),
-    getMyGrades(3),
-    countUnread(),
-    getStudentCourse(viewer),
-    getExamCountdown(viewer.programmeCode, now),
-  ]);
+  const [sessionsResult, homework, grades, unread, course, countdown, attempts, tExams] =
+    await Promise.all([
+      supabase
+        .from("sessions")
+        .select(
+          "id, starts_at, ends_at, status, mode, location, meeting_url, group:groups(name), session_type:session_types(name)",
+        )
+        .gte("ends_at", nowIso)
+        .in("status", ["en_attente", "planifiee"])
+        .order("starts_at")
+        .limit(3),
+      listMyHomework(now),
+      getMyGrades(3),
+      countUnread(),
+      getStudentCourse(viewer),
+      getExamCountdown(viewer.programmeCode, now),
+      listMyExamAttempts(viewer),
+      getTranslations("exams"),
+    ]);
 
   const [next, ...later] = sessionsResult.data ?? [];
   const firstName = viewer.fullName.split(" ")[0] || viewer.fullName;
@@ -95,6 +100,7 @@ async function StudentHome() {
     (entry) => entry.progress.late || Date.parse(entry.dueAt) - now.getTime() < 2 * DAY,
   );
   const resume = resumePoint(course);
+  const running = attempts.find((attempt) => !attempt.finishedAt);
   const withDocuments = course.chapters.filter((chapter) => chapter.documents.length > 0);
   const week = countdown ? revisionPlan(course, countdown, now)[0] : undefined;
   const saved = [...course.chapters.flatMap((chapter) => chapter.documents), ...course.shared]
@@ -178,7 +184,10 @@ async function StudentHome() {
         className="absolute inset-0 bg-[linear-gradient(rgb(255_255_255/0.09)_1px,transparent_1px),linear-gradient(90deg,rgb(255_255_255/0.09)_1px,transparent_1px)] bg-[size:22px_22px]"
       />
       <div className="relative grid gap-4">
-        <h2 id="next-session" className="text-sm font-medium tracking-[0.08em] text-white uppercase">
+        <h2
+          id="next-session"
+          className="text-sm font-medium tracking-[0.08em] text-white uppercase"
+        >
           {t("nextSession")}
         </h2>
         {next ? (
@@ -194,7 +203,10 @@ async function StudentHome() {
               </div>
               {next.status === "en_attente" ? (
                 <span className="rounded-sm bg-surface">
-                  <SessionStatusChip status={next.status} label={tSession(`status.${next.status}`)} />
+                  <SessionStatusChip
+                    status={next.status}
+                    label={tSession(`status.${next.status}`)}
+                  />
                 </span>
               ) : null}
             </div>
@@ -264,7 +276,7 @@ async function StudentHome() {
   );
 
   return (
-    <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-5xl gap-8">
+    <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)] gap-8">
       <RefreshOnReturn />
       <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
         <div className="grid gap-1">
@@ -277,6 +289,27 @@ async function StudentHome() {
         </div>
         {countdown ? <Countdown countdown={countdown} href="/eleve/progression" /> : null}
       </header>
+
+      {running ? (
+        <Link
+          href={`/eleve/examens/${running.examId}`}
+          className="flex min-h-14 items-center gap-3 rounded-2xl border-2 border-encre bg-surface px-4 py-3 font-medium hover:bg-sunken"
+        >
+          <span className="flex size-9 items-center justify-center rounded-full bg-violet-bande text-white">
+            <Timer aria-hidden="true" className="size-5" />
+          </span>
+          <span className="grid flex-1">
+            <span>{tProgress("examRunning")}</span>
+            {running.exam ? (
+              <span className="text-sm font-normal text-encre-douce">
+                {tExams("nationalExam", { year: running.exam.year })} ·{" "}
+                {tExams(`session.${running.exam.session}`)}
+              </span>
+            ) : null}
+          </span>
+          <ArrowRight aria-hidden="true" className="size-4 rtl:rotate-180" />
+        </Link>
+      ) : null}
 
       {unread > 0 ? (
         <Link
@@ -313,7 +346,7 @@ async function StudentHome() {
               </h2>
               <Link
                 href={`/eleve/cours/${resume.document.slug}`}
-                className="group grid gap-3 rounded-2xl bg-encre p-5 text-papier"
+                className="group grid gap-3 rounded-2xl bg-encre-fixe p-5 text-white"
               >
                 <span className="text-xs font-semibold uppercase opacity-80">
                   {tKind(`one.${resume.document.kind}`)}
@@ -321,18 +354,15 @@ async function StudentHome() {
                     ? ` · ${tProgress("chapterNumber", { number: resume.chapter.number })} · ${resume.chapter.title}`
                     : null}
                 </span>
-                <span className="flex items-center justify-between gap-3 text-xl font-semibold leading-snug">
+                <span className="flex items-center justify-between gap-3 text-xl leading-snug font-semibold">
                   {frenchSpaces(resume.document.title)}
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-papier text-encre transition-transform group-hover:translate-x-0.5">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-encre-fixe transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5">
                     <Play aria-hidden="true" className="size-5" />
                   </span>
                 </span>
                 {resume.document.opened && resume.document.position > 0.02 ? (
                   <span className="flex items-center gap-3 text-sm">
-                    <ReadingRuler
-                      position={resume.document.position}
-                      className="flex-1 bg-white/20 [background-image:none]"
-                    />
+                    <ReadingRuler position={resume.document.position} onInk className="flex-1" />
                     <span className="tabular">
                       {tProgress("readPercent", {
                         percent: Math.round(resume.document.position * 100),
@@ -372,7 +402,7 @@ async function StudentHome() {
                       <li key={chapter.slug}>
                         <Link
                           href={`/eleve/chapitres/${chapter.slug}`}
-                          className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-quadrillage px-2.5 text-sm hover:border-trait"
+                          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-quadrillage px-3 text-sm hover:border-trait"
                         >
                           <span className="font-semibold tabular">{chapter.number}</span>
                           {frenchSpaces(chapter.title)}
@@ -458,7 +488,10 @@ async function StudentHome() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/eleve/progression#grades-heading" className={cn(quiet, "justify-self-start")}>
+                <Link
+                  href="/eleve/progression#grades-heading"
+                  className={cn(quiet, "justify-self-start")}
+                >
                   {tProgress("seeGrades")}
                 </Link>
               </div>
@@ -472,7 +505,7 @@ async function StudentHome() {
 
 function StudentHomeSkeleton() {
   return (
-    <div aria-hidden="true" className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-5xl gap-8">
+    <div aria-hidden="true" className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)] gap-8">
       <div className="h-14 w-56 rounded-xl bg-sunken" />
       <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
         <div className="grid gap-6">

@@ -1,5 +1,6 @@
 "use client";
 
+import { AlarmClock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -14,9 +15,12 @@ function clock(ms: number): string {
 
 /**
  * The exam's clock: the time left from when she started, kept by the server's start time so
- * a reload or a closed tab does not reset it. The last quarter of an hour turns to red pen.
- * Read aloud only every minute, not every second.
+ * a reload or a closed tab does not reset it. The last quarter of an hour shows an alarm, and
+ * red pen only once time is up. Read aloud at an hour, half an hour, a quarter, five minutes
+ * and the end, not every minute.
  */
+const MARKS = [5, 15, 30, 60];
+
 export function ExamTimer({ startedAt, minutes }: { startedAt: string; minutes: number }) {
   const t = useTranslations("student.exam");
   const end = Date.parse(startedAt) + minutes * 60_000;
@@ -38,13 +42,15 @@ export function ExamTimer({ startedAt, minutes }: { startedAt: string; minutes: 
   const late = !over && left < 15 * 60_000;
   const share = Math.min(Math.max(left / (minutes * 60_000), 0), 1);
   const minutesLeft = Math.max(Math.ceil(left / 60_000), 0);
+  // Said aloud only at a few marks, not every minute of three hours.
+  const mark = over ? 0 : MARKS.find((value) => minutesLeft <= value);
 
   return (
     <div className="grid gap-2">
       <p
         className={cn(
           "text-5xl font-semibold tabular [font-variation-settings:'HEXP'_45]",
-          over || late ? "text-stylo-rouge" : "text-encre",
+          over ? "text-stylo-rouge" : "text-encre",
         )}
         aria-hidden="true"
       >
@@ -52,12 +58,18 @@ export function ExamTimer({ startedAt, minutes }: { startedAt: string; minutes: 
       </p>
       <span aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-sunken">
         <span
-          className={cn("block h-full rounded-full", over || late ? "bg-stylo-rouge" : "bg-encre")}
+          className={cn("block h-full rounded-full", over ? "bg-stylo-rouge" : "bg-encre")}
           style={{ width: `${share * 100}%` }}
         />
       </span>
-      <p className="text-sm text-encre-douce" aria-live="polite">
-        {over ? t("timeUp") : t("minutesLeft", { minutes: minutesLeft })}
+      <p aria-hidden="true" className="flex items-center gap-1.5 text-sm text-encre-douce">
+        {late ? <AlarmClock className="size-4 text-encre" /> : null}
+        <span className={cn(late && "font-semibold text-encre")}>
+          {over ? t("timeUp") : t("minutesLeft", { minutes: minutesLeft })}
+        </span>
+      </p>
+      <p role="status" className="sr-only">
+        {mark === undefined ? "" : mark === 0 ? t("timeUp") : t("minutesLeft", { minutes: mark })}
       </p>
     </div>
   );

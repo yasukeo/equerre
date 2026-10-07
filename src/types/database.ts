@@ -1850,6 +1850,10 @@ export type Database = {
       }
     }
     Functions: {
+      abandon_exam_attempt: {
+        Args: { p_attempt_id: string }
+        Returns: undefined
+      }
       account_statement: {
         Args: { p_student_id: string }
         Returns: {

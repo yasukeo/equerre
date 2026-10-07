@@ -88,16 +88,29 @@ export function CourseSearch({ items, children }: { items: SearchItem[]; childre
         ) : null}
       </div>
 
-      <div id={resultsId} aria-live="polite">
+      {/* Only the count is read aloud, not the page under the box. */}
+      <p role="status" className="sr-only">
+        {words.length === 0
+          ? ""
+          : results.length === 0
+            ? t("noResults", { query: deferred.trim() })
+            : t("results", { count: results.length })}
+      </p>
+      <div id={resultsId}>
         {words.length === 0 ? (
           children
         ) : results.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-trait bg-surface px-4 py-6 text-center text-encre-douce">
+          <p
+            aria-hidden="true"
+            className="rounded-2xl border border-dashed border-trait bg-surface px-4 py-6 text-center text-encre-douce"
+          >
             {t("noResults", { query: deferred.trim() })}
           </p>
         ) : (
           <div className="grid gap-3">
-            <p className="text-sm text-encre-douce">{t("results", { count: results.length })}</p>
+            <p aria-hidden="true" className="text-sm text-encre-douce">
+              {t("results", { count: results.length })}
+            </p>
             <ul role="list" className="grid gap-2">
               {results.map((item) => {
                 const hue = kindHue(item.kind);

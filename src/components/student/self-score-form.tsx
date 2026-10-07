@@ -12,7 +12,8 @@ import { initialFormState, submittedValue } from "@/lib/form-state";
 export function SelfScoreForm({ attemptId, score }: { attemptId: string; score: number | null }) {
   const t = useTranslations("student.exam");
   const [state, action, pending] = useActionState(saveSelfScore, initialFormState);
-  const value = submittedValue(state, "score") ?? (score === null ? "" : String(score).replace(".", ","));
+  const value =
+    submittedValue(state, "score") ?? (score === null ? "" : String(score).replace(".", ","));
 
   return (
     <form action={action} className="grid gap-3">

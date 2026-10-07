@@ -25,6 +25,8 @@ type Props = {
   /** After the text: the document before and after it in the chapter. */
   pager?: ReactNode;
   content: StoredLesson;
+  /** An h2 where the page already has its h1: a correction under an exam's title (D-104). */
+  titleAs?: "h1" | "h2";
 };
 
 /**
@@ -43,6 +45,7 @@ export async function LessonArticle({
   aside,
   pager,
   content,
+  titleAs: Title = "h1",
 }: Props) {
   const t = await getTranslations("lesson");
   const callout = Object.fromEntries(
@@ -74,9 +77,9 @@ export async function LessonArticle({
           </p>
         ) : null}
 
-        <h1 className="mt-3 text-[clamp(1.75rem,1.4rem+1.6vw,2.5rem)] leading-tight font-semibold text-balance [font-variation-settings:'HEXP'_45]">
+        <Title className="mt-3 text-[clamp(1.75rem,1.4rem+1.6vw,2.5rem)] leading-tight font-semibold text-balance [font-variation-settings:'HEXP'_45]">
           {frenchSpaces(title)}
-        </h1>
+        </Title>
 
         {summary === null ? null : (
           <p className="mt-3 text-lg text-encre-douce">{frenchSpaces(summary)}</p>
