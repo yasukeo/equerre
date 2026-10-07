@@ -83,6 +83,9 @@ export type HomeworkEntry = {
   title: string;
   dueAt: string;
   progress: HomeworkProgress;
+  /** Exercises the tutor has corrected, and the mean of their grades out of 20. */
+  corrected: number;
+  grade: number | null;
 };
 
 /** Every homework that reaches her, with how much is left. */
@@ -99,19 +102,27 @@ export async function listMyHomework(now: Date): Promise<HomeworkEntry[]> {
     myWork(supabase),
   ]);
 
-  return assignments.map((assignment) => ({
-    id: assignment.id,
-    title: assignment.title,
-    dueAt: assignment.due_at,
-    progress: progressOf(
-      assignment.id,
-      assignment.items.map((item) => item.exercise_id),
-      assignment.due_at,
-      now,
-      submissions,
-      reveals,
-    ),
-  }));
+  return assignments.map((assignment) => {
+    const exerciseIds = assignment.items.map((item) => item.exercise_id);
+    const corrected = submissions.filter(
+      (submission) =>
+        submission.assignment_id === assignment.id &&
+        submission.status === "corrige" &&
+        exerciseIds.includes(submission.exercise_id),
+    );
+    const grades = corrected.flatMap((submission) =>
+      submission.grade === null ? [] : [Number(submission.grade)],
+    );
+    return {
+      id: assignment.id,
+      title: assignment.title,
+      dueAt: assignment.due_at,
+      progress: progressOf(assignment.id, exerciseIds, assignment.due_at, now, submissions, reveals),
+      corrected: corrected.length,
+      grade:
+        grades.length === 0 ? null : grades.reduce((sum, grade) => sum + grade, 0) / grades.length,
+    };
+  });
 }
 
 export type MyGrades = {

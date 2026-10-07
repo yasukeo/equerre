@@ -25,6 +25,7 @@ const AREAS: [prefix: string, areas: ClientArea[]][] = [
   ["components/chat/", ["tutor", "student"]],
   ["components/notifications/", ["tutor", "student"]],
   ["components/editor/", ["tutor"]],
+  ["components/student/", ["student"]],
   ["components/error-view.tsx", ALL],
   ["components/pdf-links.tsx", ALL],
   ["components/shell/", ALL],

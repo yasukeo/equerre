@@ -324,6 +324,51 @@ export type Database = {
           },
         ]
       }
+      exam_attempts: {
+        Row: {
+          duration_minutes: number
+          exam_id: string
+          finished_at: string | null
+          id: string
+          self_score: number | null
+          started_at: string
+          student_id: string
+        }
+        Insert: {
+          duration_minutes: number
+          exam_id: string
+          finished_at?: string | null
+          id?: string
+          self_score?: number | null
+          started_at?: string
+          student_id: string
+        }
+        Update: {
+          duration_minutes?: number
+          exam_id?: string
+          finished_at?: string | null
+          id?: string
+          self_score?: number | null
+          started_at?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_attempts_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "national_exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_attempts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_corrections: {
         Row: {
           content: Json
@@ -365,6 +410,32 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "national_exams"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_dates: {
+        Row: {
+          programme_code: string
+          starts_on: string
+          updated_at: string
+        }
+        Insert: {
+          programme_code: string
+          starts_on: string
+          updated_at?: string
+        }
+        Update: {
+          programme_code?: string
+          starts_on?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_dates_programme_code_fkey"
+            columns: ["programme_code"]
+            isOneToOne: true
+            referencedRelation: "programmes"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -673,6 +744,81 @@ export type Database = {
           },
           {
             foreignKeyName: "lesson_access_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_bookmarks: {
+        Row: {
+          created_at: string
+          lesson_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          lesson_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          lesson_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_bookmarks_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_bookmarks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_progress: {
+        Row: {
+          first_opened_at: string
+          last_opened_at: string
+          lesson_id: string
+          position: number
+          student_id: string
+          understood_at: string | null
+        }
+        Insert: {
+          first_opened_at?: string
+          last_opened_at?: string
+          lesson_id: string
+          position?: number
+          student_id: string
+          understood_at?: string | null
+        }
+        Update: {
+          first_opened_at?: string
+          last_opened_at?: string
+          lesson_id?: string
+          position?: number
+          student_id?: string
+          understood_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_progress_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -1792,6 +1938,10 @@ export type Database = {
         Returns: string
       }
       delete_assignment: { Args: { p_id: string }; Returns: undefined }
+      finish_exam_attempt: {
+        Args: { p_attempt_id: string; p_self_score?: number }
+        Returns: undefined
+      }
       invite_code_is_valid: { Args: { p_code: string }; Returns: boolean }
       mark_conversation_read: {
         Args: { p_conversation_id: string; p_up_to: string }
@@ -1906,7 +2056,15 @@ export type Database = {
         }
         Returns: string
       }
+      set_lesson_bookmark: {
+        Args: { p_lesson_id: string; p_saved: boolean }
+        Returns: boolean
+      }
       stale_message_files: { Args: { p_limit?: number }; Returns: string[] }
+      start_exam_attempt: {
+        Args: { p_exam_id: string; p_minutes: number }
+        Returns: string
+      }
       student_accounts: {
         Args: { p_student_id?: string }
         Returns: {
@@ -1954,6 +2112,14 @@ export type Database = {
       take_public_print_quota: {
         Args: { p_lesson_id: string }
         Returns: boolean
+      }
+      track_lesson: {
+        Args: {
+          p_lesson_id: string
+          p_position?: number
+          p_understood?: boolean
+        }
+        Returns: undefined
       }
       void_payment: {
         Args: { p_payment_id: string; p_reason: string }

@@ -12,6 +12,9 @@ type AppShellProps = {
   homeHref: string;
   navLabel: string;
   nav: ReactNode;
+  /** Her own page, behind her initials in the header: the student's profile (D-104). */
+  accountHref?: string;
+  accountLabel?: string;
   children: ReactNode;
 };
 
@@ -19,7 +22,14 @@ type AppShellProps = {
  * Shared frame for both workspaces: a rail on desktop, a bottom bar on phones.
  * Everything here prerenders except the viewer's name, which streams in.
  */
-export async function AppShell({ homeHref, navLabel, nav, children }: AppShellProps) {
+export async function AppShell({
+  homeHref,
+  navLabel,
+  nav,
+  accountHref,
+  accountLabel,
+  children,
+}: AppShellProps) {
   const t = await getTranslations("common");
 
   return (
@@ -53,7 +63,11 @@ export async function AppShell({ homeHref, navLabel, nav, children }: AppShellPr
             <BrandMark />
           </Link>
           <Suspense fallback={<span className="h-5 w-28 rounded-sm bg-sunken" />}>
-            <ViewerMenu signOutLabel={t("signOut")} />
+            <ViewerMenu
+              signOutLabel={t("signOut")}
+              accountHref={accountHref}
+              accountLabel={accountLabel}
+            />
           </Suspense>
         </header>
         <main id="contenu" className="flex-1 px-4 py-6 md:px-8 md:py-8">
@@ -64,7 +78,15 @@ export async function AppShell({ homeHref, navLabel, nav, children }: AppShellPr
   );
 }
 
-async function ViewerMenu({ signOutLabel }: { signOutLabel: string }) {
+async function ViewerMenu({
+  signOutLabel,
+  accountHref,
+  accountLabel,
+}: {
+  signOutLabel: string;
+  accountHref?: string;
+  accountLabel?: string;
+}) {
   const viewer = await getViewer();
   if (!viewer) {
     return null;
@@ -81,9 +103,33 @@ async function ViewerMenu({ signOutLabel }: { signOutLabel: string }) {
 
   return (
     <div className="flex min-w-0 items-center gap-1 sm:gap-2">
-      <span className="hidden truncate text-sm text-encre-douce sm:inline">{viewer.fullName}</span>
+      {accountHref ? null : (
+        <span className="hidden truncate text-sm text-encre-douce sm:inline">{viewer.fullName}</span>
+      )}
       {href ? <Bell href={href} profileId={viewer.id} initial={unread} /> : null}
+      {accountHref ? (
+        <Link
+          href={accountHref}
+          aria-label={accountLabel}
+          className="flex min-h-11 items-center gap-2 rounded-full ps-1 pe-1 hover:bg-sunken sm:pe-3"
+        >
+          <span
+            aria-hidden="true"
+            className="flex size-9 items-center justify-center rounded-full bg-encre text-sm font-semibold text-papier"
+          >
+            {initials(viewer.fullName)}
+          </span>
+          <span className="hidden max-w-40 truncate text-sm sm:inline">{viewer.fullName}</span>
+        </Link>
+      ) : null}
       <SignOutForm label={signOutLabel} />
     </div>
   );
+}
+
+/** « Salma Alaoui » → « SA »: two letters for the avatar. */
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const letters = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts;
+  return letters.map((part) => part?.charAt(0).toLocaleUpperCase("fr") ?? "").join("") || "·";
 }

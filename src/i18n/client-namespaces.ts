@@ -52,7 +52,15 @@ export const CLIENT_NAMESPACES = {
     "tutor.sessions",
     "tutor.student",
   ],
-  student: [...WORKSPACE, "student.booking", "student.homework", "student.session"],
+  student: [
+    ...WORKSPACE,
+    "documentKind",
+    "student.booking",
+    "student.exam",
+    "student.homework",
+    "student.progress",
+    "student.session",
+  ],
 } as const;
 
 export type ClientArea = keyof typeof CLIENT_NAMESPACES;
