@@ -923,6 +923,7 @@ Asked on 2026-10-06: a correction for each of the 47 papers the ministry publish
     - The page's title and description put the year, the session and the stream first.
     - The PDF of an Arabic paper's correction is not named « arabe », since the correction is in French.
   - **Accepted, as for lessons (D-096):** a correction's public PDF stays in the CDN under its old address after the paper is taken off the site.
+- **Done on 2026-10-07.** All 47 are written and online: 17 Sciences mathématiques, 14 Sciences expérimentales (2 in French in 2016 and 2 in 2021, the rest from Arabic papers) and 16 Sciences économiques (all from Arabic papers). With the ministry's 43, every one of the 90 published papers now has an answer key.
 
 ## Secret key usage
 
