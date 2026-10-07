@@ -1986,7 +1986,8 @@
     "emptyClosed": "Aucun message dans cette conversation.",
     "arrived": "Nouveau message de {name}.",
     "queued": "En attente d’envoi.",
-    "hintKeys": "Ctrl + Entrée pour envoyer."
+    "hintKeys": "Ctrl + Entrée pour envoyer.",
+    "pickConversation": "Choisissez une conversation dans la liste pour la lire ici."
   },
   "notifications": {
     "title": "Notifications",

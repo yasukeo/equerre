@@ -907,10 +907,10 @@ function Bubble({
   return (
     <div
       className={cn(
-        "grid max-w-[85%] min-w-0 grid-cols-1 gap-1.5 rounded-lg border px-3 py-2",
+        "grid max-w-[85%] min-w-0 grid-cols-1 gap-1.5 border px-3.5 py-2.5",
         mine
-          ? "justify-self-end border-trait bg-surface"
-          : "justify-self-start border-quadrillage bg-sunken",
+          ? "justify-self-end rounded-2xl rounded-ee-md border-stylo-bleu/25 bg-lavis-bleu"
+          : "justify-self-start rounded-2xl rounded-es-md border-quadrillage bg-surface",
         row.state === "failed" && "border-stylo-rouge/60",
       )}
     >

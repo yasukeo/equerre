@@ -1,11 +1,12 @@
-import "katex/dist/katex.min.css";
-import { Users } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { Thread } from "@/components/chat/thread";
+import { Initials } from "@/components/initials";
 import { StudentStatusChip } from "@/components/student-status";
 import { requireViewer } from "@/lib/auth";
 import { getConversationTitle, getThread } from "@/lib/chat/queries";
@@ -14,6 +15,8 @@ import { getConversationTitle, getThread } from "@/lib/chat/queries";
 export async function generateMetadata({
   params,
 }: PageProps<"/prof/messages/[id]">): Promise<Metadata> {
+  // The title reads the session, whose expiry is checked against the clock.
+  await connection();
   const [{ id }, t] = await Promise.all([params, getTranslations("chat")]);
   const conversation = /^[0-9a-f-]{36}$/i.test(id) ? await getConversationTitle(id) : null;
   const name = conversation?.student ?? conversation?.group;
@@ -23,14 +26,15 @@ export async function generateMetadata({
 export default async function TutorConversationPage({ params }: PageProps<"/prof/messages/[id]">) {
   const t = await getTranslations("chat");
   return (
-    <div className="grid max-w-3xl gap-4">
+    <div data-thread className="grid grid-cols-[minmax(0,1fr)] gap-4">
       <Link
         href="/prof/messages"
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+        className="-ms-1 inline-flex min-h-11 items-center gap-1.5 justify-self-start rounded-full ps-1 pe-3 text-sm text-encre-douce hover:text-encre lg:hidden"
       >
+        <ArrowLeft aria-hidden="true" className="size-4 rtl:rotate-180" />
         {t("back")}
       </Link>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <TutorConversation params={params} />
       </Suspense>
     </div>
@@ -51,9 +55,18 @@ async function TutorConversation({ params }: { params: Promise<{ id: string }> }
   const stopped = thread.student?.status === "arrete";
   return (
     <>
-      <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-quadrillage pb-3">
-        <h1 className="flex items-center gap-2 text-xl font-semibold">
-          {thread.group ? <Users aria-hidden="true" className="size-5 text-encre-douce" /> : null}
+      <header className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-quadrillage bg-surface px-4 py-3">
+        {thread.group ? (
+          <span
+            aria-hidden="true"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-violet-fond text-violet-texte"
+          >
+            <Users className="size-5" />
+          </span>
+        ) : (
+          <Initials name={thread.student?.name ?? ""} />
+        )}
+        <h1 className="min-w-0 text-xl font-semibold break-words">
           {thread.student?.name ?? thread.group?.name}
         </h1>
         {thread.student && thread.student.status !== "actif" ? (
@@ -68,7 +81,7 @@ async function TutorConversation({ params }: { params: Promise<{ id: string }> }
               ? `/prof/eleves/${thread.student.id}`
               : `/prof/eleves/groupes/${thread.group?.id}`
           }
-          className="inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+          className="ms-auto inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
         >
           {thread.student ? t("studentFile") : t("groupPage")}
         </Link>

@@ -72,13 +72,13 @@ export function ConversationPicker({
   const [chosen, setChosen] = useState("");
   return (
     <form
-      className="flex flex-wrap items-end gap-2"
+      className="grid gap-2 rounded-2xl border border-quadrillage bg-surface p-3"
       onSubmit={(event) => {
         event.preventDefault();
         if (chosen) router.push(`/prof/messages/${chosen}`);
       }}
     >
-      <label className="grid min-w-0 flex-1 gap-1.5 text-sm font-medium">
+      <label className="grid min-w-0 gap-1.5 text-sm font-medium">
         {t("writeTo")}
         <Select value={chosen} onChange={(event) => setChosen(event.target.value)}>
           <option value="">{t("pick")}</option>
@@ -96,7 +96,13 @@ export function ConversationPicker({
           })}
         </Select>
       </label>
-      <Button type="submit" variant="outline" disabled={!chosen}>
+      <Button
+        type="submit"
+        variant="outline"
+        size="sm"
+        disabled={!chosen}
+        className="justify-self-start"
+      >
         {t("open")}
       </Button>
     </form>
