@@ -1,9 +1,12 @@
 import {
+  ArrowRight,
   CalendarClock,
   CalendarPlus,
   ChevronLeft,
   ChevronRight,
   Download,
+  Hourglass,
+  NotebookPen,
   Tags,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -11,6 +14,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { SessionStatusChip } from "@/components/session-status";
+import { PageHeader } from "@/components/shell/page-header";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
 import { formatLocal, localDateKey, localDateTimeToUtc } from "@/lib/dates";
@@ -31,6 +35,7 @@ import {
 } from "@/lib/sessions/queries";
 import { cn } from "@/lib/utils";
 import { RequestActions, RequestsSection } from "./request-actions";
+import { WeekGrid } from "./week-grid";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.sessions");
@@ -41,31 +46,33 @@ export default async function TutorSessionsPage({ searchParams }: PageProps<"/pr
   const t = await getTranslations("tutor.sessions");
 
   return (
-    <div className="grid max-w-6xl gap-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/prof/seances/disponibilites"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            <CalendarClock aria-hidden="true" />
-            {t("availability")}
-          </Link>
-          <Link
-            href="/prof/seances/types"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            <Tags aria-hidden="true" />
-            {t("types")}
-          </Link>
-          <Link href="/prof/seances/nouvelle" className={buttonVariants()}>
-            <CalendarPlus aria-hidden="true" />
-            {t("plan")}
-          </Link>
-        </div>
-      </div>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+    <div className="grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-8">
+      <PageHeader
+        title={t("title")}
+        actions={
+          <>
+            <Link
+              href="/prof/seances/disponibilites"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <CalendarClock aria-hidden="true" />
+              {t("availability")}
+            </Link>
+            <Link
+              href="/prof/seances/types"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <Tags aria-hidden="true" />
+              {t("types")}
+            </Link>
+            <Link href="/prof/seances/nouvelle" className={buttonVariants()}>
+              <CalendarPlus aria-hidden="true" />
+              {t("plan")}
+            </Link>
+          </>
+        }
+      />
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <TutorSessions searchParams={searchParams} />
       </Suspense>
     </div>
@@ -153,109 +160,133 @@ async function TutorSessions({
     <li key={session.id}>
       <Link
         href={`/prof/seances/${session.id}#compte-rendu`}
-        className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 hover:bg-sunken"
+        className="flex min-h-12 items-center justify-between gap-4 bg-surface px-4 py-2 hover:bg-sunken"
       >
-        <span>
-          <span className="first-letter:uppercase">
+        <span className="grid min-w-0 gap-0.5">
+          <span className="truncate font-medium">{whoFor(session)}</span>
+          <span className="text-sm text-encre-douce first-letter:uppercase">
             {formatLocal(session.startsAt, "EEE d MMM, HH:mm")}
           </span>
-          <span className="font-medium"> · {whoFor(session)}</span>
         </span>
-        <span className="text-sm underline decoration-trait underline-offset-4">{t("close")}</span>
+        <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium">
+          {t("close")}
+          <ArrowRight aria-hidden="true" className="size-4 rtl:rotate-180" />
+        </span>
       </Link>
     </li>
   );
 
   return (
     <div className="grid gap-10">
-      {/* Always there: once the last request is answered, the focus lands on its heading. */}
-      <section aria-labelledby="requests" className="grid gap-3">
-        <RequestsSection
-          heading={
-            <h2 id="requests" tabIndex={-1} className="text-lg font-medium">
-              {t("requestsHeading", { count: requests.length })}
-            </h2>
-          }
-        >
-          {requests.length === 0 ? (
-            <p className="text-encre-douce">{t("noRequests")}</p>
-          ) : (
+      <div
+        className={cn(
+          "grid gap-8",
+          toClose.length > 0 && "lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start",
+        )}
+      >
+        {/* Always there: once the last request is answered, the focus lands on its heading. */}
+        <section aria-labelledby="requests" className="grid min-w-0 gap-3">
+          <RequestsSection
+            heading={
+              <h2
+                id="requests"
+                tabIndex={-1}
+                className="flex items-center gap-2 text-lg font-semibold"
+              >
+                <Hourglass aria-hidden="true" className="size-5" />
+                {t("requestsHeading", { count: requests.length })}
+              </h2>
+            }
+          >
+            {requests.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-trait bg-surface px-4 py-4 text-sm text-encre-douce">
+                {t("noRequests")}
+              </p>
+            ) : (
+              <ul
+                role="list"
+                className="grid gap-px overflow-hidden rounded-2xl border border-encre bg-quadrillage"
+              >
+                {requests.map((request) => (
+                  <li
+                    key={request.id}
+                    className="grid gap-3 bg-surface px-4 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start"
+                  >
+                    <div className="grid gap-0.5">
+                      <Link
+                        href={`/prof/seances/${request.id}`}
+                        className="font-medium underline decoration-quadrillage underline-offset-4 first-letter:uppercase hover:decoration-encre"
+                      >
+                        {formatLocal(request.startsAt, "EEEE d MMMM")}, {time(request)}
+                      </Link>
+                      <p className="text-sm">
+                        {whoFor(request)}
+                        <span className="text-encre-douce">
+                          {" "}
+                          ·{" "}
+                          {[request.type?.name, request.student?.levelCode]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      </p>
+                      {request.requestNote ? (
+                        <p className="text-sm text-encre-douce">« {request.requestNote} »</p>
+                      ) : null}
+                    </div>
+                    <RequestActions id={request.id} who={whoFor(request)} headingId="requests" />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </RequestsSection>
+        </section>
+
+        {toClose.length > 0 ? (
+          <section aria-labelledby="to-close" className="grid min-w-0 gap-3">
+            <div className="grid gap-0.5">
+              <h2 id="to-close" className="flex items-center gap-2 text-lg font-semibold">
+                <NotebookPen aria-hidden="true" className="size-5" />
+                {t("toCloseHeading", { count: toClose.length })}
+              </h2>
+              <p className="text-sm text-encre-douce">{t("toCloseLead")}</p>
+            </div>
             <ul
               role="list"
-              className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage"
+              className="grid gap-px overflow-hidden rounded-2xl border border-quadrillage bg-quadrillage"
             >
-              {requests.map((request) => (
-                <li
-                  key={request.id}
-                  className="grid gap-3 bg-surface px-4 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start"
-                >
-                  <div className="grid gap-0.5">
-                    <Link
-                      href={`/prof/seances/${request.id}`}
-                      className="font-medium underline decoration-quadrillage underline-offset-4 first-letter:uppercase hover:decoration-encre"
-                    >
-                      {formatLocal(request.startsAt, "EEEE d MMMM")}, {time(request)}
-                    </Link>
-                    <p className="text-sm">
-                      {whoFor(request)}
-                      <span className="text-encre-douce">
-                        {" "}
-                        ·{" "}
-                        {[request.type?.name, request.student?.levelCode]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </span>
-                    </p>
-                    {request.requestNote ? (
-                      <p className="text-sm text-encre-douce">« {request.requestNote} »</p>
-                    ) : null}
-                  </div>
-                  <RequestActions id={request.id} who={whoFor(request)} headingId="requests" />
-                </li>
-              ))}
+              {toClose.slice(0, TO_CLOSE_SHOWN).map(toCloseItem)}
             </ul>
-          )}
-        </RequestsSection>
-      </section>
-
-      {toClose.length > 0 ? (
-        <section aria-labelledby="to-close" className="grid gap-3">
-          <div className="grid gap-0.5">
-            <h2 id="to-close" className="text-lg font-medium">
-              {t("toCloseHeading", { count: toClose.length })}
-            </h2>
-            <p className="text-sm text-encre-douce">{t("toCloseLead")}</p>
-          </div>
-          <ul role="list" className="divide-y divide-quadrillage border-y border-quadrillage">
-            {toClose.slice(0, TO_CLOSE_SHOWN).map(toCloseItem)}
-          </ul>
-          {toClose.length > TO_CLOSE_SHOWN ? (
-            <details>
-              <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre">
-                {t("toCloseMore", { count: toClose.length - TO_CLOSE_SHOWN })}
-              </summary>
-              <ul role="list" className="divide-y divide-quadrillage border-b border-quadrillage">
-                {toClose.slice(TO_CLOSE_SHOWN).map(toCloseItem)}
-              </ul>
-            </details>
-          ) : null}
-        </section>
-      ) : null}
+            {toClose.length > TO_CLOSE_SHOWN ? (
+              <details className="grid gap-2">
+                <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre">
+                  {t("toCloseMore", { count: toClose.length - TO_CLOSE_SHOWN })}
+                </summary>
+                <ul
+                  role="list"
+                  className="grid gap-px overflow-hidden rounded-2xl border border-quadrillage bg-quadrillage"
+                >
+                  {toClose.slice(TO_CLOSE_SHOWN).map(toCloseItem)}
+                </ul>
+              </details>
+            ) : null}
+          </section>
+        ) : null}
+      </div>
 
       <section aria-labelledby="calendar" className="grid gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="calendar" className="text-lg font-medium first-letter:uppercase">
+          <h2 id="calendar" className="text-lg font-semibold first-letter:uppercase">
             {heading}
           </h2>
           <nav aria-label={t("viewsLabel")} className="flex flex-wrap items-center gap-2">
-            <div className="flex overflow-hidden rounded-md border border-trait">
+            <div className="flex overflow-hidden rounded-full border border-trait bg-surface">
               {VIEWS.map((option) => (
                 <Link
                   key={option}
                   href={href(option, date)}
                   aria-current={option === view ? "page" : undefined}
                   className={cn(
-                    "inline-flex min-h-11 items-center px-3 text-sm",
+                    "inline-flex min-h-11 items-center px-4 text-sm",
                     option === view ? "bg-encre font-medium text-papier" : "hover:bg-sunken",
                   )}
                 >
@@ -300,83 +331,87 @@ async function TutorSessions({
             countLabel={(count) => t("sessionCount", { count })}
           />
         ) : (
-          <ol
-            role="list"
-            className={cn(
-              "grid gap-4",
-              view === "semaine" &&
-                "lg:grid-cols-7 lg:gap-px lg:overflow-hidden lg:rounded-md lg:border lg:border-quadrillage lg:bg-quadrillage",
-            )}
-          >
-            {days
-              .filter((key) => view === "semaine" || (byDay.get(key)?.length ?? 0) > 0)
-              .map((key) => {
-                const ofDay = byDay.get(key) ?? [];
-                return (
-                  <li
-                    key={key}
-                    className={cn(
-                      "grid content-start gap-2",
-                      view === "semaine" && "lg:min-h-48 lg:bg-surface lg:p-2",
-                    )}
-                  >
-                    <h3
-                      className={cn(
-                        "flex items-baseline gap-2 border-b-[3px] pb-1 text-sm font-medium first-letter:uppercase",
-                        key === today ? "border-surligneur" : "border-transparent",
-                      )}
-                    >
-                      {day(key, view === "semaine" ? "EEEE d" : "EEEE d MMMM")}
-                      {key === today ? (
-                        <span className="text-xs font-normal text-encre-douce">
-                          {t("todayMark")}
-                        </span>
-                      ) : null}
-                    </h3>
-                    {ofDay.length === 0 ? (
-                      <p className="text-sm text-encre-douce lg:sr-only">{t("free")}</p>
-                    ) : (
-                      <ul role="list" className="grid gap-1.5">
-                        {ofDay.map((session) => (
-                          <li key={session.id}>
-                            <Link
-                              href={`/prof/seances/${session.id}`}
-                              className={cn(
-                                "grid gap-0.5 rounded-md border border-s-[3px] border-quadrillage bg-surface px-2.5 py-2 text-sm hover:border-trait",
-                                session.status === "en_attente"
-                                  ? "border-dashed border-s-trait"
-                                  : session.status === "annulee"
-                                    ? "border-s-quadrillage text-encre-douce"
-                                    : "border-s-encre",
-                              )}
-                            >
-                              <span
+          <>
+            {view === "semaine" ? (
+              <div className="hidden lg:block">
+                <WeekGrid
+                  days={days}
+                  today={today}
+                  now={now}
+                  byDay={byDay}
+                  todayMark={t("todayMark")}
+                  statusLabel={statusLabel}
+                  dayHref={(key) => href("liste", key)}
+                />
+              </div>
+            ) : null}
+            <ol role="list" className={cn("grid gap-4", view === "semaine" && "lg:hidden")}>
+              {days
+                .filter((key) => view === "semaine" || (byDay.get(key)?.length ?? 0) > 0)
+                .map((key) => {
+                  const ofDay = byDay.get(key) ?? [];
+                  return (
+                    <li key={key} className="grid content-start gap-2">
+                      <h3
+                        className={cn(
+                          "flex items-baseline gap-2 border-b-[3px] pb-1 text-sm font-medium first-letter:uppercase",
+                          key === today ? "border-surligneur" : "border-transparent",
+                        )}
+                      >
+                        {day(key, view === "semaine" ? "EEEE d" : "EEEE d MMMM")}
+                        {key === today ? (
+                          <span className="text-xs font-normal text-encre-douce">
+                            {t("todayMark")}
+                          </span>
+                        ) : null}
+                      </h3>
+                      {ofDay.length === 0 ? (
+                        <p className="text-sm text-encre-douce">{t("free")}</p>
+                      ) : (
+                        <ul role="list" className="grid gap-1.5">
+                          {ofDay.map((session) => (
+                            <li key={session.id}>
+                              <Link
+                                href={`/prof/seances/${session.id}`}
                                 className={cn(
-                                  "font-medium tabular",
-                                  session.status === "annulee" && "line-through",
+                                  "grid gap-0.5 rounded-xl border border-s-[3px] border-quadrillage bg-surface px-3 py-2 text-sm hover:border-trait",
+                                  session.status === "en_attente"
+                                    ? "border-dashed border-s-trait"
+                                    : session.status === "annulee"
+                                      ? "border-s-quadrillage text-encre-douce"
+                                      : "border-s-encre",
                                 )}
                               >
-                                {time(session)}
-                              </span>
-                              <span className="font-medium">{whoFor(session)}</span>
-                              <span className="text-xs text-encre-douce">{session.type?.name}</span>
-                              {session.status !== "planifiee" ? (
-                                <span className="justify-self-start">
-                                  <SessionStatusChip
-                                    status={session.status}
-                                    label={statusLabel(session)}
-                                  />
+                                <span
+                                  className={cn(
+                                    "font-medium tabular",
+                                    session.status === "annulee" && "line-through",
+                                  )}
+                                >
+                                  {time(session)}
                                 </span>
-                              ) : null}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                );
-              })}
-          </ol>
+                                <span className="font-medium">{whoFor(session)}</span>
+                                <span className="text-xs text-encre-douce">
+                                  {session.type?.name}
+                                </span>
+                                {session.status !== "planifiee" ? (
+                                  <span className="justify-self-start">
+                                    <SessionStatusChip
+                                      status={session.status}
+                                      label={statusLabel(session)}
+                                    />
+                                  </span>
+                                ) : null}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
+            </ol>
+          </>
         )}
         {view === "liste" && sessions.length === 0 ? (
           <p className="text-encre-douce">{t("emptyList")}</p>
@@ -418,7 +453,7 @@ function MonthGrid({
   countLabel: (count: number) => string;
 }) {
   return (
-    <div className="overflow-hidden rounded-md border border-quadrillage">
+    <div className="overflow-hidden rounded-2xl border border-quadrillage">
       <div aria-hidden="true" className="grid grid-cols-7 border-b border-quadrillage bg-sunken">
         {weekdays.map((label) => (
           <span

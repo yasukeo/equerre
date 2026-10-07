@@ -1010,7 +1010,8 @@
         "inPast": "Cette heure est déjà passée : choisissez un moment à venir."
       },
       "answeredConfirmed": "Demande confirmée. L’élève reçoit un email.",
-      "answeredDeclined": "Demande refusée. L’élève reçoit un email."
+      "answeredDeclined": "Demande refusée. L’élève reçoit un email.",
+      "when": "{count, plural, =0 {aujourd’hui} =1 {demain} other {dans # jours}}"
     },
     "planSession": {
       "title": "Planifier une séance",
@@ -1548,7 +1549,8 @@
         "reasonTooLong": "Le motif fait plus de 500 caractères : raccourcissez-le.",
         "unknown": "L’annulation n’a pas abouti. Vérifiez votre connexion et réessayez."
       },
-      "paused": "Votre suivi est en pause : pour cette séance, voyez directement avec votre professeure."
+      "paused": "Votre suivi est en pause : pour cette séance, voyez directement avec votre professeure.",
+      "when": "{count, plural, =0 {aujourd’hui} =1 {demain} other {dans # jours}}"
     },
     "booking": {
       "title": "Réserver une séance",
@@ -1587,7 +1589,9 @@
         "too_many_bookings": "Vous avez déjà 6 séances à venir réservées par vous. Attendez que l’une soit passée, ou parlez-en à votre professeure.",
         "too_many_today": "Vous avez fait beaucoup de demandes aujourd’hui. Réessayez demain, ou parlez-en à votre professeure."
       },
-      "closedDay": "Fermé"
+      "closedDay": "Fermé",
+      "range": "Du {from} au {to}",
+      "calendarLegend": "Le chiffre sous chaque jour compte ses horaires libres. Les jours barrés sont complets ou fermés."
     },
     "account": {
       "heading": "Mes paiements",

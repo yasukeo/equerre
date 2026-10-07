@@ -1,13 +1,13 @@
-import { CalendarPlus, Check, Download, MapPin, Video } from "lucide-react";
+import { CalendarPlus, Check, Download, MessageSquareText, Video } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { SessionStatusChip } from "@/components/session-status";
+import { SessionTicket } from "@/components/session-ticket";
+import { PageHeader } from "@/components/shell/page-header";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
-import { formatLocal } from "@/lib/dates";
+import { calendarDaysBetween, formatLocal } from "@/lib/dates";
 import { googleCalendarUrl } from "@/lib/ics";
 import { eventFor } from "@/lib/sessions/calendar-event";
 import { getBookingRules, getSession } from "@/lib/sessions/queries";
@@ -26,14 +26,9 @@ export default async function StudentSessionPage({
   const t = await getTranslations("student.session");
 
   return (
-    <div className="mx-auto grid max-w-2xl gap-6">
-      <Link
-        href="/eleve/seances"
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-      >
-        {t("back")}
-      </Link>
-      <Suspense fallback={<div aria-hidden="true" className="h-80 rounded-md bg-sunken" />}>
+    <div className="mx-auto grid max-w-2xl grid-cols-[minmax(0,1fr)] gap-6">
+      <PageHeader back={{ href: "/eleve/seances", label: t("back") }} title={t("title")} />
+      <Suspense fallback={<div aria-hidden="true" className="h-80 rounded-2xl bg-sunken" />}>
         <StudentSession params={params} searchParams={searchParams} />
       </Suspense>
     </div>
@@ -75,13 +70,15 @@ async function StudentSession({
     session.status === "en_attente" && !ahead
       ? t("unanswered")
       : tSession(`status.${session.status}`);
+  const days = calendarDaysBetween(new Date(now), session.startsAt);
+  const when = live && starts > now ? t("when", { count: days }) : null;
 
   return (
     <article className="grid gap-6">
       {query.demandee === "1" && session.status === "en_attente" ? (
         <p
           role="status"
-          className="flex items-start gap-2 rounded-md border border-quadrillage bg-sunken px-3 py-2.5"
+          className="flex items-start gap-2 rounded-2xl bg-vert-fond px-4 py-3 text-vert-texte"
         >
           <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {t("requestSent")}
@@ -90,7 +87,7 @@ async function StudentSession({
       {query.reservee === "1" && session.status === "planifiee" ? (
         <p
           role="status"
-          className="flex items-start gap-2 rounded-md border border-quadrillage bg-sunken px-3 py-2.5"
+          className="flex items-start gap-2 rounded-2xl bg-vert-fond px-4 py-3 text-vert-texte"
         >
           <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {t("booked")}
@@ -100,49 +97,48 @@ async function StudentSession({
       {query.annulee === "1" || query.retiree === "1" ? (
         <p
           role="status"
-          className="flex items-start gap-2 rounded-md border border-quadrillage bg-sunken px-3 py-2.5"
+          className="flex items-start gap-2 rounded-2xl bg-vert-fond px-4 py-3 text-vert-texte"
         >
           <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {query.retiree === "1" ? t("withdrawn") : t("cancelled")}
         </p>
       ) : null}
 
-      <header className="grid gap-2">
-        <h1 className="text-xl font-semibold">{session.type?.name ?? t("title")}</h1>
-        <p className="text-2xl font-semibold tabular">
-          {formatLocal(session.startsAt, "HH:mm")} – {formatLocal(session.endsAt, "HH:mm")}
-        </p>
-        <p className="text-lg first-letter:uppercase">
-          {formatLocal(session.startsAt, "EEEE d MMMM yyyy")}
-        </p>
-        <div className="justify-self-start">
-          <SessionStatusChip status={session.status} label={statusLabel} />
-        </div>
-      </header>
+      <SessionTicket
+        startsAt={session.startsAt}
+        endsAt={session.endsAt}
+        status={session.status}
+        statusLabel={statusLabel}
+        title={session.type?.name ?? t("title")}
+        mode={session.mode}
+        place={place}
+        group={session.group?.name}
+        when={when}
+        past={!ahead}
+      >
+        {session.status === "planifiee" &&
+        ahead &&
+        session.mode === "en_ligne" &&
+        session.meetingUrl ? (
+          <a href={session.meetingUrl} className={cn(buttonVariants(), "mt-1 justify-self-start")}>
+            <Video aria-hidden="true" />
+            {tSession("join")}
+          </a>
+        ) : null}
+      </SessionTicket>
 
-      <dl className="grid gap-3 border-y border-quadrillage py-4 sm:grid-cols-[9rem_1fr]">
-        <dt className="text-sm text-encre-douce">{t("where")}</dt>
-        <dd className="flex items-start gap-2">
-          {session.mode === "en_ligne" ? (
-            <Video aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-          ) : (
-            <MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-          )}
-          {place}
-        </dd>
-        {session.group ? (
-          <>
-            <dt className="text-sm text-encre-douce">{t("group")}</dt>
-            <dd>{session.group.name}</dd>
-          </>
-        ) : null}
-        {session.requestNote ? (
-          <>
-            <dt className="text-sm text-encre-douce">{t("yourNote")}</dt>
-            <dd className="whitespace-pre-line">{session.requestNote}</dd>
-          </>
-        ) : null}
-      </dl>
+      {session.requestNote ? (
+        <section
+          aria-labelledby="your-note"
+          className="grid gap-1 rounded-2xl border border-quadrillage bg-surface p-4"
+        >
+          <h2 id="your-note" className="inline-flex items-center gap-2 text-sm font-semibold">
+            <MessageSquareText aria-hidden="true" className="size-4" />
+            {t("yourNote")}
+          </h2>
+          <p className="break-words whitespace-pre-line">{session.requestNote}</p>
+        </section>
+      ) : null}
 
       {session.status === "en_attente" && ahead ? <p>{t("waiting")}</p> : null}
       {session.status === "refusee" ? (
@@ -162,20 +158,13 @@ async function StudentSession({
         </p>
       ) : null}
 
-      {session.status === "planifiee" &&
-      ahead &&
-      session.mode === "en_ligne" &&
-      session.meetingUrl ? (
-        <a href={session.meetingUrl} className={cn(buttonVariants(), "justify-self-start")}>
-          <Video aria-hidden="true" />
-          {tSession("join")}
-        </a>
-      ) : null}
-
       {session.status === "terminee" &&
       (session.chapterTitle || session.homework || session.recap) ? (
-        <section aria-labelledby="recap" className="grid gap-3">
-          <h2 id="recap" className="text-lg font-medium">
+        <section
+          aria-labelledby="recap"
+          className="grid gap-3 rounded-2xl border border-s-4 border-quadrillage border-s-stylo-bleu bg-surface p-4 sm:p-5"
+        >
+          <h2 id="recap" className="text-lg font-semibold">
             {t("recapHeading")}
           </h2>
           {session.chapterTitle ? <p>{t("chapter", { title: session.chapterTitle })}</p> : null}
@@ -190,7 +179,7 @@ async function StudentSession({
 
       {session.status === "planifiee" && ahead ? (
         <section aria-labelledby="in-my-diary" className="grid gap-3">
-          <h2 id="in-my-diary" className="text-lg font-medium">
+          <h2 id="in-my-diary" className="text-lg font-semibold">
             {t("calendarHeading")}
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -214,8 +203,11 @@ async function StudentSession({
 
       {/* Started, or her follow-up is not active: nothing is hers to cancel here any more. */}
       {live && mine && starts > now && viewer.status === "actif" ? (
-        <section aria-labelledby="cancel-heading" className="grid gap-3">
-          <h2 id="cancel-heading" className="text-lg font-medium">
+        <section
+          aria-labelledby="cancel-heading"
+          className="grid gap-3 border-t border-quadrillage pt-6"
+        >
+          <h2 id="cancel-heading" className="text-lg font-semibold">
             {session.status === "en_attente" ? t("withdrawHeading") : t("cancelHeading")}
           </h2>
           {session.status === "planifiee" ? (

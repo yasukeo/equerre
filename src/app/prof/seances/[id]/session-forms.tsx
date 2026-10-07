@@ -246,30 +246,38 @@ export function CloseForm({
       {isGroup ? null : (
         <fieldset className="grid gap-1">
           <legend className="mb-1 text-sm font-medium">{t("outcome")}</legend>
-          {(["terminee", "absent"] as const).map((status) => (
-            <label key={status} className="flex min-h-11 items-center gap-3">
-              <input
-                type="radio"
-                name="close-status"
-                value={status}
-                checked={values.status === status}
-                onChange={() => setValues((current) => ({ ...current, status }))}
-                className="size-5 accent-encre"
-              />
-              {t(`outcomes.${status}`)}
-            </label>
-          ))}
+          <div className="flex flex-wrap gap-2">
+            {(["terminee", "absent"] as const).map((status) => (
+              <label
+                key={status}
+                className="relative inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-trait bg-surface px-3 text-sm font-medium has-checked:border-encre has-checked:bg-encre has-checked:text-papier has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-encre"
+              >
+                <input
+                  type="radio"
+                  name="close-status"
+                  value={status}
+                  checked={values.status === status}
+                  onChange={() => setValues((current) => ({ ...current, status }))}
+                  className="sr-only"
+                />
+                {t(`outcomes.${status}`)}
+              </label>
+            ))}
+          </div>
         </fieldset>
       )}
 
       {isGroup && members.length > 0 ? (
         <fieldset className="grid gap-2">
           <legend className="mb-1 text-sm font-medium">{t("attendance")}</legend>
-          <ul role="list" className="divide-y divide-quadrillage border-y border-quadrillage">
+          <ul
+            role="list"
+            className="grid gap-px overflow-hidden rounded-xl border border-quadrillage bg-quadrillage"
+          >
             {members.map((member) => (
               <li
                 key={member.id}
-                className="grid gap-1 py-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                className="grid gap-2 bg-surface px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
               >
                 <span className="font-medium" id={`attendance-${member.id}`}>
                   {member.name}
@@ -277,10 +285,13 @@ export function CloseForm({
                 <div
                   role="radiogroup"
                   aria-labelledby={`attendance-${member.id}`}
-                  className="flex flex-wrap gap-x-4"
+                  className="flex flex-wrap gap-1.5"
                 >
                   {(["present", "absent", "excuse"] as const).map((status) => (
-                    <label key={status} className="flex min-h-11 items-center gap-2 text-sm">
+                    <label
+                      key={status}
+                      className="relative inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-trait bg-surface px-3 text-sm font-medium has-checked:border-encre has-checked:bg-encre has-checked:text-papier has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-encre"
+                    >
                       <input
                         type="radio"
                         name={`attendance-${member.id}`}
@@ -289,7 +300,7 @@ export function CloseForm({
                         onChange={() =>
                           setAttendance((current) => ({ ...current, [member.id]: status }))
                         }
-                        className="size-5 accent-encre"
+                        className="sr-only"
                       />
                       {t(`presence.${status}`)}
                     </label>

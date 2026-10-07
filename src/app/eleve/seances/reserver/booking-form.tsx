@@ -38,12 +38,12 @@ export function BookingForm({
       }}
     >
       <fieldset className="grid gap-3">
-        <legend className="mb-2 text-lg font-medium">{t("slotHeading")}</legend>
+        <legend className="sr-only">{t("slotHeading")}</legend>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {slots.map((slot) => (
             <label
               key={slot.startsAt}
-              className="relative flex min-h-12 cursor-pointer items-center justify-center rounded-md border border-trait bg-surface text-base font-medium tabular has-checked:border-encre has-checked:bg-encre has-checked:text-papier has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-encre"
+              className="relative flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-trait bg-surface text-base font-medium tabular has-checked:border-encre has-checked:bg-encre has-checked:text-papier has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-encre"
             >
               <input
                 type="radio"
@@ -60,7 +60,7 @@ export function BookingForm({
       </fieldset>
 
       {chosen ? (
-        <p className="rounded-md border border-quadrillage bg-sunken px-3 py-2.5 first-letter:uppercase">
+        <p className="rounded-2xl border border-encre bg-surface px-4 py-3 font-medium first-letter:uppercase">
           {t("summary", {
             date: formatLocal(chosen.startsAt, "EEEE d MMMM"),
             start: formatLocal(chosen.startsAt, "HH:mm"),
