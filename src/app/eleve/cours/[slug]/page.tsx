@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { LessonArticle } from "@/components/lesson-article";
@@ -24,6 +25,9 @@ import "@/app/cours/lecon.css";
 export async function generateMetadata({
   params,
 }: PageProps<"/eleve/cours/[slug]">): Promise<Metadata> {
+  // Her session is read before anything else: the auth client reads the clock, which Cache
+  // Components allows only once the render belongs to a request.
+  await connection();
   const lesson = await getReadableLesson((await params).slug);
   return lesson ? { title: lesson.title, description: lesson.summary ?? undefined } : {};
 }
