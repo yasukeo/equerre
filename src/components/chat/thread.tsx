@@ -3,6 +3,7 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { FileText, Paperclip, RotateCw, Send, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import {
   useEffect,
   useEffectEvent,
@@ -190,6 +191,7 @@ export function Thread({
   const again = useRef(false);
   const retryTimer = useRef<number | undefined>(undefined);
   const readTimer = useRef<number | undefined>(undefined);
+  const router = useRouter();
   const markedUpTo = useRef<string | undefined>(undefined);
   // The newest message the server has given this page, own ones included: what a
   // reconnection starts from. Confirmations of her own sends do not move it.
@@ -364,10 +366,16 @@ export function Thread({
       );
       if (!upTo || (markedUpTo.current && upTo <= markedUpTo.current)) return;
       markedUpTo.current = upTo;
-      void createClient().rpc("mark_conversation_read", {
-        p_conversation_id: conversationId,
-        p_up_to: upTo,
-      });
+      // Then the page around the thread is drawn again: the unread count in the navigation
+      // goes down as soon as she has read (D-104).
+      void createClient()
+        .rpc("mark_conversation_read", {
+          p_conversation_id: conversationId,
+          p_up_to: upTo,
+        })
+        .then(({ error }) => {
+          if (!error) router.refresh();
+        });
     }, 500);
   };
 

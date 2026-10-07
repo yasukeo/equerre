@@ -7,6 +7,7 @@ import {
   Hourglass,
   MessageCircle,
   NotebookPen,
+  TriangleAlert,
   UserPlus,
   Wallet,
 } from "lucide-react";
@@ -48,7 +49,7 @@ type DaySession = {
 };
 
 const PX_PER_HOUR = 72;
-const MIN_ITEM_HEIGHT = 48;
+const MIN_ITEM_HEIGHT = 64;
 
 function whoFor(session: DaySession): string {
   return session.student?.full_name ?? session.group?.name ?? "";
@@ -56,10 +57,9 @@ function whoFor(session: DaySession): string {
 
 export async function TodayView() {
   const viewer = await requireViewer("tutor");
-  const [t, tSession, tKind, tExams] = await Promise.all([
+  const [t, tSession, tExams] = await Promise.all([
     getTranslations("tutor.today"),
     getTranslations("session"),
-    getTranslations("documentKind"),
     getTranslations("exams"),
   ]);
   const supabase = await createClient();
@@ -150,7 +150,7 @@ export async function TodayView() {
       icon: MessageCircle,
       count: unread,
       label: t("tileMessages", { count: unread }),
-      tone: "bg-orange-fond text-orange-texte",
+      tone: "border-transparent bg-orange-fond text-orange-texte",
     },
     {
       key: "corrections",
@@ -158,31 +158,31 @@ export async function TodayView() {
       icon: ClipboardCheck,
       count: toCorrect,
       label: t("tileCorrections", { count: toCorrect }),
-      tone: "bg-lavis-rouge text-stylo-rouge",
+      tone: "border-transparent bg-rouge-fond text-rouge-texte",
     },
     {
       key: "requests",
-      href: "/prof/seances",
+      href: "/prof/seances#requests",
       icon: Hourglass,
       count: pendingResult.count ?? 0,
       label: t("tileRequests", { count: pendingResult.count ?? 0 }),
-      tone: "bg-bleu-fond text-bleu-texte",
+      tone: "border-encre bg-surface text-encre",
     },
     {
       key: "close",
-      href: "/prof/seances",
+      href: "/prof/seances#to-close",
       icon: NotebookPen,
       count: toClose.count ?? 0,
       label: t("toCloseTile", { count: toClose.count ?? 0 }),
-      tone: "bg-violet-fond text-violet-texte",
+      tone: "border-encre bg-surface text-encre",
     },
     {
       key: "payments",
       href: "/prof/paiements",
-      icon: Wallet,
+      icon: TriangleAlert,
       count: overdue,
       label: t("tileOverdue", { count: overdue }),
-      tone: "bg-jaune-fond text-jaune-texte",
+      tone: "border-stylo-rouge bg-lavis-rouge text-stylo-rouge",
     },
   ];
 
@@ -196,15 +196,9 @@ export async function TodayView() {
   const activityText = (item: ActivityItem) => {
     switch (item.kind) {
       case "understood":
-        return t("didUnderstand", {
-          kind: tKind(`one.${item.lesson.kind}`).toLowerCase(),
-          title: item.lesson.title,
-        });
+        return t("didUnderstand", { kind: item.lesson.kind, title: item.lesson.title });
       case "opened":
-        return t("didOpen", {
-          kind: tKind(`one.${item.lesson.kind}`).toLowerCase(),
-          title: item.lesson.title,
-        });
+        return t("didOpen", { kind: item.lesson.kind, title: item.lesson.title });
       case "handedIn":
         return t("didHandIn", { title: item.exercise });
       case "exam":
@@ -217,7 +211,7 @@ export async function TodayView() {
   };
 
   return (
-    <div className="grid gap-8">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-8">
       <RefreshOnReturn />
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="grid gap-1">
@@ -228,7 +222,10 @@ export async function TodayView() {
             {t("greeting", { name: firstName })}
           </h1>
         </div>
-        <nav aria-label={t("quickActions")} className="flex flex-wrap gap-2">
+        <nav
+          aria-label={t("quickActions")}
+          className="-mx-4 flex w-[calc(100%+2rem)] min-w-0 gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
+        >
           {quick.map((action, index) => (
             <Link
               key={action.href}
@@ -249,15 +246,21 @@ export async function TodayView() {
         <h2 id="todo-heading" className="sr-only">
           {t("todoHeading")}
         </h2>
+        {tiles.every((tile) => tile.count === 0) ? (
+          <p className="flex min-h-11 items-center gap-2 rounded-2xl border border-quadrillage bg-surface px-4 text-sm sm:hidden">
+            <Check aria-hidden="true" className="size-4" />
+            {t("allClear")}
+          </p>
+        ) : null}
         <ul role="list" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {tiles.map((tile) => (
-            <li key={tile.key} className="grid">
+            <li key={tile.key} className={cn("grid", tile.count === 0 && "hidden sm:grid")}>
               <Link
                 href={tile.href}
                 className={cn(
                   "grid content-between gap-3 rounded-2xl border p-4 transition-colors",
                   tile.count > 0
-                    ? cn("border-transparent hover:brightness-95", tile.tone)
+                    ? cn("hover:brightness-95", tile.tone)
                     : "border-quadrillage bg-surface text-encre-douce hover:border-trait",
                 )}
               >
@@ -305,35 +308,35 @@ export async function TodayView() {
               const isToday = entry.key === todayKey;
               const past = entry.key < todayKey;
               return (
-                <li
-                  key={entry.key}
-                  aria-current={isToday ? "date" : undefined}
-                  className={cn(
-                    "grid justify-items-center gap-1 rounded-xl border px-1 py-2 text-center",
-                    isToday
-                      ? "border-encre-fixe bg-surligneur text-encre-fixe"
-                      : "border-quadrillage bg-surface",
-                    past && "text-encre-douce",
-                  )}
-                >
-                  <span className="text-xs capitalize">
-                    {weekdayFormat.format(new Date(`${entry.key}T12:00:00Z`)).replace(".", "")}
-                  </span>
-                  <span className="text-lg font-semibold tabular">
-                    {Number(entry.key.slice(8, 10))}
-                  </span>
-                  <span className="flex min-h-2 items-center gap-0.5" aria-hidden="true">
-                    {Array.from({ length: Math.min(entry.count, 4) }, (_, dot) => (
-                      <span
-                        key={dot}
-                        className={cn(
-                          "size-1.5 rounded-full",
-                          isToday ? "bg-encre-fixe" : "bg-bleu",
-                        )}
-                      />
-                    ))}
-                  </span>
-                  <span className="sr-only">{t("daySessions", { count: entry.count })}</span>
+                <li key={entry.key} className="grid">
+                  <Link
+                    href={`/prof/seances?vue=liste&date=${entry.key}`}
+                    aria-current={isToday ? "date" : undefined}
+                    className={cn(
+                      "grid min-h-16 content-center justify-items-center gap-0.5 rounded-xl border px-1 py-2 text-center hover:border-trait",
+                      isToday
+                        ? "border-encre-fixe bg-surligneur text-encre-fixe"
+                        : "border-quadrillage bg-surface",
+                      past && !isToday && "text-encre-douce",
+                    )}
+                  >
+                    <span className="text-xs capitalize">
+                      {weekdayFormat.format(new Date(`${entry.key}T12:00:00Z`)).replace(".", "")}
+                    </span>
+                    <span className="text-lg leading-tight font-semibold tabular">
+                      {Number(entry.key.slice(8, 10))}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "min-h-4 text-xs font-semibold tabular",
+                        isToday ? "text-encre-fixe" : "text-bleu-texte",
+                      )}
+                    >
+                      {entry.count > 0 ? t("dayCount", { count: entry.count }) : ""}
+                    </span>
+                    <span className="sr-only">{t("daySessions", { count: entry.count })}</span>
+                  </Link>
                 </li>
               );
             })}
@@ -410,7 +413,16 @@ export async function TodayView() {
                         >
                           {item.student.name}
                         </Link>{" "}
-                        {activityText(item)}
+                        {item.kind === "handedIn" ? (
+                          <Link
+                            href={`/prof/devoirs/${item.assignmentId}`}
+                            className="underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+                          >
+                            {activityText(item)}
+                          </Link>
+                        ) : (
+                          activityText(item)
+                        )}
                       </span>
                       <span className="text-xs text-encre-douce">{ago(item.at, now, t)}</span>
                     </span>
@@ -460,7 +472,7 @@ function initialsOf(name: string): string {
   return letters.map((part) => part?.charAt(0).toLocaleUpperCase("fr") ?? "").join("");
 }
 
-/** « il y a 5 min », « il y a 3 h », « il y a 4 j ». */
+/** « il y a 5 min », « il y a 3 h » the same day, then calendar days in Casablanca. */
 function ago(
   at: string,
   now: Date,
@@ -468,9 +480,14 @@ function ago(
 ) {
   const minutes = Math.max(Math.round((now.getTime() - Date.parse(at)) / 60_000), 0);
   if (minutes < 60) return t("agoMinutes", { count: Math.max(minutes, 1) });
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return t("agoHours", { count: hours });
-  return t("agoDays", { count: Math.round(hours / 24) });
+  if (localDateKey(at) === localDateKey(now)) {
+    return t("agoHours", { count: Math.floor(minutes / 60) });
+  }
+  const days = Math.round(
+    (Date.parse(`${localDateKey(now)}T00:00:00Z`) - Date.parse(`${localDateKey(at)}T00:00:00Z`)) /
+      86_400_000,
+  );
+  return t("agoDays", { count: Math.max(days, 1) });
 }
 
 type DayRulerProps = {

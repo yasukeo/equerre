@@ -9,6 +9,8 @@ import { EXAM_SESSIONS, isExamFileName, newExamFileName } from "@/lib/exams/file
 import { EXAMS_TAG } from "@/lib/exams/queries";
 import { fieldErrorsFor, textField, type FormState } from "@/lib/form-state";
 import { createClient } from "@/lib/supabase/server";
+import { localDateKey } from "@/lib/dates";
+import { DATED_PROGRAMMES, MAX_YEARS_AHEAD } from "@/lib/exams/exam-dates";
 
 // The tutor's national exams (D-097). Her browser uploads the PDFs straight to the bucket under
 // her session; these actions then record the paper. The sizes come from storage, not the form,
@@ -373,9 +375,6 @@ export async function setCorrectionPublished(
   return { status: "success", message: published ? t("published") : t("unpublished") };
 }
 
-/** The programmes whose students count down to an exam (D-104), and the order shown. */
-const DATED_PROGRAMMES = ["2BAC-SM", "2BAC-SEXP", "2BAC-ECO", "2BAC-LSH", "3AC"] as const;
-
 /**
  * The days the exams begin, for her students' countdown and revision plan. An empty field
  * forgets the date: the students then see an indicative one, said to be so.
@@ -385,12 +384,28 @@ export async function saveExamDates(_previous: FormState, formData: FormData): P
   const t = await getTranslations("tutor.exams.dates");
   const supabase = await createClient();
   const day = z.iso.date();
+  const now = new Date();
+  const today = localDateKey(now);
+  const latest = `${Number(today.slice(0, 4)) + MAX_YEARS_AHEAD}${today.slice(4)}`;
   const values: Record<string, string> = {};
   for (const code of DATED_PROGRAMMES) {
     const raw = textField(formData, `date-${code}`).trim();
     values[`date-${code}`] = raw;
     if (raw !== "" && !day.safeParse(raw).success) {
-      return { status: "error", message: t("invalid"), values };
+      return {
+        status: "error",
+        message: t("invalid"),
+        values,
+        fieldErrors: { [`date-${code}`]: t("invalid") },
+      };
+    }
+    if (raw !== "" && (raw < today || raw > latest)) {
+      return {
+        status: "error",
+        message: t("range"),
+        values,
+        fieldErrors: { [`date-${code}`]: t("range") },
+      };
     }
   }
   for (const code of DATED_PROGRAMMES) {

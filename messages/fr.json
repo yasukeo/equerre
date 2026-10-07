@@ -190,7 +190,7 @@
       "noUpcoming": "Aucune séance planifiée. Les demandes des élèves apparaîtront dans vos séances.",
       "todoHeading": "À traiter",
       "pendingRequests": "{count, plural, =0 {Aucune demande de séance} one {# demande de séance} other {# demandes de séance}}",
-      "activeStudents": "{count, plural, =0 {Aucun élève actif} one {# élève actif} other {# élèves actifs}}",
+      "activeStudents": "{count, plural, =0 {Aucun élève en cours de suivi} one {# élève en cours de suivi} other {# élèves en cours de suivi}}",
       "weekSessions": "{count, plural, =0 {Aucune séance cette semaine} one {# séance cette semaine} other {# séances cette semaine}}",
       "toCorrect": "{count, plural, =0 {Aucune copie à corriger} one {# copie à corriger} other {# copies à corriger}}",
       "inviteAction": "Inviter un élève",
@@ -209,19 +209,21 @@
       "sessionsCount": "{count, plural, =0 {} one {# séance} other {# séances}}",
       "activityHeading": "Ce que font vos élèves",
       "activityEmpty": "Rien encore : dès que vos élèves liront un cours, rendront un exercice ou passeront un sujet du bac, vous le verrez ici.",
-      "didUnderstand": "a compris le {kind} « {title} »",
-      "didOpen": "a ouvert le {kind} « {title} »",
+      "didUnderstand": "a compris {kind, select, serie {la série d’exercices} resume {le résumé} devoir {le devoir} other {le cours}} « {title} »",
+      "didOpen": "a ouvert {kind, select, serie {la série d’exercices} resume {le résumé} devoir {le devoir} other {le cours}} « {title} »",
       "didHandIn": "a rendu « {title} »",
-      "didExam": "a passé le bac {year}, {session}{score, select, none {} other { : {score}/20}}",
+      "didExam": "a passé le bac {year}, {session}{score, select, none {} other { : {score}/20 (auto-évaluation)}}",
       "agoMinutes": "il y a {count} min",
       "agoHours": "il y a {count} h",
       "agoDays": "{count, plural, one {hier} other {il y a # jours}}",
       "quietHeading": "À relancer",
-      "quietHint": "Élèves actifs qui n’ont rien lu ni rendu depuis dix jours.",
+      "quietHint": "Élèves en cours de suivi sans rien lu ni rendu depuis dix jours.",
       "tileMessages": "{count, plural, =0 {message non lu} one {message non lu} other {messages non lus}}",
       "tileCorrections": "{count, plural, =0 {copie à corriger} one {copie à corriger} other {copies à corriger}}",
       "tileRequests": "{count, plural, =0 {demande de séance} one {demande de séance} other {demandes de séance}}",
-      "tileOverdue": "{count, plural, =0 {solde en retard} one {solde en retard} other {soldes en retard}}"
+      "tileOverdue": "{count, plural, =0 {solde en retard} one {solde en retard} other {soldes en retard}}",
+      "dayCount": "{count, plural, one {# séance} other {# séances}}",
+      "allClear": "Rien en attente : messages, copies, demandes et soldes sont à jour."
     },
     "invite": {
       "title": "Inviter un élève",
@@ -674,8 +676,9 @@
       "balance": "Solde {hours}",
       "overdueOnly": "Soldes en retard seulement",
       "overdue": "en retard",
-      "lastRead": "{days, plural, =0 {A lu aujourd’hui} =1 {A lu hier} other {A lu il y a # jours}}",
-      "neverRead": "N’a encore rien lu"
+      "lastRead": "{days, plural, =0 {Actif aujourd’hui} =1 {Actif hier} other {Actif il y a # jours}}",
+      "neverRead": "Aucune activité en ligne",
+      "quiet": "À relancer"
     },
     "student": {
       "title": "Fiche élève",
@@ -770,18 +773,21 @@
       "sectionProgress": "Progression",
       "progress": {
         "noProgramme": "Sa filière n’est pas renseignée : complétez sa fiche pour suivre sa progression.",
-        "opened": "documents lus",
+        "opened": "documents ouverts",
         "understood": "compris",
         "saved": "à revoir",
         "chaptersStarted": "Chapitres commencés",
         "nothingStarted": "Rien d’ouvert dans son programme pour l’instant.",
         "savedHeading": "Gardé « à revoir »",
-        "savedEmpty": "Rien de gardé : les documents qu’un élève marque « à revoir » montrent ce qui lui résiste.",
+        "savedEmpty": "Rien de gardé : les documents marqués « à revoir » montrent ce qui résiste.",
         "papersHeading": "Sujets du bac passés",
         "papersEmpty": "Aucun sujet passé en mode examen.",
         "selfScoreNote": "Notes que l’élève s’est données, corrigé en main.",
-        "activityHeading": "Ces derniers jours"
-      }
+        "activityHeading": "Ces derniers jours",
+        "rulerLabel": "{understood} compris sur {total}"
+      },
+      "sectionNotes": "Notes",
+      "sectionContact": "Coordonnées"
     },
     "groups": {
       "title": "Groupes",
@@ -1240,7 +1246,9 @@
         "hint": "Laissez un champ vide pour revenir à la date indicative.",
         "saved": "Dates enregistrées.",
         "invalid": "Une date n’est pas valide : choisissez-la dans le calendrier.",
-        "failed": "Les dates n’ont pas pu être enregistrées. Réessayez."
+        "failed": "Les dates n’ont pas pu être enregistrées. Réessayez.",
+        "indicative": "Sans date : {date} (indicative)",
+        "range": "Choisissez une date entre aujourd’hui et dans deux ans."
       }
     },
     "search": {
@@ -1263,7 +1271,9 @@
       "corrections": "Copies à corriger",
       "plans": "Formules et tarifs",
       "blog": "Conseils (blog)",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "results": "{count, plural, one {# résultat} other {# résultats}}",
+      "resultsLabel": "Résultats"
     }
   },
   "student": {

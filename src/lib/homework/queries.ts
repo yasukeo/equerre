@@ -114,7 +114,14 @@ export async function listMyHomework(now: Date): Promise<HomeworkEntry[]> {
       id: assignment.id,
       title: assignment.title,
       dueAt: assignment.due_at,
-      progress: progressOf(assignment.id, exerciseIds, assignment.due_at, now, submissions, reveals),
+      progress: progressOf(
+        assignment.id,
+        exerciseIds,
+        assignment.due_at,
+        now,
+        submissions,
+        reveals,
+      ),
       waiting: works.filter((work) => work.kind === "handedIn").length,
       corrected: grades.length,
       grade:

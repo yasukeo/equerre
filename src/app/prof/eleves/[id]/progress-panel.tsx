@@ -1,4 +1,5 @@
 import { BookmarkCheck, GraduationCap } from "lucide-react";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ChapterStateChip, marksOf } from "@/components/student/course-cards";
 import { Protractor } from "@/components/student/protractor";
@@ -53,7 +54,7 @@ export async function ProgressPanel({
       case "understood":
       case "opened":
         return tToday(item.kind === "understood" ? "didUnderstand" : "didOpen", {
-          kind: tKind(`one.${item.lesson.kind}`).toLowerCase(),
+          kind: item.lesson.kind,
           title: item.lesson.title,
         });
       case "handedIn":
@@ -129,7 +130,13 @@ export async function ProgressPanel({
                   {chapter.number}
                 </span>
                 <span className="text-sm font-medium">{frenchSpaces(chapter.title)}</span>
-                <Ruler marks={marksOf(chapter.documents)} />
+                <Ruler
+                  marks={marksOf(chapter.documents)}
+                  label={t("rulerLabel", {
+                    understood: chapter.understood,
+                    total: chapter.documents.length,
+                  })}
+                />
                 <ChapterStateChip state={chapter.state} />
               </li>
             ))}
@@ -152,17 +159,19 @@ export async function ProgressPanel({
               {saved.slice(0, 8).map((document) => {
                 const hue = kindHue(document.kind);
                 return (
-                  <li
-                    key={document.id}
-                    className={cn(
-                      "rounded-xl border border-s-4 border-quadrillage bg-surface px-3 py-2 text-sm",
-                      hue.edge,
-                    )}
-                  >
-                    <span className={cn("me-2 text-xs font-semibold uppercase", hue.text)}>
-                      {tKind(`one.${document.kind}`)}
-                    </span>
-                    {frenchSpaces(document.title)}
+                  <li key={document.id}>
+                    <Link
+                      href={`/prof/lecons/${document.id}`}
+                      className={cn(
+                        "block rounded-xl border border-s-4 border-quadrillage bg-surface px-3 py-2 text-sm hover:border-trait",
+                        hue.edge,
+                      )}
+                    >
+                      <span className={cn("me-2 text-xs font-semibold uppercase", hue.text)}>
+                        {tKind(`one.${document.kind}`)}
+                      </span>
+                      {frenchSpaces(document.title)}
+                    </Link>
                   </li>
                 );
               })}
@@ -204,7 +213,7 @@ export async function ProgressPanel({
               ))}
             </ul>
           )}
-          <p className="text-xs text-encre-douce">{t("selfScoreNote")}</p>
+          {sat.length > 0 ? <p className="text-xs text-encre-douce">{t("selfScoreNote")}</p> : null}
         </div>
       </div>
 

@@ -1947,6 +1947,14 @@ export type Database = {
         Returns: undefined
       }
       invite_code_is_valid: { Args: { p_code: string }; Returns: boolean }
+      latest_student_activity: {
+        Args: never
+        Returns: {
+          last_handed_in: string
+          last_read: string
+          student_id: string
+        }[]
+      }
       mark_conversation_read: {
         Args: { p_conversation_id: string; p_up_to: string }
         Returns: undefined

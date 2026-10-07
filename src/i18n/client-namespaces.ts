@@ -47,6 +47,7 @@ export const CLIENT_NAMESPACES = {
     "tutor.newExercise",
     "tutor.newLesson",
     "tutor.planSession",
+    "tutor.search",
     "tutor.session",
     "tutor.sessionTypes",
     "tutor.sessions",

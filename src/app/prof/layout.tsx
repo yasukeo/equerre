@@ -67,9 +67,7 @@ export default async function TutorLayout({ children }: { children: ReactNode })
                 {t("students")}
               </NavLink>
             </li>
-            <li aria-hidden="true" className={SECTION}>
-              {t("sectionTeach")}
-            </li>
+            <li className={SECTION}>{t("sectionTeach")}</li>
             <li className={ITEM}>
               <NavLink
                 href="/prof/devoirs"
@@ -98,9 +96,7 @@ export default async function TutorLayout({ children }: { children: ReactNode })
                 {t("exams")}
               </NavLink>
             </li>
-            <li aria-hidden="true" className={SECTION}>
-              {t("sectionManage")}
-            </li>
+            <li className={SECTION}>{t("sectionManage")}</li>
             <li className={DESKTOP_ONLY}>
               <NavLink href="/prof/paiements" icon={<Wallet aria-hidden="true" />}>
                 {t("payments")}

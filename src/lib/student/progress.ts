@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import type { Viewer } from "@/lib/auth";
 import { localDateKey } from "@/lib/dates";
+import { EXAM_PROGRAMMES } from "@/lib/exams/exam-dates";
 import { listProgrammes } from "@/lib/lesson/queries";
 import { listReadableLessons, type ReadableLessonEntry } from "@/lib/lesson/readable";
 import { createClient } from "@/lib/supabase/server";
@@ -205,14 +206,7 @@ export function resumePoint(course: StudentCourse): ResumePoint | null {
 
 // ─────────────────────────────────────────────────────────────── the exam ahead
 
-/** The programmes that end in an exam with maths: the bac's national, the 3e année régional. */
-const EXAM_KIND: Record<string, "national" | "regional"> = {
-  "2BAC-SM": "national",
-  "2BAC-SEXP": "national",
-  "2BAC-ECO": "national",
-  "2BAC-LSH": "national",
-  "3AC": "regional",
-};
+const EXAM_KIND: Record<string, "national" | "regional"> = EXAM_PROGRAMMES;
 
 export type ExamCountdown = {
   kind: "national" | "regional";
@@ -277,6 +271,9 @@ export type PlanStep = {
   current: boolean;
 };
 
+/** A plan longer than two school years means a mistyped date: it stops there. */
+const MAX_WEEKS = 104;
+
 /** Weeks kept at the end for past papers, when there is room for them. */
 const PAPER_WEEKS = 3;
 
@@ -296,7 +293,7 @@ export function revisionPlan(
   const weekday = (new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7;
   const monday = Date.parse(`${today}T00:00:00Z`) - weekday * DAY;
   // The weeks before the exam's: its own week is the exam, not revision.
-  const weeks = Math.max(Math.ceil((countdown.daysLeft + weekday) / 7), 1);
+  const weeks = Math.min(Math.max(Math.ceil((countdown.daysLeft + weekday) / 7), 1), MAX_WEEKS);
   const paperWeeks = weeks > PAPER_WEEKS + 2 ? PAPER_WEEKS : 0;
   const studyWeeks = weeks - paperWeeks;
   const left = course.chapters

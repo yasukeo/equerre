@@ -27,6 +27,7 @@ import { getStudentFile, type StudentSession } from "@/lib/students/queries";
 import { NotesPanel } from "./notes-panel";
 import { ParentsPanel } from "./parents-panel";
 import { ProgressPanel } from "./progress-panel";
+import { SectionBar } from "./section-bar";
 import { StudentForm } from "./student-form";
 import { VoidPaymentForm } from "./void-payment-form";
 
@@ -42,7 +43,7 @@ export default async function StudentPage({
   const t = await getTranslations("tutor.student");
 
   return (
-    <div className="grid max-w-6xl gap-6">
+    <div className="grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6">
       <Link
         href="/prof/eleves"
         className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
@@ -117,7 +118,7 @@ async function Student({
       : tWork(work.kind);
 
   return (
-    <article className="grid gap-8">
+    <article className="grid grid-cols-[minmax(0,1fr)] gap-8">
       <header className="grid gap-2">
         <h1 className="text-2xl font-semibold">{profile.name}</h1>
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-encre-douce">
@@ -153,7 +154,7 @@ async function Student({
         ) : null}
       </header>
 
-      <dl className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage sm:grid-cols-2 lg:grid-cols-4">
+      <dl className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage grid-cols-2 lg:grid-cols-4">
         <Figure
           term={t("averageHeading")}
           value={
@@ -214,31 +215,17 @@ async function Student({
       </dl>
 
       {/* The file is long: its sections, always one tap away (D-104). */}
-      <nav
-        aria-label={t("sectionsLabel")}
-        className="sticky top-0 z-30 -mx-4 overflow-x-auto border-y border-quadrillage bg-papier/95 px-4 backdrop-blur md:-mx-8 md:px-8 print:hidden"
-      >
-        <ul role="list" className="flex gap-1 py-1.5">
-          {(
-            [
-              ["progression", t("sectionProgress")],
-              ["seances", t("sessionsHeading")],
-              ["devoirs", t("homeworkHeading")],
-              ["paiements", tAccount("heading")],
-              ["fiche", t("contactHeading")],
-            ] as const
-          ).map(([anchor, label]) => (
-            <li key={anchor}>
-              <a
-                href={`#${anchor}`}
-                className="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium whitespace-nowrap hover:bg-sunken"
-              >
-                {label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <SectionBar
+        label={t("sectionsLabel")}
+        sections={[
+          { anchor: "progression", label: t("sectionProgress") },
+          { anchor: "seances", label: t("sessionsHeading") },
+          { anchor: "devoirs", label: t("homeworkHeading") },
+          { anchor: "paiements", label: tAccount("heading") },
+          { anchor: "notes", label: t("sectionNotes") },
+          { anchor: "coordonnees", label: t("sectionContact") },
+        ]}
+      />
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         <div className="grid min-w-0 gap-10">
@@ -374,8 +361,12 @@ async function Student({
           </section>
         </div>
 
-        <div className="grid gap-8">
-          <section id="fiche" aria-labelledby="student-contact" className="grid scroll-mt-20 gap-2">
+        <div className="-order-1 grid gap-8 lg:order-none">
+          <section
+            id="coordonnees"
+            aria-labelledby="student-contact"
+            className="grid scroll-mt-20 gap-2"
+          >
             <h2 id="student-contact" className="text-lg font-medium">
               {t("contactHeading")}
             </h2>
@@ -407,7 +398,9 @@ async function Student({
             </dl>
           </section>
 
-          <NotesPanel studentId={profile.id} notes={file.notes} />
+          <div id="notes" className="scroll-mt-20">
+            <NotesPanel studentId={profile.id} notes={file.notes} />
+          </div>
 
           <ParentsPanel
             studentId={profile.id}

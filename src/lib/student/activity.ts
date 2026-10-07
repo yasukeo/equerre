@@ -29,11 +29,16 @@ export type ActivityItem =
       score: number | null;
     };
 
+const SAME_VISIT_MS = 30 * 60 * 1000;
+
 /** The latest things her students did, newest first, optionally for one student. */
 export async function listRecentActivity(
   options: { studentId?: string; limit?: number } = {},
 ): Promise<ActivityItem[]> {
   const limit = options.limit ?? 12;
+  // Read wider than shown: the feed keeps two lines per student, so one busy student does
+  // not fill it.
+  const wide = options.studentId ? limit : limit * 4;
   const supabase = await createClient();
   const progress = supabase
     .from("lesson_progress")
@@ -41,14 +46,14 @@ export async function listRecentActivity(
       "student_id, last_opened_at, understood_at, lesson:lessons(title, kind), student:profiles(full_name)",
     )
     .order("last_opened_at", { ascending: false })
-    .limit(limit);
+    .limit(wide);
   const submissions = supabase
     .from("submissions")
     .select(
       "student_id, assignment_id, submitted_at, exercise:exercises(title), student:profiles!submissions_student_id_fkey(full_name)",
     )
     .order("submitted_at", { ascending: false })
-    .limit(limit);
+    .limit(wide);
   const attempts = supabase
     .from("exam_attempts")
     .select(
@@ -56,7 +61,7 @@ export async function listRecentActivity(
     )
     .not("finished_at", "is", null)
     .order("finished_at", { ascending: false })
-    .limit(limit);
+    .limit(wide);
   const [read, handed, sat] = await Promise.all(
     options.studentId
       ? [
@@ -72,9 +77,11 @@ export async function listRecentActivity(
       row.lesson && row.student
         ? [
             {
-              // Understood within the same visit reads as understood; a later visit, as a read.
+              // Understood during this visit reads as understood: the reading line keeps saving
+              // for a while after the button, so « the same visit » is half an hour.
               kind:
-                row.understood_at && row.understood_at >= row.last_opened_at.slice(0, 16)
+                row.understood_at &&
+                Date.parse(row.last_opened_at) - Date.parse(row.understood_at) < SAME_VISIT_MS
                   ? "understood"
                   : "opened",
               at: row.last_opened_at,
@@ -112,12 +119,44 @@ export async function listRecentActivity(
         : [],
     ),
   ];
-  return items.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit);
+  const sorted = items.sort((a, b) => b.at.localeCompare(a.at));
+  if (options.studentId) return sorted.slice(0, limit);
+  const perStudent = new Map<string, number>();
+  return sorted
+    .filter((item) => {
+      const shown = perStudent.get(item.student.id) ?? 0;
+      perStudent.set(item.student.id, shown + 1);
+      return shown < 2;
+    })
+    .slice(0, limit);
 }
 
 export type QuietStudent = { id: string; name: string; levelCode: string | null };
 
 const QUIET_DAYS = 10;
+
+/** When each student last opened a document or handed work in, whatever the class's size. */
+export async function latestActivityByStudent(): Promise<Map<string, string>> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("latest_student_activity");
+  const latest = new Map<string, string>();
+  for (const row of data ?? []) {
+    const at = [row.last_read, row.last_handed_in]
+      .filter((value): value is string => Boolean(value))
+      .sort()
+      .at(-1);
+    if (at) latest.set(row.student_id, at);
+  }
+  return latest;
+}
+
+/** Whether a student counts as quiet: active, and nothing online for ten days. */
+export function isQuiet(lastActivity: string | undefined, now: Date): boolean {
+  return (
+    lastActivity === undefined ||
+    now.getTime() - Date.parse(lastActivity) > QUIET_DAYS * 24 * 60 * 60 * 1000
+  );
+}
 
 /**
  * Active students who have neither opened a document nor handed anything in for ten days:
@@ -125,37 +164,16 @@ const QUIET_DAYS = 10;
  */
 export async function listQuietStudents(now: Date): Promise<QuietStudent[]> {
   const supabase = await createClient();
-  const since = new Date(now.getTime() - QUIET_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  const [students, read, handed] = await Promise.all([
+  const [students, latest] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, full_name, level_code")
       .eq("role", "student")
       .eq("status", "actif")
       .order("full_name"),
-    supabase.from("lesson_progress").select("student_id").gte("last_opened_at", since).limit(1000),
-    supabase.from("submissions").select("student_id").gte("submitted_at", since).limit(1000),
-  ]);
-  const busy = new Set([
-    ...(read.data ?? []).map((row) => row.student_id),
-    ...(handed.data ?? []).map((row) => row.student_id),
+    latestActivityByStudent(),
   ]);
   return (students.data ?? [])
-    .filter((student) => !busy.has(student.id))
+    .filter((student) => isQuiet(latest.get(student.id), now))
     .map((student) => ({ id: student.id, name: student.full_name, levelCode: student.level_code }));
-}
-
-/** When each student last opened a document, for the list of students. */
-export async function lastReadByStudent(): Promise<Map<string, string>> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("lesson_progress")
-    .select("student_id, last_opened_at")
-    .order("last_opened_at", { ascending: false })
-    .limit(1000);
-  const last = new Map<string, string>();
-  for (const row of data ?? []) {
-    if (!last.has(row.student_id)) last.set(row.student_id, row.last_opened_at);
-  }
-  return last;
 }

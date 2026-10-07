@@ -1,4 +1,4 @@
-import { TriangleAlert, UserPlus, Users } from "lucide-react";
+import { BellRing, TriangleAlert, UserPlus, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -10,7 +10,7 @@ import { requireViewer } from "@/lib/auth";
 import { formatLocal, localDateKey } from "@/lib/dates";
 import { formatHours } from "@/lib/payments/format";
 import { getAccounts } from "@/lib/payments/queries";
-import { lastReadByStudent } from "@/lib/student/activity";
+import { isQuiet, latestActivityByStudent } from "@/lib/student/activity";
 import { listStudents, type StudentRow } from "@/lib/students/queries";
 import { cn } from "@/lib/utils";
 
@@ -66,7 +66,7 @@ async function Students({
   const [{ students, levels }, accounts, lastRead] = await Promise.all([
     listStudents(now),
     getAccounts(),
-    lastReadByStudent(),
+    latestActivityByStudent(),
   ]);
 
   // The filters travel in the address, so a filtered list can be kept and shared as a link.
@@ -205,10 +205,8 @@ async function Students({
                       days: daysAgo(lastRead.get(student.id) ?? "", now),
                     })
                   : t("neverRead"),
-                quiet:
-                  student.status === "actif" &&
-                  (!lastRead.has(student.id) ||
-                    now.getTime() - Date.parse(lastRead.get(student.id) ?? "") > QUIET_MS),
+                quiet: student.status === "actif" && isQuiet(lastRead.get(student.id), now),
+                quietLabel: t("quiet"),
               }}
               owes={owes(student.id)}
             />
@@ -220,7 +218,6 @@ async function Students({
 }
 
 const gradeFormat = new Intl.NumberFormat("fr", { maximumFractionDigits: 1 });
-const QUIET_MS = 10 * 24 * 60 * 60 * 1000;
 
 /** Calendar days in Casablanca between an instant and now: 0 today, 1 yesterday. */
 function daysAgo(at: string, now: Date): number {
@@ -245,6 +242,7 @@ function StudentItem({
     overdue: string;
     lastRead: string;
     quiet: boolean;
+    quietLabel: string;
   };
 }) {
   return (
@@ -282,7 +280,13 @@ function StudentItem({
             {owes ? ` · ${t.overdue}` : null}
           </span>
           <span>{t.nextSession}</span>
-          <span className={cn(t.quiet && "font-medium text-encre")}>{t.lastRead}</span>
+          <span
+            className={cn("inline-flex items-center gap-1", t.quiet && "font-medium text-encre")}
+          >
+            {t.quiet ? <BellRing aria-hidden="true" className="size-3.5" /> : null}
+            {t.lastRead}
+            {t.quiet ? ` · ${t.quietLabel}` : null}
+          </span>
           <span>
             {student.groups.length === 0
               ? t.noGroup

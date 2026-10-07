@@ -9,6 +9,9 @@ import { requireViewer } from "@/lib/auth";
 import { formatFileSize } from "@/lib/lesson/file-size";
 import { createClient } from "@/lib/supabase/server";
 import { ExamDatesForm } from "./exam-dates-form";
+import { formatLocalDate, localDateKey } from "@/lib/dates";
+import { DATED_PROGRAMMES } from "@/lib/exams/exam-dates";
+import { indicativeDate } from "@/lib/student/progress";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.exams");
@@ -51,18 +54,25 @@ export default async function ExamsAdminPage({ searchParams }: PageProps<"/prof/
   );
 }
 
-const DATED = ["2BAC-SM", "2BAC-SEXP", "2BAC-ECO", "2BAC-LSH", "3AC"];
-
 async function ExamDates() {
   await requireViewer("tutor");
   const supabase = await createClient();
   const [{ data: programmes }, { data: dates }] = await Promise.all([
-    supabase.from("programmes").select("code, label, position").in("code", DATED).order("position"),
+    supabase
+      .from("programmes")
+      .select("code, label, position")
+      .in("code", DATED_PROGRAMMES)
+      .order("position"),
     supabase.from("exam_dates").select("programme_code, starts_on"),
   ]);
   const byCode = new Map((dates ?? []).map((row) => [row.programme_code, row.starts_on]));
+  const t = await getTranslations("tutor.exams.dates");
+  const indicative = t("indicative", {
+    date: formatLocalDate(`${indicativeDate(localDateKey(new Date()))}T12:00:00Z`),
+  });
   return (
     <ExamDatesForm
+      indicative={indicative}
       programmes={(programmes ?? []).map((programme) => ({
         code: programme.code,
         label: programme.label,

@@ -14,7 +14,10 @@ describe("frenchSpaces", () => {
 describe("frenchSpacesDeep", () => {
   it("reaches every message of a dictionary, and leaves ICU syntax alone", () => {
     expect(
-      frenchSpacesDeep({ a: "Note : {grade}", b: { c: "{n, plural, one {# fois} other {# fois}} ?" } }),
+      frenchSpacesDeep({
+        a: "Note : {grade}",
+        b: { c: "{n, plural, one {# fois} other {# fois}} ?" },
+      }),
     ).toEqual({ a: "Note : {grade}", b: { c: "{n, plural, one {# fois} other {# fois}} ?" } });
   });
 });
