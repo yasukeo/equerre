@@ -243,3 +243,37 @@ export async function getStatement(
     };
   });
 }
+
+export type MonthIncome = { month: string; total: number; count: number };
+
+/**
+ * Money received per month (`yyyy-MM`, by the day it was paid), over the last `months` months
+ * up to the one `today` falls in. Voided payments are left out: they were never received.
+ */
+export async function monthlyIncome(today: string, months = 6): Promise<MonthIncome[]> {
+  const [year = 2000, month = 1] = today.split("-").map(Number);
+  const keys = Array.from({ length: months }, (_, index) =>
+    new Date(Date.UTC(year, month - 1 - (months - 1 - index), 1)).toISOString().slice(0, 7),
+  );
+  const supabase = await createClient();
+  const totals = new Map(keys.map((key) => [key, { month: key, total: 0, count: 0 }]));
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from("payments")
+      .select("paid_on, amount_mad")
+      .is("voided_at", null)
+      .gte("paid_on", `${keys[0]}-01`)
+      .order("paid_on")
+      .order("id")
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error("Could not read the income", { cause: error });
+    for (const row of data) {
+      const entry = totals.get(row.paid_on.slice(0, 7));
+      if (!entry) continue;
+      entry.total += Number(row.amount_mad);
+      entry.count += 1;
+    }
+    if (data.length < PAGE) break;
+  }
+  return keys.map((key) => totals.get(key)!);
+}

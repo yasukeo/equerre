@@ -297,8 +297,15 @@
         "apply": "Afficher",
         "noDrafts": "Rien à relire : tous les documents de cette sélection sont publiés.",
         "none": "Aucun document dans cette sélection.",
-        "showAll": "Tout afficher"
-      }
+        "search": "Rechercher",
+        "searchPlaceholder": "Titre ou chapitre : limites, Thalès…"
+      },
+      "lead": "Vos cours, résumés, séries et devoirs, rangés par programme puis par chapitre.",
+      "libraryCount": "{count, plural, one {# document} other {# documents}} dans {programmes, plural, one {# programme} other {# programmes}}",
+      "documents": "{count, plural, one {# document} other {# documents}}",
+      "chapters": "{count, plural, one {# chapitre} other {# chapitres}}",
+      "toRead": "{count} à relire",
+      "backToLibrary": "Tous les programmes"
     },
     "newLesson": {
       "title": "Nouvelle leçon",
@@ -359,7 +366,15 @@
         "upload": "Photo de la copie",
         "numeric": "Nombre",
         "mcq": "QCM"
-      }
+      },
+      "lead": "Votre banque d’exercices, rangée par chapitre : à donner en devoir, notés seuls ou sur photo.",
+      "search": "Rechercher",
+      "searchPlaceholder": "Titre, mot-clé ou chapitre",
+      "searchApply": "Rechercher",
+      "typeFilter": "Type de réponse",
+      "allTypes": "Tous",
+      "none": "Aucun exercice ne correspond à cette recherche.",
+      "showAll": "Voir tous les exercices"
     },
     "newExercise": {
       "title": "Nouvel exercice",
@@ -1334,14 +1349,16 @@
     "profile": {
       "title": "Mon profil",
       "email": "Adresse e-mail",
-      "level": "Niveau",
       "school": "Établissement",
       "phone": "Téléphone",
       "guardian": "Contact du parent",
       "groups": "Groupes",
-      "noGroups": "Aucun groupe",
+      "noGroups": "Vous ne faites partie d’aucun groupe pour l’instant.",
       "notProvided": "Non renseigné",
-      "help": "Une information est fausse ? Signalez-la à votre professeure."
+      "help": "Une information est fausse ? Signalez-la à votre professeure.",
+      "card": "Votre carte d’élève",
+      "detailsHeading": "Mes coordonnées",
+      "writeTutor": "Lui écrire"
     },
     "lessons": {
       "title": "Cours",
@@ -2071,7 +2088,16 @@
     "recentHeading": "Derniers paiements",
     "noPayments": "Aucun paiement enregistré pour l’instant. Enregistrez le premier avec « Enregistrer un paiement ».",
     "allStudents": "Voir le solde de chaque élève",
-    "recordForName": "pour {name}"
+    "recordForName": "pour {name}",
+    "stats": {
+      "thisMonth": "Encaissé en {month}",
+      "lastMonth": "Encaissé en {month}",
+      "payments": "{count, plural, =0 {aucun paiement} one {# paiement} other {# paiements}}",
+      "overdue": "{count, plural, one {solde en retard} other {soldes en retard}}",
+      "owed": "{hours} dues en tout"
+    },
+    "incomeHeading": "Encaissements, {count} derniers mois",
+    "incomeNote": "Par date de paiement, sans les paiements annulés. En dirhams."
   },
   "plans": {
     "title": "Formules",

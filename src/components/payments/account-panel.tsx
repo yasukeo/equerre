@@ -96,10 +96,15 @@ export async function AccountPanel({
 
   return (
     <div className="grid gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-quadrillage bg-surface p-4 sm:p-5">
         <dl className="grid gap-1">
           <dt className="text-sm text-encre-douce">{t("balance")}</dt>
-          <dd className={cn("text-2xl font-semibold tabular", tutor && owes && "text-stylo-rouge")}>
+          <dd
+            className={cn(
+              "text-3xl font-semibold tabular [font-variation-settings:'HEXP'_45]",
+              tutor && owes && "text-stylo-rouge",
+            )}
+          >
             {formatHours(balance)}
           </dd>
           <dd>
@@ -178,7 +183,7 @@ export async function AccountPanel({
         ) : (
           <ul
             role="list"
-            className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage"
+            className="grid gap-px overflow-hidden rounded-2xl border border-quadrillage bg-quadrillage"
           >
             {payments.map((payment) => (
               <li key={payment.id} className="grid gap-1 bg-surface px-4 py-3">
@@ -243,7 +248,7 @@ export async function AccountPanel({
 }
 
 function Folded({ items, more }: { items: ReactNode[]; more: (hidden: number) => string }) {
-  const list = "grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage";
+  const list = "grid gap-px overflow-hidden rounded-2xl border border-quadrillage bg-quadrillage";
   return (
     <div className="grid gap-2">
       <ul className={list} role="list">
@@ -251,7 +256,7 @@ function Folded({ items, more }: { items: ReactNode[]; more: (hidden: number) =>
       </ul>
       {items.length > RECENT ? (
         <details className="grid gap-2">
-          <summary className="cursor-pointer py-3 text-sm underline decoration-trait underline-offset-4">
+          <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm underline decoration-trait underline-offset-4">
             {more(items.length - RECENT)}
           </summary>
           <ul className={`${list} mt-2`} role="list">
