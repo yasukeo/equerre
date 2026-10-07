@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { requireViewer } from "@/lib/auth";
 import { listGroups } from "@/lib/students/groups";
 import { GroupForm } from "./group-forms";
+import { PageHeader } from "@/components/shell/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.groups");
@@ -16,17 +17,12 @@ export default async function GroupsPage() {
 
   return (
     <div className="grid max-w-4xl gap-6">
-      <Link
-        href="/prof/eleves"
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-      >
-        {t("back")}
-      </Link>
-      <div className="grid gap-1">
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="text-encre-douce">{t("lead")}</p>
-      </div>
-      <Suspense fallback={<div aria-hidden="true" className="h-64 rounded-md bg-sunken" />}>
+      <PageHeader
+        back={{ href: "/prof/eleves", label: t("back") }}
+        title={t("title")}
+        lead={t("lead")}
+      />
+      <Suspense fallback={<div aria-hidden="true" className="h-64 rounded-2xl bg-sunken" />}>
         <Groups />
       </Suspense>
     </div>

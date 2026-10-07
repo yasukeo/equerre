@@ -49,7 +49,9 @@ export default async function MorePage() {
   const t = await getTranslations("nav.tutor");
   return (
     <div className="grid max-w-md gap-4">
-      <h1 className="text-xl font-semibold">{t("more")}</h1>
+      <h1 className="text-[clamp(1.6rem,1.3rem+1.4vw,2.1rem)] leading-tight font-semibold break-words [font-variation-settings:'HEXP'_45]">
+        {t("more")}
+      </h1>
       <ul role="list" className="divide-y divide-quadrillage border-y border-quadrillage">
         {PLACES.map(({ href, key, icon: Icon }) => (
           <li key={href}>

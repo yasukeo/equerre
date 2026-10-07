@@ -2028,7 +2028,10 @@
       "session_reminder": "Rappel : séance le {date} à {time}.",
       "assignment_new": "Nouveau devoir : {title}, à rendre le {due}.",
       "correction_ready": "{count, plural, one {Correction prête : {title}.} other {# exercices corrigés : {title}.}}"
-    }
+    },
+    "today": "Aujourd’hui",
+    "yesterday": "Hier",
+    "unreadCount": "{count, plural, one {# nouvelle notification} other {# nouvelles notifications}}"
   },
   "payments": {
     "method": {
@@ -2481,7 +2484,10 @@
       "unanswered": "Sans réponse",
       "otherHomework": "Voir {count, plural, one {l’autre devoir} other {les # autres devoirs}}",
       "accountLead": "Le solde compte les heures payées moins les heures de séance faites ; les séances couvertes par un abonnement n’en retirent rien. Chaque paiement a son reçu en PDF.",
-      "owes": "Il reste {hours} de séances à régler."
+      "owes": "Il reste {hours} de séances à régler.",
+      "sectionsLabel": "Aller à",
+      "averageHeading": "Moyenne des devoirs",
+      "noAverage": "Pas encore de note"
     }
   },
   "parentsAdmin": {

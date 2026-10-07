@@ -17,8 +17,10 @@ export default async function InvitePage() {
 
   return (
     <div className="grid max-w-5xl gap-8">
-      <h1 className="text-xl font-semibold">{t("title")}</h1>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <h1 className="text-[clamp(1.6rem,1.3rem+1.4vw,2.1rem)] leading-tight font-semibold break-words [font-variation-settings:'HEXP'_45]">
+        {t("title")}
+      </h1>
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <InviteSections />
       </Suspense>
     </div>

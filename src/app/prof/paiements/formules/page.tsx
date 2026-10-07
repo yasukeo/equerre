@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { requireViewer } from "@/lib/auth";
@@ -7,6 +6,7 @@ import { formatDecimal } from "@/lib/decimal";
 import { formatHours, formatMad } from "@/lib/payments/format";
 import { listPlans } from "@/lib/payments/queries";
 import { PlanForm } from "./plan-form";
+import { PageHeader } from "@/components/shell/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("plans");
@@ -18,17 +18,12 @@ export default async function PlansPage() {
 
   return (
     <div className="grid max-w-5xl gap-6">
-      <Link
-        href="/prof/paiements"
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-      >
-        {t("back")}
-      </Link>
-      <div className="grid gap-1">
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="max-w-prose text-encre-douce">{t("lead")}</p>
-      </div>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <PageHeader
+        back={{ href: "/prof/paiements", label: t("back") }}
+        title={t("title")}
+        lead={t("lead")}
+      />
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <Plans />
       </Suspense>
     </div>

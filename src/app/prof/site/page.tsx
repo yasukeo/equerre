@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { requireViewer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "./profile-form";
+import { PageHeader } from "@/components/shell/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("siteAdmin");
@@ -18,10 +19,7 @@ export default async function SiteAdminPage() {
   return (
     <div className="grid max-w-5xl gap-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-1">
-          <h1 className="text-xl font-semibold">{t("title")}</h1>
-          <p className="max-w-prose text-encre-douce">{t("lead")}</p>
-        </div>
+        <PageHeader title={t("title")} lead={t("lead")} />
         <a
           href="/"
           target="_blank"
@@ -33,7 +31,7 @@ export default async function SiteAdminPage() {
           <span className="sr-only"> {t("newTab")}</span>
         </a>
       </div>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <SiteAdmin />
       </Suspense>
     </div>

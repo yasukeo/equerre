@@ -1,13 +1,15 @@
+import { ArrowLeft, CalendarDays, ClipboardList, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense, type ReactNode } from "react";
 import { z } from "zod";
+import { GradeMark } from "@/components/grade-mark";
+import { Initials } from "@/components/initials";
 import { LateBadge } from "@/components/late-badge";
 import { AccountPanel, AccountStatusChip, overdueDays } from "@/components/payments/account-panel";
 import { SessionStatusChip } from "@/components/session-status";
-import { StudentStatusChip } from "@/components/student-status";
 import { WorkChip } from "@/components/work-status";
 import { requireViewer } from "@/lib/auth";
 import { formatLocal, localDateKey, withFirst } from "@/lib/dates";
@@ -30,8 +32,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function ChildPage({ params }: PageProps<"/parent/[id]">) {
   return (
-    <div className="mx-auto grid max-w-3xl gap-6">
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+    <div className="mx-auto grid max-w-3xl grid-cols-[minmax(0,1fr)] gap-6">
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <Child params={params} />
       </Suspense>
     </div>
@@ -92,6 +94,15 @@ async function Child({ params }: { params: Promise<{ id: string }> }) {
     ...homework.filter((item) => !open(item)),
   ];
   const late = stopped ? 0 : homework.filter((item) => item.progress.late).length;
+  // Every corrected exercise, in every homework: the one figure a parent asks for first.
+  const grades = homework.flatMap((item) =>
+    item.exercises.flatMap((exercise) =>
+      exercise.work.kind === "graded" ? [exercise.work.grade] : [],
+    ),
+  );
+  const average = grades.length
+    ? grades.reduce((sum, grade) => sum + grade, 0) / grades.length
+    : null;
 
   const day = (value: string, pattern: string) => withFirst(formatLocal(value, pattern));
   const workLabel = (work: ExerciseWork) =>
@@ -140,32 +151,62 @@ async function Child({ params }: { params: Promise<{ id: string }> }) {
   };
 
   return (
-    <article className="grid gap-10">
-      <header className="grid gap-3">
+    <article className="grid gap-8">
+      <header className="grid gap-4">
         {children.length > 1 ? (
           <Link
             href="/parent"
-            className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+            className="-ms-1 inline-flex min-h-11 items-center gap-1.5 justify-self-start rounded-full ps-1 pe-3 text-sm text-encre-douce hover:text-encre"
           >
+            <ArrowLeft aria-hidden="true" className="size-4 rtl:rotate-180" />
             {t("back")}
           </Link>
         ) : null}
-        <h1 className="text-2xl font-semibold">{child.name}</h1>
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-encre-douce">
-          {child.levelLabel ? <span>{child.levelLabel}</span> : null}
-          {child.status === "actif" ? null : (
-            <StudentStatusChip status={child.status} label={tStatus(child.status)} />
-          )}
-        </p>
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 rounded-2xl bg-encre-fixe p-5 text-white sm:p-6">
+          <Initials
+            name={child.name}
+            className="size-16 bg-white/15 text-xl text-white sm:size-20 sm:text-2xl"
+          />
+          <div className="grid min-w-0 gap-1">
+            <h1 className="text-2xl leading-tight font-semibold break-words">{child.name}</h1>
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/80">
+              {child.levelLabel ? <span>{child.levelLabel}</span> : null}
+              {child.status === "actif" ? null : (
+                <span className="rounded-full bg-white/15 px-2.5 py-0.5 font-medium text-white">
+                  {tStatus(child.status)}
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
         {child.status === "actif" ? null : (
           <p className="text-sm text-encre-douce">
             {t(stopped ? "stoppedNote" : "pausedNote", { name: child.name })}
           </p>
         )}
+        <nav aria-label={t("sectionsLabel")}>
+          <ul role="list" className="flex flex-wrap gap-2">
+            {[
+              { href: "#seances", icon: CalendarDays, label: t("sessionsHeading") },
+              { href: "#devoirs", icon: ClipboardList, label: t("homeworkHeading") },
+              { href: "#paiements", icon: Wallet, label: t("accountHeading") },
+            ].map((link) => (
+              <li key={link.href}>
+                <a
+                  href={link.href}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-quadrillage bg-surface px-4 text-sm font-medium hover:border-trait"
+                >
+                  <link.icon aria-hidden="true" className="size-4" />
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </header>
 
-      <dl className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage sm:grid-cols-3">
-        <div className="grid content-start gap-1 bg-surface px-4 py-3">
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="col-span-2 grid content-start gap-1 rounded-2xl border border-quadrillage bg-surface p-4 sm:col-span-1">
           <dt className="text-sm text-encre-douce">{t("nextHeading")}</dt>
           <dd className="font-semibold first-letter:uppercase">
             {next
@@ -173,18 +214,35 @@ async function Child({ params }: { params: Promise<{ id: string }> }) {
               : t("noNext")}
           </dd>
         </div>
-        <div className="grid content-start gap-1 bg-surface px-4 py-3">
-          <dt className="text-sm text-encre-douce">{t("lateHeading")}</dt>
+        <div
+          className={cn(
+            "grid content-start gap-1 rounded-2xl border p-4",
+            late > 0
+              ? "border-stylo-rouge bg-lavis-rouge text-stylo-rouge"
+              : "border-quadrillage bg-surface",
+          )}
+        >
+          <dt className={cn("text-sm", late > 0 ? "" : "text-encre-douce")}>{t("lateHeading")}</dt>
           <dd className="font-semibold">
             <a
               href="#devoirs"
-              className="underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+              className="underline decoration-current/30 underline-offset-4 hover:decoration-current"
             >
               {t("lateValue", { count: late })}
             </a>
           </dd>
         </div>
-        <div className="grid content-start gap-1 bg-surface px-4 py-3">
+        <div className="grid content-start gap-1 rounded-2xl border border-quadrillage bg-surface p-4">
+          <dt className="text-sm text-encre-douce">{t("averageHeading")}</dt>
+          <dd>
+            {average === null ? (
+              <span className="font-semibold">{t("noAverage")}</span>
+            ) : (
+              <GradeMark grade={gradeFormat.format(average)} label={t("averageHeading")} />
+            )}
+          </dd>
+        </div>
+        <div className="col-span-2 grid content-start gap-1 rounded-2xl border border-quadrillage bg-surface p-4 sm:col-span-1">
           <dt className="text-sm text-encre-douce">{tAccount("balance")}</dt>
           <dd className="font-semibold tabular">
             <a
@@ -200,8 +258,8 @@ async function Child({ params }: { params: Promise<{ id: string }> }) {
         </div>
       </dl>
 
-      <section aria-labelledby="child-sessions" className="grid gap-4">
-        <h2 id="child-sessions" className="text-lg font-medium">
+      <section id="seances" aria-labelledby="child-sessions" className="grid scroll-mt-6 gap-4">
+        <h2 id="child-sessions" className="text-lg font-semibold">
           {t("sessionsHeading")}
         </h2>
         <Group
@@ -223,7 +281,7 @@ async function Child({ params }: { params: Promise<{ id: string }> }) {
       </section>
 
       <section id="devoirs" aria-labelledby="child-homework" className="grid scroll-mt-6 gap-4">
-        <h2 id="child-homework" className="text-lg font-medium">
+        <h2 id="child-homework" className="text-lg font-semibold">
           {t("homeworkHeading")}
         </h2>
         <Group
@@ -268,7 +326,7 @@ async function Child({ params }: { params: Promise<{ id: string }> }) {
 
       <section id="paiements" aria-labelledby="child-account" className="grid scroll-mt-6 gap-4">
         <div className="grid gap-1">
-          <h2 id="child-account" className="text-lg font-medium">
+          <h2 id="child-account" className="text-lg font-semibold">
             {t("accountHeading")}
           </h2>
           <p className="text-sm text-encre-douce">{t("accountLead")}</p>
@@ -300,12 +358,14 @@ function Group({
   more: (hidden: number) => string;
   children: ReactNode[];
 }) {
-  const list = "grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage";
+  const list = "grid gap-px overflow-hidden rounded-2xl border border-quadrillage bg-quadrillage";
   return (
     <div className="grid gap-2">
       {heading ? <h3 className="text-sm font-semibold text-encre-douce">{heading}</h3> : null}
       {children.length === 0 ? (
-        <p className="text-sm text-encre-douce">{empty}</p>
+        <p className="rounded-2xl border border-dashed border-trait bg-surface px-4 py-4 text-sm text-encre-douce">
+          {empty}
+        </p>
       ) : (
         <>
           <ul className={list} role="list">
@@ -313,7 +373,7 @@ function Group({
           </ul>
           {children.length > shown ? (
             <details className="grid gap-2">
-              <summary className="cursor-pointer py-3 text-sm underline decoration-trait underline-offset-4">
+              <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm underline decoration-trait underline-offset-4">
                 {more(children.length - shown)}
               </summary>
               <ul className={cn(list, "mt-2")} role="list">

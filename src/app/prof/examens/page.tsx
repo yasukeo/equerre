@@ -12,6 +12,7 @@ import { ExamDatesForm } from "./exam-dates-form";
 import { formatLocalDate, localDateKey } from "@/lib/dates";
 import { DATED_PROGRAMMES } from "@/lib/exams/exam-dates";
 import { indicativeDate } from "@/lib/student/progress";
+import { PageHeader } from "@/components/shell/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.exams");
@@ -23,15 +24,15 @@ export default async function ExamsAdminPage({ searchParams }: PageProps<"/prof/
 
   return (
     <div className="grid max-w-4xl gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="grid gap-1">
-          <h1 className="text-xl font-semibold">{t("title")}</h1>
-          <p className="max-w-prose text-encre-douce">{t("lead")}</p>
-        </div>
-        <Link href="/prof/examens/nouveau" className={buttonVariants()}>
-          {t("add")}
-        </Link>
-      </div>
+      <PageHeader
+        title={t("title")}
+        lead={t("lead")}
+        actions={
+          <Link href="/prof/examens/nouveau" className={buttonVariants()}>
+            {t("add")}
+          </Link>
+        }
+      />
       <section
         id="dates"
         aria-labelledby="exam-dates"
@@ -43,11 +44,11 @@ export default async function ExamsAdminPage({ searchParams }: PageProps<"/prof/
           </h2>
           <p className="max-w-prose text-sm text-encre-douce">{t("dates.lead")}</p>
         </div>
-        <Suspense fallback={<div aria-hidden="true" className="h-24 rounded-md bg-sunken" />}>
+        <Suspense fallback={<div aria-hidden="true" className="h-24 rounded-2xl bg-sunken" />}>
           <ExamDates />
         </Suspense>
       </section>
-      <Suspense fallback={<div aria-hidden="true" className="h-72 rounded-md bg-sunken" />}>
+      <Suspense fallback={<div aria-hidden="true" className="h-72 rounded-2xl bg-sunken" />}>
         <Papers searchParams={searchParams} />
       </Suspense>
     </div>

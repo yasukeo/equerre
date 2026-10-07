@@ -28,7 +28,7 @@ export default async function EditPaperPage({ params }: PageProps<"/prof/examens
       >
         {t("back")}
       </Link>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <EditPaper params={params} />
       </Suspense>
     </div>
@@ -61,7 +61,7 @@ async function EditPaper({ params }: { params: Promise<{ id: string }> }) {
   return (
     <div className="grid gap-8">
       <div className="grid gap-2">
-        <h1 className="text-xl font-semibold">
+        <h1 className="text-[clamp(1.6rem,1.3rem+1.4vw,2.1rem)] leading-tight font-semibold break-words [font-variation-settings:'HEXP'_45]">
           {t("paperTitle", { year: paper.year, session: paper.session })}
           {paper.track ? ` · ${paper.track}` : null}
         </h1>

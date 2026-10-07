@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  calendarDaysBetween,
   appUtcOffsetMinutes,
   formatLocal,
   formatLocalDate,
@@ -168,5 +169,18 @@ describe("formatLocalDate", () => {
     // wall-clock instant falls on a different day either side of it.
     expect(formatLocalDate("2026-03-01T23:30:00Z")).toBe("1 mars 2026");
     expect(formatLocalDate("2026-06-01T23:30:00Z")).toBe("2 juin 2026");
+  });
+});
+
+describe("calendarDaysBetween", () => {
+  it("counts Casablanca calendar days, not 24-hour steps", () => {
+    // 22 hours apart but on two dates; 19 hours apart on one. Away from midnight, so the
+    // result holds whatever offset the runtime's time-zone data gives Casablanca.
+    expect(calendarDaysBetween("2026-10-07T08:00:00Z", "2026-10-08T06:00:00Z")).toBe(1);
+    expect(calendarDaysBetween("2026-10-07T02:00:00Z", "2026-10-07T21:00:00Z")).toBe(0);
+  });
+
+  it("is negative for a day in the past", () => {
+    expect(calendarDaysBetween("2026-10-07T12:00:00Z", "2026-10-04T20:00:00Z")).toBe(-3);
   });
 });

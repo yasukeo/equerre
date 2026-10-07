@@ -8,6 +8,7 @@ import { requireViewer } from "@/lib/auth";
 import { formatDate } from "@/lib/payments/format";
 import { listPostsForTutor, POST_CATEGORIES } from "@/lib/posts/queries";
 import { NewPostForm } from "./new-post-form";
+import { PageHeader } from "@/components/shell/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("postsAdmin");
@@ -19,17 +20,12 @@ export default async function PostsAdminPage({ searchParams }: PageProps<"/prof/
 
   return (
     <div className="grid max-w-5xl gap-6">
-      <Link
-        href="/prof/site"
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-      >
-        {t("back")}
-      </Link>
-      <div className="grid gap-1">
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="max-w-prose text-encre-douce">{t("lead")}</p>
-      </div>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <PageHeader
+        back={{ href: "/prof/site", label: t("back") }}
+        title={t("title")}
+        lead={t("lead")}
+      />
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <Posts searchParams={searchParams} />
       </Suspense>
     </div>

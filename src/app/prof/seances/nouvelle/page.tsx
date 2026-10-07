@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { requireViewer } from "@/lib/auth";
 import { localDateKey } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { PlanForm } from "./plan-form";
+import { PageHeader } from "@/components/shell/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.planSession");
@@ -19,17 +19,12 @@ export default async function PlanSessionPage({
 
   return (
     <div className="grid max-w-2xl gap-6">
-      <Link
-        href="/prof/seances"
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-      >
-        {t("back")}
-      </Link>
-      <div className="grid gap-1">
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="text-encre-douce">{t("lead")}</p>
-      </div>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <PageHeader
+        back={{ href: "/prof/seances", label: t("back") }}
+        title={t("title")}
+        lead={t("lead")}
+      />
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <Plan searchParams={searchParams} />
       </Suspense>
     </div>

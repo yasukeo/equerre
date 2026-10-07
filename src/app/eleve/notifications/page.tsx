@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { NotificationList } from "@/components/notifications/notification-list";
+import { PageHeader } from "@/components/shell/page-header";
 import { requireViewer } from "@/lib/auth";
 import { listMyNotifications } from "@/lib/notifications/queries";
 
@@ -13,9 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function StudentNotificationsPage() {
   const t = await getTranslations("notifications");
   return (
-    <div className="mx-auto grid max-w-2xl gap-6">
-      <h1 className="text-xl font-semibold">{t("title")}</h1>
-      <Suspense fallback={<div aria-hidden="true" className="h-64 rounded-md bg-sunken" />}>
+    <div className="mx-auto grid max-w-2xl grid-cols-[minmax(0,1fr)] gap-6">
+      <PageHeader title={t("title")} />
+      <Suspense fallback={<div aria-hidden="true" className="h-64 rounded-2xl bg-sunken" />}>
         <StudentNotifications />
       </Suspense>
     </div>

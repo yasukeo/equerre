@@ -5,6 +5,7 @@ import { listAssignableExercises, listRecipients } from "@/lib/assignment/querie
 import { requireViewer } from "@/lib/auth";
 import { localDateKeyInDays } from "@/lib/dates";
 import { NewAssignmentForm } from "./new-assignment-form";
+import { PageHeader } from "@/components/shell/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.newAssignment");
@@ -18,11 +19,8 @@ export default async function NewAssignmentPage({
 
   return (
     <div className="grid max-w-3xl gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="mt-1 text-encre-douce">{t("lead")}</p>
-      </div>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <PageHeader title={t("title")} lead={t("lead")} />
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <NewAssignment searchParams={searchParams} />
       </Suspense>
     </div>

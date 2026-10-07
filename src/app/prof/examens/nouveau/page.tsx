@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { requireViewer } from "@/lib/auth";
 import { listProgrammes } from "@/lib/lesson/queries";
 import { PaperForm } from "../paper-form";
+import { PageHeader } from "@/components/shell/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.exams");
@@ -16,17 +16,12 @@ export default async function NewPaperPage() {
 
   return (
     <div className="grid max-w-4xl gap-6">
-      <Link
-        href="/prof/examens"
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-      >
-        {t("back")}
-      </Link>
-      <div className="grid gap-1">
-        <h1 className="text-xl font-semibold">{t("newTitle")}</h1>
-        <p className="max-w-prose text-encre-douce">{t("newLead")}</p>
-      </div>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <PageHeader
+        back={{ href: "/prof/examens", label: t("back") }}
+        title={t("newTitle")}
+        lead={t("newLead")}
+      />
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <NewPaper />
       </Suspense>
     </div>

@@ -32,7 +32,7 @@ export default async function EditPostPage({ params }: PageProps<"/prof/conseils
       >
         {t("back")}
       </Link>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <EditPost params={params} />
       </Suspense>
     </div>
@@ -53,7 +53,9 @@ async function EditPost({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <>
-      <h1 className="text-xl font-semibold">{post.title}</h1>
+      <h1 className="text-[clamp(1.6rem,1.3rem+1.4vw,2.1rem)] leading-tight font-semibold break-words [font-variation-settings:'HEXP'_45]">
+        {post.title}
+      </h1>
       <PostEditor
         calloutLabels={calloutLabels}
         categories={POST_CATEGORIES}

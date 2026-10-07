@@ -24,7 +24,7 @@ export default async function GroupPage({ params }: PageProps<"/prof/eleves/grou
       >
         {t("backToGroups")}
       </Link>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <Group params={params} />
       </Suspense>
     </div>
@@ -43,7 +43,9 @@ async function Group({ params }: { params: Promise<{ id: string }> }) {
   return (
     <article className="grid gap-8">
       <header className="grid gap-1">
-        <h1 className="text-xl font-semibold">{group.name}</h1>
+        <h1 className="text-[clamp(1.6rem,1.3rem+1.4vw,2.1rem)] leading-tight font-semibold break-words [font-variation-settings:'HEXP'_45]">
+          {group.name}
+        </h1>
         <p className="text-encre-douce">
           {[
             group.levels.find((level) => level.code === group.levelCode)?.label ?? t("anyLevel"),

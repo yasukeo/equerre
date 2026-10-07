@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { StudentStatusChip } from "@/components/student-status";
+import { PageHeader } from "@/components/shell/page-header";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Input, Label, Select } from "@/components/ui/input";
 import { requireViewer } from "@/lib/auth";
@@ -23,21 +24,26 @@ export default async function StudentsPage({ searchParams }: PageProps<"/prof/el
   const t = await getTranslations("tutor.students");
 
   return (
-    <div className="grid max-w-4xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/prof/eleves/groupes" className={buttonVariants({ variant: "outline" })}>
-            <Users aria-hidden="true" />
-            {t("groups")}
-          </Link>
-          <Link href="/prof/eleves/inviter" className={buttonVariants()}>
-            <UserPlus aria-hidden="true" />
-            {t("invite")}
-          </Link>
-        </div>
-      </div>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+    <div className="grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-6">
+      <PageHeader
+        title={t("title")}
+        actions={
+          <>
+            <Link
+              href="/prof/eleves/groupes"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <Users aria-hidden="true" />
+              {t("groups")}
+            </Link>
+            <Link href="/prof/eleves/inviter" className={buttonVariants()}>
+              <UserPlus aria-hidden="true" />
+              {t("invite")}
+            </Link>
+          </>
+        }
+      />
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <Students searchParams={searchParams} />
       </Suspense>
     </div>
