@@ -17,7 +17,7 @@ Next.js 16.3 (App Router, Cache Components) · React 19.3 · TypeScript 7 · Tai
 
 ### 1. Install the tools
 
-- **Node.js 24 LTS** (anything from 22.12 works): <https://nodejs.org>
+- **Node.js 24 LTS**, a release whose time-zone data is 2026c or newer (`node -p process.versions.tz`): Morocco moved to plain UTC on 2026-09-20, and older data shows every time an hour late. <https://nodejs.org>
 - **Git**
 - **pnpm 12.** The project pins it in `package.json`. If `pnpm --version` shows something older, either run every command below as `npx pnpm@12.4.1 …`, or install it once with `npm install -g pnpm@12.4.1`.
 

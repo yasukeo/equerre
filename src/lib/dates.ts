@@ -3,8 +3,10 @@ import { addDays, format, startOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
 
 /**
- * Every date a person sees is rendered in this zone. Never hardcode its offset:
- * Morocco is UTC+1 most of the year and UTC+0 during Ramadan.
+ * Every date a person sees is rendered in this zone. Never hardcode its offset: Morocco was
+ * UTC+1 outside Ramadan until 2026-09-20 02:00, and is on plain UTC since (tzdata 2026c). A
+ * runtime with older time-zone data shows every time an hour late: Vercel's Node 24 has 2026c;
+ * a development machine needs a Node release that ships it too.
  */
 export const APP_TIME_ZONE = "Africa/Casablanca";
 
