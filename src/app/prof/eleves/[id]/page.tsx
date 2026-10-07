@@ -154,7 +154,7 @@ async function Student({
         ) : null}
       </header>
 
-      <dl className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage grid-cols-2 lg:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage lg:grid-cols-4">
         <Figure
           term={t("averageHeading")}
           value={
