@@ -107,43 +107,49 @@ Times, grades and MAD amounts use `tabular-nums` so columns line up.
 
 ## Layout
 
-**Student app** — mobile first, bottom navigation, tonight's work above everything.
+**Student app** — mobile first, five places in the bottom bar (Accueil, Réviser, Devoirs, Agenda, Messages), her profile behind her initials in the header (D-104). The home puts tonight's work first: homework due within two days comes above the next session.
 
 ```
 ┌────────────────────────────────┐
-│ Bonsoir Salma          2BAC PC │
+│ Bonjour Salma      [J-243 bac] │
 ├────────────────────────────────┤
-│ À rendre                       │
+│ Devoirs à rendre               │
 │ ○ Suites — série 3             │
-│   pour demain, 18:00           │
-│ ○ Limites — exercices 4 et 7   │
-│   jeudi                        │
+│   pour demain, 18:00  ▓▓░░ 2/4 │
 ├────────────────────────────────┤
-│ Prochaine séance               │
-│ mar. 17 sept. · 18:00 – 19:30  │
-│ Chez le professeur             │
+│ Prochaine séance  (blue band)  │
+│ mar. 13 oct. · 16:00 – 18:00   │
 ├────────────────────────────────┤
-│ Nouveaux cours                 │
-│ Dérivation — 2BAC PC           │
+│ ▶ Reprendre  (ink card)        │
+│ Limites — partie 2   lu à 40 % │
 ├────────────────────────────────┤
-│ Accueil  Devoirs  Séances  Messages │
+│ Accueil Réviser Devoirs Agenda Messages │
 └────────────────────────────────┘
 ```
 
-**Tutor workspace** — desktop density, a rail that collapses to icons at 1024–1279px and becomes the same bottom bar under 768px.
+### Progress, drawn with the pencil case (D-104)
+
+A student's progress uses the instruments in her pencil case, in the pens' colours: never a generic progress bar.
+
+- **The graduated ruler** — a chapter: one graduation per document, long and in ink once understood, mid-length in blue pen once opened, short and faint before. It sits on every chapter card, the chapter page and the tutor's view of the student.
+- **The protractor** — the programme: a half-circle with a real protractor's graduations every ten degrees, one sector per chapter, ink when understood, blue pen when started. The figure in the middle says it in words (« 4/12 chapitres compris »).
+- **The highlighter** marks the days left before the exam (« J-243 »), as it marks today and where you are.
+- **The reading line** — a thin blue-pen line across the top of the screen fills as she reads a document.
+
+**Tutor workspace** — desktop density, a rail in three groups (the day, teaching, managing) with counts beside Messages and Devoirs, a search box in the header (Ctrl K) that reaches any student, page or action. It collapses to the same bottom bar under 768px.
 
 ```
-┌──────────┬──────────────────────────────────────────────────┐
-│ Équerre  │ Aujourd'hui — mardi 16 septembre                 │
-│          ├──────────────────────────────┬───────────────────┤
-│ Accueil  │ 14:00 ┬ Yassine B.   1BAC SM │ 3 demandes        │
-│ Élèves   │       │ chez le professeur   │ 5 copies à        │
-│ Séances  │ 16:00 ┼ 2BAC PC — mardi 16h  │   corriger        │
-│ Cours    │       │ 6 élèves             │ 2 soldes en       │
-│ Messages │ 18:00 ┴ Salma A.     2BAC PC │   retard          │
-│          │  ↑ a graduated ruler, not a  │                   │
-│          │    list of cards             │                   │
-└──────────┴──────────────────────────────┴───────────────────┘
+┌──────────┬──────────────────────────────────────────────────────┐
+│ Équerre  │ [Rechercher… Ctrl K]                                 │
+│          ├──────────────────────────────────────────────────────┤
+│ Accueil  │ Bonjour Keltoum      [Planifier] [Devoir] [Paiement] │
+│ Séances  │ ┌1 message┐┌0 copie┐┌0 demande┐┌12 à clore┐┌2 soldes┐ │
+│ Messages①│ Cette semaine  L M [M] J V S D   │ Ce que font vos  │
+│ Élèves   │ Séances du jour (ruler)          │ élèves           │
+│ ENSEIGNER│ 14:00 ┬ Yassine B.   1BAC SM     │ Salma a compris… │
+│ Devoirs  │ 16:00 ┼ 2BAC PC — mardi 16h      │ Omar a rendu…    │
+│ …        │                                  │ À relancer       │
+└──────────┴──────────────────────────────────┴──────────────────┘
 ```
 
 The day is drawn as a **graduated ruler**: time runs down a scale with tick marks, and sessions hang off it at their real length. A 2-hour group session takes up twice the space of a 1-hour one, so she reads the shape of her day at a glance.
@@ -174,6 +180,8 @@ All motion is disabled under `prefers-reduced-motion: reduce`.
 | Assignment | ○ À faire · ◐ Rendu (blue) · ✓ Corrigé (red)                               |
 | Session    | ⧗ En attente · ▢ Planifiée · ✓ Terminée · ✕ Annulée · ⊘ Absent · — Refusée |
 | Payment    | ✓ À jour · △ En retard de _n_ jours                                        |
+| Chapter    | ◌ À commencer · ◷ En cours (blue) · ✓ Compris (ink)                         |
+| Homework   | ○ À faire · ◷ En attente (blue) · ✓ Terminé                                 |
 
 ## Dark mode and RTL
 

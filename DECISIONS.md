@@ -925,6 +925,31 @@ Asked on 2026-10-06: a correction for each of the 47 papers the ministry publish
   - **Accepted, as for lessons (D-096):** a correction's public PDF stays in the CDN under its old address after the paper is taken off the site.
 - **Done on 2026-10-07.** All 47 are written and online: 17 Sciences mathématiques, 14 Sciences expérimentales (2 in French in 2016 and 2 in 2021, the rest from Arabic papers) and 16 Sciences économiques (all from Arabic papers). With the ministry's 43, every one of the 90 published papers now has an answer key.
 
+**D-104 — A student's own way through the course, and a tutor who sees it.**
+Asked on 2026-10-07: the student and tutor areas were "not intuitive, hard to navigate, missing features". The owner chose four student features (progress and resume, past papers in exam mode, search and « à revoir », the exam countdown with a revision plan and grade curve), the same identity made stronger, and the student area first.
+
+- **What is stored** (`20261007120000_student_progress.sql`, fixed in `20261007140000_…`):
+  - `lesson_progress`: what she opened, how far she read (0 to 1), whether she said she understood it;
+  - `lesson_bookmarks`: what she keeps « à revoir »;
+  - `exam_attempts`: a past paper sat against the clock, and the mark she gave herself with the correction open;
+  - `exam_dates`: the day each exam begins, set by the tutor (2e bac national, 3e année régional).
+  - The student writes only through `track_lesson`, `set_lesson_bookmark`, `start_exam_attempt`, `finish_exam_attempt` and `abandon_exam_attempt`, which check that she may read what she tracks. She and the tutor read the rows; parents do not. The default table grants are taken back.
+  - A stopped student keeps reading what is public but does not sit new exams. One running attempt per paper: starting again returns it.
+- **The student area** has five places a thumb reaches: Accueil, Réviser, Devoirs, Agenda, Messages; her profile is behind her initials.
+  - **Réviser** is her programme by semester, chapter by chapter, each with a graduated ruler: one graduation per document, long in ink once understood, in blue pen once opened. A search over the whole programme sits on top. « Reprendre » opens the last document where she left it, or the next one after the last she finished.
+  - **A chapter page** lists its documents in the order they are worked: course, summary, series, test.
+  - **Reading** remembers her place (saved when she stops scrolling, since a page left through the navigation may stay mounted), offers to take her back, and ends with « J’ai compris » or « J’ai fini », which moves the ruler.
+  - **Sujets du bac**: every paper of her programme. Exam mode asks before starting and before finishing, keeps the clock from the server's start time, can be given up, then opens the correction and asks for her mark out of 20. The correction can also be read without the clock; that is not recorded.
+  - **Ma progression**: the programme as a protractor (one sector per chapter), the days before the exam on a highlighter stroke, a week-by-week plan spreading the chapters left over the weeks left (the last three weeks for past papers), and her grades as a curve.
+  - **Devoirs** in three tabs: à faire, en attente (handed in, waiting for the tutor), terminés. **Agenda** puts sessions and homework due on one list of days.
+- **The tutor area**:
+  - **Home**: tiles for what waits (messages, copies, requests, sessions to close, overdue balances), the week as seven days, today's ruler, what students did lately (read, understood, handed in, sat a paper) and the active students who did nothing for ten days.
+  - **Navigation** in three groups (the day, teaching, managing) with counts beside Messages and Devoirs, and a search over students, groups, pages and actions (Ctrl K).
+  - **A student's file** opens with her progress (protractor, chapters started with their rulers, what she keeps « à revoir », the papers she sat and her marks, her last activity) under a bar of the file's sections. The list of students says when each last read something.
+  - **Exam dates** are set on the exams page; without one, students see the first Monday of June, said to be indicative.
+- **French typography** now applies to every message, not only to titles: the space before « : ; ! ? % » and inside « » is non-breaking (`frenchSpacesDeep`, D-089).
+- **Reviewed** by three reviewers per area (security, logic, interface); the fixes are in the commits « Student area: fixes after review » and « Tutor area: fixes after review ».
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.
