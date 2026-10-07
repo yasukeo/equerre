@@ -46,7 +46,11 @@ export function CommandPalette({ items, labels }: { items: PaletteItem[]; labels
   const optionId = (index: number) => `${listId}-${index}`;
 
   const indexed = useMemo(
-    () => items.map((item) => ({ item, text: fold(`${item.label} ${item.detail ?? ""} ${item.keywords ?? ""}`) })),
+    () =>
+      items.map((item) => ({
+        item,
+        text: fold(`${item.label} ${item.detail ?? ""} ${item.keywords ?? ""}`),
+      })),
     [items],
   );
   const words = fold(query).split(/\s+/).filter(Boolean);
@@ -153,7 +157,12 @@ export function CommandPalette({ items, labels }: { items: PaletteItem[]; labels
             <X aria-hidden="true" className="size-5" />
           </button>
         </div>
-        <ul id={listId} role="listbox" aria-label={labels.open} className="max-h-[60vh] overflow-y-auto p-2">
+        <ul
+          id={listId}
+          role="listbox"
+          aria-label={labels.open}
+          className="max-h-[60vh] overflow-y-auto p-2"
+        >
           {results.length === 0 ? (
             <li role="presentation" className="px-3 py-6 text-center text-sm text-encre-douce">
               {labels.empty}
@@ -198,7 +207,9 @@ export function CommandPalette({ items, labels }: { items: PaletteItem[]; labels
             })
           )}
         </ul>
-        <p className="border-t border-quadrillage px-4 py-2 text-xs text-encre-douce">{labels.hint}</p>
+        <p className="border-t border-quadrillage px-4 py-2 text-xs text-encre-douce">
+          {labels.hint}
+        </p>
       </dialog>
     </>
   );

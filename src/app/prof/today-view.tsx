@@ -233,7 +233,10 @@ export async function TodayView() {
             <Link
               key={action.href}
               href={action.href}
-              className={buttonVariants({ variant: index === 0 ? "default" : "outline", size: "sm" })}
+              className={buttonVariants({
+                variant: index === 0 ? "default" : "outline",
+                size: "sm",
+              })}
             >
               <action.icon aria-hidden="true" className="size-4" />
               {action.label}
@@ -323,7 +326,10 @@ export async function TodayView() {
                     {Array.from({ length: Math.min(entry.count, 4) }, (_, dot) => (
                       <span
                         key={dot}
-                        className={cn("size-1.5 rounded-full", isToday ? "bg-encre-fixe" : "bg-bleu")}
+                        className={cn(
+                          "size-1.5 rounded-full",
+                          isToday ? "bg-encre-fixe" : "bg-bleu",
+                        )}
                       />
                     ))}
                   </span>
@@ -455,7 +461,11 @@ function initialsOf(name: string): string {
 }
 
 /** « il y a 5 min », « il y a 3 h », « il y a 4 j ». */
-function ago(at: string, now: Date, t: (key: "agoMinutes" | "agoHours" | "agoDays", values: { count: number }) => string) {
+function ago(
+  at: string,
+  now: Date,
+  t: (key: "agoMinutes" | "agoHours" | "agoDays", values: { count: number }) => string,
+) {
   const minutes = Math.max(Math.round((now.getTime() - Date.parse(at)) / 60_000), 0);
   if (minutes < 60) return t("agoMinutes", { count: Math.max(minutes, 1) });
   const hours = Math.round(minutes / 60);

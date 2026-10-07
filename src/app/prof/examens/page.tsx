@@ -8,6 +8,7 @@ import { Flash } from "@/components/ui/flash";
 import { requireViewer } from "@/lib/auth";
 import { formatFileSize } from "@/lib/lesson/file-size";
 import { createClient } from "@/lib/supabase/server";
+import { ExamDatesForm } from "./exam-dates-form";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutor.exams");
@@ -28,10 +29,46 @@ export default async function ExamsAdminPage({ searchParams }: PageProps<"/prof/
           {t("add")}
         </Link>
       </div>
+      <section
+        id="dates"
+        aria-labelledby="exam-dates"
+        className="grid scroll-mt-6 gap-3 rounded-2xl border border-quadrillage bg-surface p-5"
+      >
+        <div className="grid gap-1">
+          <h2 id="exam-dates" className="text-lg font-semibold">
+            {t("dates.title")}
+          </h2>
+          <p className="max-w-prose text-sm text-encre-douce">{t("dates.lead")}</p>
+        </div>
+        <Suspense fallback={<div aria-hidden="true" className="h-24 rounded-md bg-sunken" />}>
+          <ExamDates />
+        </Suspense>
+      </section>
       <Suspense fallback={<div aria-hidden="true" className="h-72 rounded-md bg-sunken" />}>
         <Papers searchParams={searchParams} />
       </Suspense>
     </div>
+  );
+}
+
+const DATED = ["2BAC-SM", "2BAC-SEXP", "2BAC-ECO", "2BAC-LSH", "3AC"];
+
+async function ExamDates() {
+  await requireViewer("tutor");
+  const supabase = await createClient();
+  const [{ data: programmes }, { data: dates }] = await Promise.all([
+    supabase.from("programmes").select("code, label, position").in("code", DATED).order("position"),
+    supabase.from("exam_dates").select("programme_code, starts_on"),
+  ]);
+  const byCode = new Map((dates ?? []).map((row) => [row.programme_code, row.starts_on]));
+  return (
+    <ExamDatesForm
+      programmes={(programmes ?? []).map((programme) => ({
+        code: programme.code,
+        label: programme.label,
+        date: byCode.get(programme.code) ?? "",
+      }))}
+    />
   );
 }
 

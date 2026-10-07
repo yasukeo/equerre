@@ -7,9 +7,10 @@ import { StudentStatusChip } from "@/components/student-status";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Input, Label, Select } from "@/components/ui/input";
 import { requireViewer } from "@/lib/auth";
-import { formatLocal } from "@/lib/dates";
+import { formatLocal, localDateKey } from "@/lib/dates";
 import { formatHours } from "@/lib/payments/format";
 import { getAccounts } from "@/lib/payments/queries";
+import { lastReadByStudent } from "@/lib/student/activity";
 import { listStudents, type StudentRow } from "@/lib/students/queries";
 import { cn } from "@/lib/utils";
 
@@ -61,9 +62,11 @@ async function Students({
     getTranslations("studentStatus"),
     searchParams,
   ]);
-  const [{ students, levels }, accounts] = await Promise.all([
-    listStudents(new Date()),
+  const now = new Date();
+  const [{ students, levels }, accounts, lastRead] = await Promise.all([
+    listStudents(now),
     getAccounts(),
+    lastReadByStudent(),
   ]);
 
   // The filters travel in the address, so a filtered list can be kept and shared as a link.
@@ -197,6 +200,15 @@ async function Students({
                 noGroup: t("noGroup"),
                 balance: t("balance", { hours: formatHours(balanceOf(student.id)) }),
                 overdue: t("overdue"),
+                lastRead: lastRead.has(student.id)
+                  ? t("lastRead", {
+                      days: daysAgo(lastRead.get(student.id) ?? "", now),
+                    })
+                  : t("neverRead"),
+                quiet:
+                  student.status === "actif" &&
+                  (!lastRead.has(student.id) ||
+                    now.getTime() - Date.parse(lastRead.get(student.id) ?? "") > QUIET_MS),
               }}
               owes={owes(student.id)}
             />
@@ -208,6 +220,13 @@ async function Students({
 }
 
 const gradeFormat = new Intl.NumberFormat("fr", { maximumFractionDigits: 1 });
+const QUIET_MS = 10 * 24 * 60 * 60 * 1000;
+
+/** Calendar days in Casablanca between an instant and now: 0 today, 1 yesterday. */
+function daysAgo(at: string, now: Date): number {
+  const today = Date.parse(`${localDateKey(now)}T00:00:00Z`);
+  return Math.round((today - Date.parse(`${localDateKey(at)}T00:00:00Z`)) / 86_400_000);
+}
 
 function StudentItem({
   student,
@@ -224,6 +243,8 @@ function StudentItem({
     noGroup: string;
     balance: string;
     overdue: string;
+    lastRead: string;
+    quiet: boolean;
   };
 }) {
   return (
@@ -261,6 +282,7 @@ function StudentItem({
             {owes ? ` · ${t.overdue}` : null}
           </span>
           <span>{t.nextSession}</span>
+          <span className={cn(t.quiet && "font-medium text-encre")}>{t.lastRead}</span>
           <span>
             {student.groups.length === 0
               ? t.noGroup

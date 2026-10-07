@@ -26,6 +26,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getStudentFile, type StudentSession } from "@/lib/students/queries";
 import { NotesPanel } from "./notes-panel";
 import { ParentsPanel } from "./parents-panel";
+import { ProgressPanel } from "./progress-panel";
 import { StudentForm } from "./student-form";
 import { VoidPaymentForm } from "./void-payment-form";
 
@@ -212,9 +213,51 @@ async function Student({
         </div>
       </dl>
 
+      {/* The file is long: its sections, always one tap away (D-104). */}
+      <nav
+        aria-label={t("sectionsLabel")}
+        className="sticky top-0 z-30 -mx-4 overflow-x-auto border-y border-quadrillage bg-papier/95 px-4 backdrop-blur md:-mx-8 md:px-8 print:hidden"
+      >
+        <ul role="list" className="flex gap-1 py-1.5">
+          {(
+            [
+              ["progression", t("sectionProgress")],
+              ["seances", t("sessionsHeading")],
+              ["devoirs", t("homeworkHeading")],
+              ["paiements", tAccount("heading")],
+              ["fiche", t("contactHeading")],
+            ] as const
+          ).map(([anchor, label]) => (
+            <li key={anchor}>
+              <a
+                href={`#${anchor}`}
+                className="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium whitespace-nowrap hover:bg-sunken"
+              >
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         <div className="grid min-w-0 gap-10">
-          <section aria-labelledby="student-sessions" className="grid gap-4">
+          <section
+            id="progression"
+            aria-labelledby="student-progress"
+            className="grid scroll-mt-20 gap-4"
+          >
+            <h2 id="student-progress" className="text-lg font-medium">
+              {t("sectionProgress")}
+            </h2>
+            <ProgressPanel studentId={profile.id} levelCode={profile.levelCode} />
+          </section>
+
+          <section
+            id="seances"
+            aria-labelledby="student-sessions"
+            className="grid scroll-mt-20 gap-4"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 id="student-sessions" className="text-lg font-medium">
                 {t("sessionsHeading")}
@@ -237,7 +280,11 @@ async function Student({
             <SessionList heading={t("pastHeading")} empty={t("noPast")} sessions={file.past} />
           </section>
 
-          <section aria-labelledby="student-homework" className="grid gap-3">
+          <section
+            id="devoirs"
+            aria-labelledby="student-homework"
+            className="grid scroll-mt-20 gap-3"
+          >
             <h2 id="student-homework" className="text-lg font-medium">
               {t("homeworkHeading")}
             </h2>
@@ -286,7 +333,7 @@ async function Student({
           <section
             id="paiements"
             aria-labelledby="student-payments"
-            className="grid scroll-mt-6 gap-4"
+            className="grid scroll-mt-20 gap-4"
           >
             <h2 id="student-payments" className="text-lg font-medium">
               {tAccount("heading")}
@@ -328,7 +375,7 @@ async function Student({
         </div>
 
         <div className="grid gap-8">
-          <section aria-labelledby="student-contact" className="grid gap-2">
+          <section id="fiche" aria-labelledby="student-contact" className="grid scroll-mt-20 gap-2">
             <h2 id="student-contact" className="text-lg font-medium">
               {t("contactHeading")}
             </h2>

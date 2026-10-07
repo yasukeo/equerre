@@ -372,3 +372,36 @@ export async function setCorrectionPublished(
   updateTag(EXAMS_TAG);
   return { status: "success", message: published ? t("published") : t("unpublished") };
 }
+
+/** The programmes whose students count down to an exam (D-104), and the order shown. */
+const DATED_PROGRAMMES = ["2BAC-SM", "2BAC-SEXP", "2BAC-ECO", "2BAC-LSH", "3AC"] as const;
+
+/**
+ * The days the exams begin, for her students' countdown and revision plan. An empty field
+ * forgets the date: the students then see an indicative one, said to be so.
+ */
+export async function saveExamDates(_previous: FormState, formData: FormData): Promise<FormState> {
+  await requireViewer("tutor");
+  const t = await getTranslations("tutor.exams.dates");
+  const supabase = await createClient();
+  const day = z.iso.date();
+  const values: Record<string, string> = {};
+  for (const code of DATED_PROGRAMMES) {
+    const raw = textField(formData, `date-${code}`).trim();
+    values[`date-${code}`] = raw;
+    if (raw !== "" && !day.safeParse(raw).success) {
+      return { status: "error", message: t("invalid"), values };
+    }
+  }
+  for (const code of DATED_PROGRAMMES) {
+    const raw = values[`date-${code}`] ?? "";
+    const { error } =
+      raw === ""
+        ? await supabase.from("exam_dates").delete().eq("programme_code", code)
+        : await supabase
+            .from("exam_dates")
+            .upsert({ programme_code: code, starts_on: raw }, { onConflict: "programme_code" });
+    if (error) return { status: "error", message: t("failed"), values };
+  }
+  return { status: "success", message: t("saved"), values };
+}

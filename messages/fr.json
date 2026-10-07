@@ -673,7 +673,9 @@
       "noGroup": "Dans aucun groupe",
       "balance": "Solde {hours}",
       "overdueOnly": "Soldes en retard seulement",
-      "overdue": "en retard"
+      "overdue": "en retard",
+      "lastRead": "{days, plural, =0 {A lu aujourd’hui} =1 {A lu hier} other {A lu il y a # jours}}",
+      "neverRead": "N’a encore rien lu"
     },
     "student": {
       "title": "Fiche élève",
@@ -763,7 +765,23 @@
       "autoConfirm": "Confirmer ses réservations d’office",
       "autoConfirmHint": "Ses demandes de séance sont confirmées sans attendre votre réponse. Vous recevez un email à chaque réservation.",
       "planSession": "Planifier une séance",
-      "write": "Écrire à l’élève"
+      "write": "Écrire à l’élève",
+      "sectionsLabel": "Sections de la fiche",
+      "sectionProgress": "Progression",
+      "progress": {
+        "noProgramme": "Sa filière n’est pas renseignée : complétez sa fiche pour suivre sa progression.",
+        "opened": "documents lus",
+        "understood": "compris",
+        "saved": "à revoir",
+        "chaptersStarted": "Chapitres commencés",
+        "nothingStarted": "Rien d’ouvert dans son programme pour l’instant.",
+        "savedHeading": "Gardé « à revoir »",
+        "savedEmpty": "Rien de gardé : les documents qu’un élève marque « à revoir » montrent ce qui lui résiste.",
+        "papersHeading": "Sujets du bac passés",
+        "papersEmpty": "Aucun sujet passé en mode examen.",
+        "selfScoreNote": "Notes que l’élève s’est données, corrigé en main.",
+        "activityHeading": "Ces derniers jours"
+      }
     },
     "groups": {
       "title": "Groupes",
@@ -1214,6 +1232,15 @@
         "published": "Le corrigé est de nouveau en ligne.",
         "gone": "Ce corrigé n’existe plus. Rechargez la page.",
         "failed": "Le corrigé n’a pas pu être mis à jour. Réessayez."
+      },
+      "dates": {
+        "title": "Dates des examens",
+        "lead": "Le premier jour de chaque examen. Vos élèves voient le compte à rebours et leur plan de révision s’y cale ; sans date, ils voient une date indicative (le premier lundi de juin), présentée comme telle.",
+        "save": "Enregistrer les dates",
+        "hint": "Laissez un champ vide pour revenir à la date indicative.",
+        "saved": "Dates enregistrées.",
+        "invalid": "Une date n’est pas valide : choisissez-la dans le calendrier.",
+        "failed": "Les dates n’ont pas pu être enregistrées. Réessayez."
       }
     },
     "search": {
