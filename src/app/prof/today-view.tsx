@@ -32,6 +32,7 @@ import { listQuietStudents, listRecentActivity, type ActivityItem } from "@/lib/
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/types/database";
+import { initialsOf } from "@/components/initials";
 
 const SESSION_FIELDS =
   "id, starts_at, ends_at, status, mode, location, student:profiles!sessions_student_id_fkey(full_name, level_code), group:groups(name), session_type:session_types(name)" as const;
@@ -464,12 +465,6 @@ export async function TodayView() {
       </div>
     </div>
   );
-}
-
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  const letters = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts;
-  return letters.map((part) => part?.charAt(0).toLocaleUpperCase("fr") ?? "").join("");
 }
 
 /** « il y a 5 min », « il y a 3 h » the same day, then calendar days in Casablanca. */

@@ -1,11 +1,14 @@
-import { Check, Eye } from "lucide-react";
+import { ArrowRight, Check, Eye } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { z } from "zod";
+import { Initials } from "@/components/initials";
 import { LateBadge } from "@/components/late-badge";
+import { PageHeader } from "@/components/shell/page-header";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
 import { arrangeRemarks } from "@/lib/correction/correction";
 import { getCorrection, type Correction } from "@/lib/correction/queries";
@@ -28,17 +31,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function CorrectionPage({
   params,
 }: PageProps<"/prof/devoirs/corrections/[id]">) {
-  const t = await getTranslations("tutor.correction");
-
   return (
-    <div className="grid max-w-6xl gap-6">
-      <Link
-        href="/prof/devoirs/corrections"
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-      >
-        {t("back")}
-      </Link>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+    <div className="grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6">
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <CorrectionView params={params} />
       </Suspense>
     </div>
@@ -79,23 +74,48 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <article className="grid gap-6">
-      <header className="grid gap-2">
-        <p className="text-sm text-encre-douce">
+      <PageHeader
+        back={{ href: "/prof/devoirs/corrections", label: t("back") }}
+        eyebrow={
           <Link
             href={`/prof/devoirs/${data.homework.id}`}
             className="underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
           >
             {data.homework.title}
           </Link>
-        </p>
-        <h1 className="text-xl font-semibold">
-          {data.student.name}
-          <span className="font-normal text-encre-douce"> · {data.exercise.title}</span>
-        </h1>
-        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" role="list">
+        }
+        title={
+          <span className="flex items-center gap-3">
+            <Initials name={data.student.name} className="size-11 text-sm" />
+            <span className="min-w-0">
+              <Link
+                href={`/prof/eleves/${data.student.id}`}
+                className="underline decoration-quadrillage decoration-2 underline-offset-4 hover:decoration-encre"
+              >
+                {data.student.name}
+              </Link>
+              <span className="block text-base font-normal text-encre-douce [font-variation-settings:normal]">
+                {data.exercise.title}
+              </span>
+            </span>
+          </span>
+        }
+        actions={
+          data.next ? (
+            <Link
+              href={`/prof/devoirs/corrections/${data.next}`}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              {t("next")}
+              <ArrowRight aria-hidden="true" className="size-4 rtl:rotate-180" />
+            </Link>
+          ) : null
+        }
+      >
+        <ul className="flex flex-wrap items-center gap-2 text-sm" role="list">
           <li>
             {corrected ? (
-              <span className="inline-flex items-center gap-1 font-medium">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-quadrillage bg-surface px-3 py-1 font-medium">
                 <Check aria-hidden="true" className="size-4" />
                 {t("correctedOn", {
                   grade: typedGrade(data.grade),
@@ -103,7 +123,7 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
                 })}
               </span>
             ) : (
-              <span className="font-medium text-stylo-bleu">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rouge-fond px-3 py-1 font-medium text-rouge-texte">
                 {t("waitingSince", { date: date(data.submittedAt) })}
               </span>
             )}
@@ -120,7 +140,7 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
             </li>
           ) : null}
         </ul>
-      </header>
+      </PageHeader>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         <section aria-labelledby="copy-heading" className="grid min-w-0 gap-4">
@@ -149,7 +169,7 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
         <div className="grid gap-6 lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto">
           <section
             aria-labelledby="correction-heading"
-            className="grid gap-4 rounded-md border border-quadrillage bg-surface p-4"
+            className="grid gap-4 rounded-2xl border border-quadrillage bg-surface p-4 sm:p-5"
           >
             <h2 id="correction-heading" className="text-base font-semibold">
               {t("correction")}
@@ -166,13 +186,17 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
             />
           </section>
 
-          <details className="group rounded-md border border-quadrillage p-4">
-            <summary className="cursor-pointer font-medium">{t("statement")}</summary>
+          <details className="group rounded-2xl border border-quadrillage bg-surface p-4">
+            <summary className="flex min-h-11 cursor-pointer items-center font-medium">
+              {t("statement")}
+            </summary>
             <div className="lecon-corps mt-3">{draw(data.exercise.statement)}</div>
           </details>
           {data.solution ? (
-            <details className="rounded-md border border-quadrillage p-4">
-              <summary className="cursor-pointer font-medium">{t("solution")}</summary>
+            <details className="rounded-2xl border border-quadrillage bg-surface p-4">
+              <summary className="flex min-h-11 cursor-pointer items-center font-medium">
+                {t("solution")}
+              </summary>
               <div className="lecon-corps mt-3">{draw(data.solution.document)}</div>
             </details>
           ) : null}
@@ -184,9 +208,10 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
         {data.next ? (
           <Link
             href={`/prof/devoirs/corrections/${data.next}`}
-            className="inline-flex min-h-11 items-center underline underline-offset-4"
+            className="inline-flex min-h-11 items-center gap-1.5 font-medium underline underline-offset-4"
           >
-            {t("next")} →
+            {t("next")}
+            <ArrowRight aria-hidden="true" className="size-4 rtl:rotate-180" />
           </Link>
         ) : null}
       </nav>

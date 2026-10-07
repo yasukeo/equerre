@@ -477,13 +477,30 @@
       "title": "Devoirs",
       "new": "Nouveau devoir",
       "empty": "Aucun devoir pour l’instant. Donnez-en un à un élève ou à un groupe.",
-      "upcoming": "À rendre",
-      "past": "Échéance passée",
-      "group": "Groupe {name}",
-      "due": "à rendre le {date}",
       "exercises": "{count, plural, =1 {1 exercice} other {# exercices}}",
       "handedIn": "{total, plural, =1 {{done} sur 1 élève a rendu au moins un exercice} other {{done} sur # élèves ont rendu au moins un exercice}}",
-      "toCorrect": "{count, plural, =0 {Aucune copie à corriger} one {# copie à corriger} other {# copies à corriger}}"
+      "toCorrect": "{count, plural, =0 {Aucune copie à corriger} one {# copie à corriger} other {# copies à corriger}}",
+      "lead": "Les devoirs donnés à vos élèves et à vos groupes, et ce qu’ils en ont rendu.",
+      "listHeading": "Vos devoirs",
+      "views": "Afficher",
+      "view": {
+        "en-cours": "À rendre",
+        "passes": "Échéance passée"
+      },
+      "emptyView": {
+        "en-cours": "Aucun devoir à rendre en ce moment.",
+        "passes": "Aucun devoir dont l’échéance est passée."
+      },
+      "toCorrectShort": "{count} à corriger",
+      "dueIn": "{count, plural, =0 {aujourd’hui} =1 {demain} other {dans # jours}}",
+      "dueAgo": "{count, plural, =1 {hier} other {il y a # jours}}",
+      "nobody": "Personne n’est concerné : le groupe n’a pas d’élève.",
+      "soloHandedIn": "A rendu au moins un exercice",
+      "soloNotYet": "Rien de rendu pour l’instant",
+      "toCorrectBanner": "{count, plural, one {copie à corriger} other {copies à corriger}}",
+      "oldestWaiting": "{days, plural, =0 {La plus ancienne a été rendue aujourd’hui.} =1 {La plus ancienne attend depuis hier.} other {La plus ancienne attend depuis # jours.}}",
+      "startCorrecting": "Commencer à corriger",
+      "seeQueue": "Voir la liste"
     },
     "newAssignment": {
       "title": "Nouveau devoir",
@@ -538,8 +555,7 @@
     "assignment": {
       "title": "Devoir",
       "back": "Tous les devoirs",
-      "group": "groupe {name}",
-      "recipient": "Pour {recipient}",
+      "group": "Groupe {name}",
       "due": "à rendre le {date}",
       "exercises": "{count, plural, =1 {1 exercice} other {# exercices}}",
       "progress": "Suivi",
@@ -575,7 +591,19 @@
         "hasWork": "Des élèves ont déjà répondu ou consulté un corrigé : le devoir ne peut plus être supprimé.",
         "unknown": "L’opération a échoué. Réessayez."
       },
-      "legendElsewhere": "« Déjà fait ailleurs » : l’élève a été corrigé, ou a vu le corrigé, de cet exercice dans un autre devoir. Il ne peut plus le rendre ici."
+      "legendElsewhere": "« Déjà fait ailleurs » : l’élève a été corrigé, ou a vu le corrigé, de cet exercice dans un autre devoir. Il ne peut plus le rendre ici.",
+      "stats": {
+        "handedIn": "{count, plural, one {a rendu quelque chose} other {ont rendu quelque chose}}",
+        "toCorrect": "{count, plural, one {copie à corriger} other {copies à corriger}}",
+        "average": "de moyenne",
+        "noAverage": "pas encore de note"
+      },
+      "correctNow": "{count, plural, one {Corriger la copie} other {Corriger les # copies}}",
+      "dueIn": "{count, plural, =0 {aujourd’hui} =1 {demain} other {dans # jours}}",
+      "dueAgo": "{count, plural, =1 {hier} other {il y a # jours}}",
+      "instructions": "Consignes",
+      "manage": "Modifier ou supprimer",
+      "gradeLabel": "Note"
     },
     "corrections": {
       "title": "Copies à corriger",
@@ -584,8 +612,10 @@
       "empty": "Aucune copie à corriger pour l’instant.",
       "waiting": "{count, plural, one {# copie attend} other {# copies attendent}}",
       "pages": "{count, plural, one {# page} other {# pages}}",
-      "handedIn": "rendue le {date}",
-      "late": "En retard"
+      "late": "En retard",
+      "start": "Commencer",
+      "copies": "{count, plural, one {# copie} other {# copies}}",
+      "waitingFor": "{days, plural, =0 {rendue aujourd’hui} =1 {rendue hier} other {attend depuis # jours}}"
     },
     "correction": {
       "title": "Correction",
@@ -1360,7 +1390,11 @@
         "remarks": "Remarques de votre professeure",
         "remarksOn": "Remarques sur la page {number}",
         "remarksElsewhere": "Autres remarques",
-        "openPage": "Ouvrir la page en grand"
+        "openPage": "Ouvrir la page en grand",
+        "steps": "Exercices du devoir",
+        "stepLabel": "Exercice {number} : {title}",
+        "reviewCourse": "Revoir le cours : {title}",
+        "pager": "Exercice précédent ou suivant"
       },
       "numeric": {
         "label": "Le nombre que vous trouvez",
@@ -1443,7 +1477,16 @@
       "waiting": "{count, plural, one {# exercice en attente de correction} other {# exercices en attente de correction}}",
       "correctedCount": "{count, plural, one {# exercice corrigé} other {# exercices corrigés}}",
       "finished": "Terminé",
-      "soon": "Bientôt"
+      "soon": "Bientôt",
+      "dueIn": "{count, plural, =0 {À rendre aujourd’hui} =1 {À rendre demain} other {À rendre dans # jours}}",
+      "startWith": "Commencer par",
+      "continueWith": "Continuer avec",
+      "exerciseNumber": "Exercice {number}",
+      "answerKind": {
+        "upload": "Réponse en photo",
+        "numeric": "Réponse : un nombre",
+        "mcq": "QCM"
+      }
     },
     "sessions": {
       "title": "Mes séances",

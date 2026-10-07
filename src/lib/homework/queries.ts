@@ -246,6 +246,8 @@ export type MyExercise = {
     answerType: AnswerType;
     choices: Choice[];
     choiceMode: ChoiceMode;
+    /** The chapter it practises, to go back to the course. */
+    chapterId: string | null;
   };
   position: { index: number; count: number; previous: string | null; next: string | null };
   work: ExerciseWork;
@@ -290,7 +292,7 @@ export async function getMyExercise(
   const [exerciseRead, work, submissionRead, solutionRead, { data: folder }] = await Promise.all([
     supabase
       .from("exercises")
-      .select("id, title, statement, answer_type, choices, choice_mode")
+      .select("id, title, statement, answer_type, choices, choice_mode, chapter_id")
       .eq("id", exerciseId)
       .maybeSingle(),
     myWork(supabase, [exerciseId]),
@@ -343,6 +345,7 @@ export async function getMyExercise(
       answerType: exercise.answer_type,
       choices: readChoices(exercise.choices),
       choiceMode: exercise.choice_mode ?? "unique",
+      chapterId: exercise.chapter_id,
     },
     position: {
       index,

@@ -42,13 +42,10 @@ export function AssignmentDetailsForm(props: DetailsProps) {
   const dueError = fieldError(state, "due");
 
   return (
-    <section
-      aria-labelledby="assignment-edit-title"
-      className="grid gap-4 border-t border-quadrillage pt-6"
-    >
-      <h2 id="assignment-edit-title" className="text-base font-semibold">
+    <section aria-labelledby="assignment-edit-title" className="grid gap-4">
+      <h3 id="assignment-edit-title" className="font-semibold">
         {t("title")}
-      </h2>
+      </h3>
       <form
         className="grid gap-4"
         noValidate
@@ -77,7 +74,7 @@ export function AssignmentDetailsForm(props: DetailsProps) {
           <p id="assignment-edit-due-hint" className="text-sm text-encre-douce">
             {t("dueHint")}
           </p>
-          <div className="grid grid-cols-[1fr_auto] gap-2 sm:max-w-sm">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
             <Input
               id="assignment-edit-due-date"
               type="date"
@@ -152,9 +149,9 @@ export function DeleteAssignment({ id, hasWork }: { id: string; hasWork: boolean
       aria-labelledby="assignment-delete-title"
       className="grid gap-3 border-t border-quadrillage pt-6"
     >
-      <h2 id="assignment-delete-title" className="text-sm font-semibold">
+      <h3 id="assignment-delete-title" className="text-sm font-semibold">
         {t("title")}
-      </h2>
+      </h3>
       {hasWork ? (
         <p className="text-sm text-encre-douce">{t("hasWork")}</p>
       ) : confirming ? (
@@ -163,7 +160,7 @@ export function DeleteAssignment({ id, hasWork }: { id: string; hasWork: boolean
           <p ref={questionRef} tabIndex={-1} className="basis-full text-sm">
             {t("confirmQuestion")}
           </p>
-          <Button type="submit" variant="outline" className="text-stylo-rouge" disabled={pending}>
+          <Button type="submit" variant="destructive" disabled={pending}>
             {t("confirm")}
           </Button>
           <Button type="button" variant="ghost" onClick={() => toggle(false)}>

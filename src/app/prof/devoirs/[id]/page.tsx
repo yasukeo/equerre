@@ -1,3 +1,4 @@
+import { ClipboardCheck, Clock, Eye, Pencil, Repeat, User, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,9 +6,13 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { z } from "zod";
 import { AnswerTypeChip } from "@/components/exercise-status";
+import { GradeMark } from "@/components/grade-mark";
+import { PageHeader } from "@/components/shell/page-header";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
-import { formatLocal, localDateKey } from "@/lib/dates";
+import { calendarDaysBetween, formatLocal, localDateKey } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 import { AssignmentDetailsForm, DeleteAssignment } from "./assignment-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,17 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AssignmentPage({ params }: PageProps<"/prof/devoirs/[id]">) {
-  const t = await getTranslations("tutor.assignment");
-
   return (
-    <div className="grid max-w-4xl gap-6">
-      <Link
-        href="/prof/devoirs"
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-      >
-        {t("back")}
-      </Link>
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+    <div className="grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6">
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <Assignment params={params} />
       </Suspense>
     </div>
@@ -143,129 +140,297 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
   }
   const hasWork = (submissions.data?.length ?? 0) + (reveals.data?.length ?? 0) > 0;
 
-  const recipient = assignment.student
-    ? assignment.student.full_name
-    : t("group", { name: assignment.group?.name ?? "" });
   const gradeFormat = new Intl.NumberFormat("fr", { maximumFractionDigits: 2 });
+  const now = new Date();
+  const days = calendarDaysBetween(now, assignment.due_at);
+  const past = Date.parse(assignment.due_at) < now.getTime();
+
+  // What the grid adds up to: who handed something in, what waits for her, how it went.
+  const cellsOf = (studentId: string): Cell[] =>
+    items.map((exercise) => cells.get(`${studentId}/${exercise.id}`) ?? { kind: "none" });
+  const handedInCount = rows.filter(([studentId]) =>
+    cellsOf(studentId).some((cell) => cell.kind === "handedIn" || cell.kind === "graded"),
+  ).length;
+  const toCorrect = [...cells.values()].flatMap((cell) =>
+    cell.kind === "handedIn" ? [cell.submissionId] : [],
+  );
+  const grades = [...cells.values()].flatMap((cell) =>
+    cell.kind === "graded" ? [cell.grade] : [],
+  );
+  const average = grades.length
+    ? grades.reduce((sum, grade) => sum + grade, 0) / grades.length
+    : null;
+  const RecipientIcon = assignment.student ? User : Users;
+
+  const stats = [
+    {
+      key: "handedIn",
+      value: `${handedInCount}/${rows.length}`,
+      label: t("stats.handedIn", { count: rows.length }),
+      tone: "",
+    },
+    {
+      key: "toCorrect",
+      value: String(toCorrect.length),
+      label: t("stats.toCorrect", { count: toCorrect.length }),
+      tone: toCorrect.length > 0 ? "border-transparent bg-rouge-fond text-rouge-texte" : "",
+    },
+    {
+      key: "average",
+      value: average === null ? "—" : `${gradeFormat.format(average)}/20`,
+      label: average === null ? t("stats.noAverage") : t("stats.average"),
+      tone: "",
+    },
+  ];
 
   return (
     <div className="grid gap-8">
-      <header className="grid gap-2">
-        <h1 className="text-xl font-semibold">{assignment.title}</h1>
-        <p className="text-encre-douce">
-          {t("recipient", { recipient })} ·{" "}
-          {t("due", { date: formatLocal(assignment.due_at, "EEEE d MMMM yyyy 'à' HH:mm") })}
-        </p>
-        {assignment.instructions ? (
-          <p className="whitespace-pre-line">{assignment.instructions}</p>
-        ) : null}
-      </header>
-
-      <section aria-labelledby="assignment-exercises" className="grid gap-3">
-        <h2 id="assignment-exercises" className="text-base font-semibold">
-          {t("exercises", { count: items.length })}
-        </h2>
-        <ol className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
-          {items.map((exercise, index) => (
-            <li
-              key={exercise.id}
-              className="flex flex-wrap items-center gap-2 bg-surface px-4 py-3"
-            >
-              <span className="w-6 text-sm text-encre-douce">{index + 1}.</span>
-              <Link
-                href={`/prof/exercices/${exercise.id}`}
-                className="min-w-0 flex-1 font-medium underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
-              >
-                {exercise.title}
-              </Link>
-              <AnswerTypeChip type={exercise.answer_type} label={tTypes(exercise.answer_type)} />
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section aria-labelledby="assignment-progress" className="grid gap-3">
-        <h2 id="assignment-progress" className="text-base font-semibold">
-          {t("progress")}
-        </h2>
-        {rows.length === 0 ? (
-          <p className="text-sm text-encre-douce">{t("noStudents")}</p>
-        ) : (
-          <div className="overflow-x-auto rounded-md border border-quadrillage">
-            <table className="w-full border-collapse text-sm">
-              <caption className="sr-only">{t("progressCaption")}</caption>
-              <thead className="bg-sunken">
-                <tr>
-                  <th scope="col" className="px-3 py-2 text-start font-medium">
-                    {t("student")}
-                  </th>
-                  {items.map((exercise, index) => (
-                    <th key={exercise.id} scope="col" className="px-3 py-2 text-center font-medium">
-                      <abbr title={exercise.title} className="no-underline">
-                        {t("exerciseColumn", { number: index + 1 })}
-                      </abbr>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map(([studentId, name]) => (
-                  <tr key={studentId} className="border-t border-quadrillage">
-                    <th scope="row" className="px-3 py-2 text-start font-medium">
-                      {name}
-                    </th>
-                    {items.map((exercise) => {
-                      const cell = cells.get(`${studentId}/${exercise.id}`) ?? { kind: "none" };
-                      return (
-                        <td key={exercise.id} className="px-3 py-2 text-center whitespace-nowrap">
-                          {cell.kind === "graded" ? (
-                            // Opens the correction: to read it again, or change it.
-                            <Link
-                              href={`/prof/devoirs/corrections/${cell.submissionId}`}
-                              className="inline-flex min-h-11 items-center font-medium underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
-                            >
-                              {t("cell.graded", { grade: gradeFormat.format(cell.grade) })}
-                            </Link>
-                          ) : cell.kind === "handedIn" ? (
-                            <Link
-                              href={`/prof/devoirs/corrections/${cell.submissionId}`}
-                              className="inline-flex min-h-11 items-center text-stylo-bleu underline decoration-stylo-bleu/40 underline-offset-4 hover:decoration-stylo-bleu"
-                            >
-                              {t("cell.handedIn")}
-                            </Link>
-                          ) : cell.kind === "revealed" ? (
-                            <span className="text-encre-douce">{t("cell.revealed")}</span>
-                          ) : cell.kind === "doneElsewhere" ? (
-                            <span className="text-encre-douce">{t("cell.doneElsewhere")}</span>
-                          ) : (
-                            <span className="text-encre-douce">
-                              <span aria-hidden="true">—</span>
-                              <span className="sr-only">{t("cell.none")}</span>
-                            </span>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {[...cells.values()].some((cell) => cell.kind === "doneElsewhere") ? (
-          <p className="text-sm text-encre-douce">{t("legendElsewhere")}</p>
-        ) : null}
-      </section>
-
-      <AssignmentDetailsForm
-        id={assignment.id}
+      <PageHeader
+        back={{ href: "/prof/devoirs", label: t("back") }}
+        eyebrow={
+          <span className="inline-flex items-center gap-1.5">
+            <RecipientIcon aria-hidden="true" className="size-4" />
+            {assignment.student
+              ? assignment.student.full_name
+              : t("group", { name: assignment.group?.name ?? "" })}
+          </span>
+        }
         title={assignment.title}
-        instructions={assignment.instructions ?? ""}
-        dueDate={localDateKey(assignment.due_at)}
-        dueTime={formatLocal(assignment.due_at, "HH:mm")}
-      />
+        actions={
+          toCorrect[0] ? (
+            <Link href={`/prof/devoirs/corrections/${toCorrect[0]}`} className={buttonVariants()}>
+              <ClipboardCheck aria-hidden="true" className="size-4" />
+              {t("correctNow", { count: toCorrect.length })}
+            </Link>
+          ) : null
+        }
+      >
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-medium",
+              past ? "border-quadrillage text-encre-douce" : "border-stylo-bleu/40 text-stylo-bleu",
+            )}
+          >
+            <Clock aria-hidden="true" className="size-4 shrink-0" />
+            <span className="first-letter:uppercase">
+              {t("due", {
+                date: formatLocal(assignment.due_at, "EEEE d MMMM yyyy 'à' HH:mm"),
+              })}
+            </span>
+          </span>
+          <span className="text-encre-douce">
+            {days >= 0 ? t("dueIn", { count: days }) : t("dueAgo", { count: -days })}
+          </span>
+        </p>
+      </PageHeader>
 
-      <DeleteAssignment id={assignment.id} hasWork={hasWork} />
+      <dl className="grid grid-cols-3 gap-2 sm:gap-3">
+        {stats.map((stat) => (
+          <div
+            key={stat.key}
+            className={cn(
+              "flex flex-col-reverse justify-end gap-1 rounded-2xl border border-quadrillage bg-surface p-3 sm:p-4",
+              stat.tone,
+            )}
+          >
+            <dt className="text-xs font-medium sm:text-sm">{stat.label}</dt>
+            <dd className="text-2xl font-semibold tabular [font-variation-settings:'HEXP'_45] sm:text-3xl">
+              {stat.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+        <section aria-labelledby="assignment-progress" className="grid min-w-0 gap-3">
+          <h2 id="assignment-progress" className="text-lg font-semibold">
+            {t("progress")}
+          </h2>
+          {rows.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-trait bg-surface px-4 py-5 text-sm text-encre-douce">
+              {t("noStudents")}
+            </p>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-quadrillage bg-surface">
+              <table className="w-full border-collapse text-sm">
+                <caption className="sr-only">{t("progressCaption")}</caption>
+                <thead>
+                  <tr>
+                    <th
+                      scope="col"
+                      className="sticky start-0 z-10 bg-surface px-4 py-3 text-start font-medium text-encre-douce"
+                    >
+                      {t("student")}
+                    </th>
+                    {items.map((exercise, index) => (
+                      <th
+                        key={exercise.id}
+                        scope="col"
+                        className="px-2 py-3 text-center font-medium text-encre-douce"
+                      >
+                        <abbr title={exercise.title} className="no-underline">
+                          {t("exerciseColumn", { number: index + 1 })}
+                        </abbr>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map(([studentId, name]) => (
+                    <tr key={studentId} className="border-t border-quadrillage">
+                      <th
+                        scope="row"
+                        className="sticky start-0 z-10 bg-surface px-4 py-1 text-start font-medium"
+                      >
+                        <Link
+                          href={`/prof/eleves/${studentId}`}
+                          className="inline-flex min-h-11 items-center whitespace-nowrap underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+                        >
+                          {name}
+                        </Link>
+                      </th>
+                      {cellsOf(studentId).map((cell, index) => (
+                        <td
+                          key={items[index]?.id ?? index}
+                          className="px-2 py-1 text-center whitespace-nowrap"
+                        >
+                          <MatrixCell cell={cell} t={t} gradeFormat={gradeFormat} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {[...cells.values()].some((cell) => cell.kind === "doneElsewhere") ? (
+            <p className="text-sm text-encre-douce">{t("legendElsewhere")}</p>
+          ) : null}
+        </section>
+
+        <aside className="grid gap-6">
+          {assignment.instructions ? (
+            <section aria-labelledby="assignment-instructions" className="grid gap-2">
+              <h2 id="assignment-instructions" className="text-lg font-semibold">
+                {t("instructions")}
+              </h2>
+              <p className="rounded-2xl border border-quadrillage bg-surface p-4 break-words whitespace-pre-line">
+                {assignment.instructions}
+              </p>
+            </section>
+          ) : null}
+
+          <section aria-labelledby="assignment-exercises" className="grid gap-2">
+            <h2 id="assignment-exercises" className="text-lg font-semibold">
+              {t("exercises", { count: items.length })}
+            </h2>
+            <ol
+              role="list"
+              className="grid gap-px overflow-hidden rounded-2xl border border-quadrillage bg-quadrillage"
+            >
+              {items.map((exercise, index) => (
+                <li
+                  key={exercise.id}
+                  className="grid justify-items-start gap-1.5 bg-surface px-4 py-3"
+                >
+                  <span className="flex items-baseline gap-2">
+                    <span className="shrink-0 text-sm text-encre-douce tabular">
+                      {t("exerciseColumn", { number: index + 1 })}
+                    </span>
+                    <Link
+                      href={`/prof/exercices/${exercise.id}`}
+                      className="min-w-0 font-medium break-words underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+                    >
+                      {exercise.title}
+                    </Link>
+                  </span>
+                  <AnswerTypeChip
+                    type={exercise.answer_type}
+                    label={tTypes(exercise.answer_type)}
+                  />
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <details className="rounded-2xl border border-quadrillage bg-surface">
+            <summary className="flex min-h-12 cursor-pointer items-center gap-2 px-4 font-medium">
+              <Pencil aria-hidden="true" className="size-4" />
+              {t("manage")}
+            </summary>
+            <div className="grid gap-6 border-t border-quadrillage p-4">
+              <AssignmentDetailsForm
+                id={assignment.id}
+                title={assignment.title}
+                instructions={assignment.instructions ?? ""}
+                dueDate={localDateKey(assignment.due_at)}
+                dueTime={formatLocal(assignment.due_at, "HH:mm")}
+              />
+
+              <DeleteAssignment id={assignment.id} hasWork={hasWork} />
+            </div>
+          </details>
+        </aside>
+      </div>
     </div>
   );
+}
+
+function MatrixCell({
+  cell,
+  t,
+  gradeFormat,
+}: {
+  cell: Cell;
+  t: Awaited<ReturnType<typeof getTranslations<"tutor.assignment">>>;
+  gradeFormat: Intl.NumberFormat;
+}) {
+  switch (cell.kind) {
+    case "graded":
+      // Opens the correction: to read it again, or change it.
+      return (
+        <Link
+          href={`/prof/devoirs/corrections/${cell.submissionId}`}
+          className="inline-flex min-h-11 items-center rounded-md px-1.5 hover:bg-sunken"
+        >
+          <GradeMark
+            grade={gradeFormat.format(cell.grade)}
+            label={t("gradeLabel")}
+            className="text-lg"
+          />
+        </Link>
+      );
+    case "handedIn":
+      return (
+        <Link
+          href={`/prof/devoirs/corrections/${cell.submissionId}`}
+          className="inline-flex min-h-11 items-center gap-1 rounded-full bg-rouge-fond px-2.5 text-xs font-semibold text-rouge-texte hover:brightness-95"
+        >
+          <ClipboardCheck aria-hidden="true" className="size-3.5" />
+          {t("cell.handedIn")}
+        </Link>
+      );
+    case "revealed":
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-encre-douce">
+          <Eye aria-hidden="true" className="size-3.5" />
+          {t("cell.revealed")}
+        </span>
+      );
+    case "doneElsewhere":
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-encre-douce">
+          <Repeat aria-hidden="true" className="size-3.5" />
+          {t("cell.doneElsewhere")}
+        </span>
+      );
+    case "none":
+      return (
+        <span className="text-trait">
+          <span aria-hidden="true">—</span>
+          <span className="sr-only">{t("cell.none")}</span>
+        </span>
+      );
+  }
 }

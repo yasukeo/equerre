@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, X } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,14 +8,18 @@ import { z } from "zod";
 import { AnnotatedPage, RemarkNumber } from "@/components/annotated-page";
 import { GradeMark } from "@/components/grade-mark";
 import { PageGrid } from "@/components/page-grid";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { WorkChip } from "@/components/work-status";
 import { requireViewer } from "@/lib/auth";
 import { arrangeRemarks, type NumberedRemark } from "@/lib/correction/correction";
 import { formatDecimal, parseDecimal } from "@/lib/decimal";
-import { getMyExercise, type MyExercise } from "@/lib/homework/queries";
+import { getMyExercise, getMyHomework, type MyExercise } from "@/lib/homework/queries";
+import type { ExerciseWork } from "@/lib/homework/work";
 import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "@/lib/lesson/document";
 import { renderMathText } from "@/lib/lesson/math-text";
 import { renderLesson } from "@/lib/lesson/render";
+import { getStudentCourse } from "@/lib/student/progress";
+import { cn } from "@/lib/utils";
 import { ChoiceAnswer, NumericAnswer, RevealSolution } from "./answer-forms";
 import { PhotoAnswer } from "./photo-answer";
 // Statements and solutions are drawn as lessons are: same maths, same encadrés.
@@ -31,8 +35,8 @@ export default async function StudentExercisePage({
   params,
 }: PageProps<"/eleve/devoirs/[id]/[exercice]">) {
   return (
-    <div className="mx-auto grid max-w-2xl gap-6">
-      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
+    <div className="mx-auto grid max-w-2xl grid-cols-[minmax(0,1fr)] gap-6">
+      <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <Exercise params={params} />
       </Suspense>
     </div>
@@ -41,6 +45,15 @@ export default async function StudentExercisePage({
 
 const gradeFormat = new Intl.NumberFormat("fr", { maximumFractionDigits: 2 });
 
+// The same marks as on the homework page: outlined to do, blue pen handed in, ink corrected.
+const STEP_TONES: Record<ExerciseWork["kind"], string> = {
+  todo: "border-2 border-trait bg-surface text-encre",
+  handedIn: "bg-stylo-bleu text-white",
+  graded: "bg-encre text-papier",
+  revealed: "bg-sunken text-encre-douce",
+  doneElsewhere: "bg-sunken text-encre-douce",
+};
+
 async function Exercise({ params }: { params: Promise<{ id: string; exercice: string }> }) {
   const viewer = await requireViewer("student");
   const { id, exercice } = await params;
@@ -48,8 +61,16 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
 
   const t = await getTranslations("student.homework");
   const tLesson = await getTranslations("lesson");
-  const data = await getMyExercise(viewer.id, id, exercice);
+  const [data, homeworkDetails, course] = await Promise.all([
+    getMyExercise(viewer.id, id, exercice),
+    getMyHomework(id, new Date()),
+    getStudentCourse(viewer),
+  ]);
   if (!data) notFound();
+  // The chapter it practises, when it is one of her programme's: a way back to the course.
+  const chapter = data.exercise.chapterId
+    ? course.chapters.find((entry) => entry.id === data.exercise.chapterId)
+    : undefined;
 
   const labels = Object.fromEntries(
     CALLOUT_KINDS.map((kind) => [kind, tLesson(`callout.${kind}`)]),
@@ -126,20 +147,68 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
 
   return (
     <article className="grid gap-6">
-      <Link
-        href={`/eleve/devoirs/${homework.id}`}
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-      >
-        {t("exercise.backToHomework")}
-      </Link>
+      <header className="grid gap-4">
+        <Link
+          href={`/eleve/devoirs/${homework.id}`}
+          className="-ms-1 inline-flex min-h-11 items-center gap-1.5 justify-self-start rounded-full ps-1 pe-3 text-sm text-encre-douce hover:text-encre"
+        >
+          <ArrowLeft aria-hidden="true" className="size-4 rtl:rotate-180" />
+          <span className="min-w-0 truncate">{homework.title}</span>
+        </Link>
 
-      <header className="grid gap-2">
-        <p className="text-sm text-encre-douce">
-          {homework.title} ·{" "}
-          {t("exercise.position", { index: position.index + 1, count: position.count })}
-        </p>
-        <h1 className="text-2xl font-semibold">{exercise.title}</h1>
-        <WorkChip work={work} label={workLabel} />
+        {homeworkDetails && homeworkDetails.exercises.length > 1 ? (
+          <nav aria-label={t("exercise.steps")}>
+            <ol role="list" className="flex flex-wrap items-center gap-2">
+              {homeworkDetails.exercises.map((step, index) => {
+                const current = step.id === exercise.id;
+                const stepLabel =
+                  step.work.kind === "graded"
+                    ? t("work.graded", { grade: gradeFormat.format(step.work.grade) })
+                    : t(`work.${step.work.kind}`);
+                return (
+                  <li key={step.id}>
+                    <Link
+                      href={`/eleve/devoirs/${homework.id}/${step.id}`}
+                      aria-current={current ? "step" : undefined}
+                      className={cn(
+                        "flex size-11 items-center justify-center rounded-full text-sm font-semibold tabular",
+                        STEP_TONES[step.work.kind],
+                        current && "ring-2 ring-encre ring-offset-2 ring-offset-papier",
+                      )}
+                    >
+                      <span aria-hidden="true">{index + 1}</span>
+                      <span className="sr-only">
+                        {t("exercise.stepLabel", { number: index + 1, title: step.title })} —{" "}
+                        {stepLabel}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        ) : null}
+
+        <div className="grid gap-2">
+          <p className="text-sm text-encre-douce">
+            {t("exercise.position", { index: position.index + 1, count: position.count })}
+          </p>
+          <h1 className="text-[clamp(1.5rem,1.25rem+1.2vw,2rem)] leading-tight font-semibold break-words">
+            {exercise.title}
+          </h1>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <WorkChip work={work} label={workLabel} />
+            {chapter ? (
+              <Link
+                href={`/eleve/chapitres/${chapter.slug}`}
+                className="inline-flex min-h-11 items-center gap-1.5 text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+              >
+                <BookOpen aria-hidden="true" className="size-4" />
+                {t("exercise.reviewCourse", { title: chapter.title })}
+              </Link>
+            ) : null}
+          </div>
+        </div>
       </header>
 
       <section aria-labelledby="exercise-statement" className="grid gap-2">
@@ -151,9 +220,9 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
 
       <section
         aria-labelledby="exercise-answer"
-        className="grid gap-4 rounded-md border border-quadrillage p-4"
+        className="grid gap-4 rounded-2xl border border-s-4 border-quadrillage border-s-stylo-bleu bg-surface p-4 sm:p-5"
       >
-        <h2 id="exercise-answer" className="text-base font-semibold">
+        <h2 id="exercise-answer" className="text-lg font-semibold">
           {t("exercise.answer")}
         </h2>
         {/* A number or a choice is graded on the spot: the form gives way to the verdict, and
@@ -165,30 +234,37 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
       {work.kind === "todo" && canHandIn ? <RevealSolution {...target} /> : null}
 
       {data.submission?.feedback ? (
-        <section aria-labelledby="exercise-feedback" className="grid gap-1">
-          <h2 id="exercise-feedback" className="text-base font-semibold">
+        <section
+          aria-labelledby="exercise-feedback"
+          className="grid gap-1.5 rounded-2xl border border-s-4 border-quadrillage border-s-stylo-rouge bg-surface p-4 sm:p-5"
+        >
+          <h2 id="exercise-feedback" className="text-lg font-semibold">
             {t("exercise.feedback")}
           </h2>
-          <p className="whitespace-pre-line">{data.submission.feedback}</p>
+          <p className="break-words whitespace-pre-line">{data.submission.feedback}</p>
         </section>
       ) : null}
 
       {data.solution ? (
         <section aria-labelledby="exercise-solution" className="grid gap-2">
-          <h2 id="exercise-solution" className="text-base font-semibold">
+          <h2 id="exercise-solution" className="text-lg font-semibold">
             {t("exercise.solution")}
           </h2>
           <div className="lecon-corps">{draw(data.solution.document)}</div>
         </section>
       ) : null}
 
-      <nav className="flex flex-wrap justify-between gap-2 border-t border-quadrillage pt-4">
+      <nav
+        aria-label={t("exercise.pager")}
+        className="grid grid-cols-2 gap-2 border-t border-quadrillage pt-4"
+      >
         {position.previous ? (
           <Link
             href={`/eleve/devoirs/${homework.id}/${position.previous}`}
-            className="inline-flex min-h-11 items-center text-sm underline underline-offset-4"
+            className={cn(buttonVariants({ variant: "outline" }), "justify-self-start")}
           >
-            ← {t("exercise.previous")}
+            <ArrowLeft aria-hidden="true" className="size-4 rtl:rotate-180" />
+            {t("exercise.previous")}
           </Link>
         ) : (
           <span />
@@ -196,11 +272,19 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
         {position.next ? (
           <Link
             href={`/eleve/devoirs/${homework.id}/${position.next}`}
-            className="inline-flex min-h-11 items-center text-sm underline underline-offset-4"
+            className={cn(buttonVariants({ variant: "outline" }), "justify-self-end")}
           >
-            {t("exercise.next")} →
+            {t("exercise.next")}
+            <ArrowRight aria-hidden="true" className="size-4 rtl:rotate-180" />
           </Link>
-        ) : null}
+        ) : (
+          <Link
+            href={`/eleve/devoirs/${homework.id}`}
+            className={cn(buttonVariants({ variant: "outline" }), "justify-self-end")}
+          >
+            {t("exercise.backToHomework")}
+          </Link>
+        )}
       </nav>
     </article>
   );

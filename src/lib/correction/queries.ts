@@ -25,6 +25,8 @@ export type QueueEntry = {
   student: string;
   exercise: string;
   homework: string;
+  homeworkId: string;
+  studentId: string;
 };
 
 /** Photographed copies waiting for her, the longest-waiting first. */
@@ -35,7 +37,7 @@ export async function listCorrectionQueue(): Promise<QueueEntry[]> {
       await supabase
         .from("submissions")
         .select(
-          "id, submitted_at, file_paths, student:profiles!submissions_student_id_fkey(full_name), exercise:exercises(title), assignment:assignments(title, due_at)",
+          "id, submitted_at, file_paths, student:profiles!submissions_student_id_fkey(id, full_name), exercise:exercises(title), assignment:assignments(id, title, due_at)",
         )
         .eq("status", "rendu")
         .order("submitted_at"),
@@ -48,6 +50,8 @@ export async function listCorrectionQueue(): Promise<QueueEntry[]> {
     student: row.student.full_name,
     exercise: row.exercise.title,
     homework: row.assignment.title,
+    homeworkId: row.assignment.id,
+    studentId: row.student.id,
   }));
 }
 

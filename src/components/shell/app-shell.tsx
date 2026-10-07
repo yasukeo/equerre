@@ -7,6 +7,7 @@ import { getViewer } from "@/lib/auth";
 import { countUnreadNotifications } from "@/lib/notifications/queries";
 import { OfflineBanner } from "./offline-banner";
 import { SignOutForm } from "./sign-out-form";
+import { initialsOf } from "@/components/initials";
 
 type AppShellProps = {
   homeHref: string;
@@ -128,7 +129,7 @@ async function ViewerMenu({
             aria-hidden="true"
             className="flex size-9 items-center justify-center rounded-full bg-encre text-sm font-semibold text-papier"
           >
-            {initials(viewer.fullName)}
+            {initialsOf(viewer.fullName)}
           </span>
           <span className="hidden max-w-40 truncate text-sm sm:inline">{viewer.fullName}</span>
           <span className="sr-only sm:hidden">{accountLabel}</span>
@@ -137,11 +138,4 @@ async function ViewerMenu({
       <SignOutForm label={signOutLabel} />
     </div>
   );
-}
-
-/** « Salma Alaoui » → « SA »: two letters for the avatar. */
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  const letters = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts;
-  return letters.map((part) => part?.charAt(0).toLocaleUpperCase("fr") ?? "").join("") || "·";
 }

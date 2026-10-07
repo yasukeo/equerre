@@ -181,7 +181,10 @@ export function RevealSolution(target: Target) {
   };
 
   return (
-    <section aria-labelledby="reveal-title" className="grid gap-3 border-t border-quadrillage pt-5">
+    <section
+      aria-labelledby="reveal-title"
+      className="grid gap-3 rounded-2xl border border-dashed border-trait p-4 sm:p-5"
+    >
       <h2 id="reveal-title" className="text-sm font-semibold">
         {t("reveal.title")}
       </h2>

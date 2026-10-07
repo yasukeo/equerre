@@ -89,6 +89,15 @@ export function localDateTimeToUtc(date: string, time: string): Date {
   return new Date(local.getTime());
 }
 
+/**
+ * Calendar days from the Casablanca day of `from` to that of `to`: 0 the same day, 1 the next,
+ * −1 the day before. Counted on dates, not hours, so 23:00 to 01:00 is one day.
+ */
+export function calendarDaysBetween(from: DateInput, to: DateInput): number {
+  const day = (value: DateInput) => Date.parse(`${localDateKey(value)}T00:00:00Z`);
+  return Math.round((day(to) - day(from)) / 86_400_000);
+}
+
 /** Start (inclusive) and end (exclusive) of the Casablanca day containing an instant. */
 export function localDayBounds(value: DateInput): { start: Date; end: Date } {
   const start = localDateTimeToUtc(localDateKey(value), "00:00");
