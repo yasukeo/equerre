@@ -30,8 +30,8 @@ const ICONS: Record<NotificationType, LucideIcon> = {
   correction_ready: PenLine,
 };
 
-// The kind of news, as a tinted pastille behind its icon: sessions in blue, homework in orange,
-// a correction in green. The sentence beside it always says what it is.
+// The kind of news, as a tinted pastille behind its icon: sessions in blue, homework in the red
+// of « devoir », a correction in the tutor's red pen. The sentence beside it says what it is.
 const TONES: Record<NotificationType, string> = {
   booking_requested: "bg-bleu-fond text-bleu-texte",
   booking_made: "bg-bleu-fond text-bleu-texte",
@@ -42,8 +42,8 @@ const TONES: Record<NotificationType, string> = {
   session_cancelled: "bg-bleu-fond text-bleu-texte",
   session_moved: "bg-bleu-fond text-bleu-texte",
   session_reminder: "bg-bleu-fond text-bleu-texte",
-  assignment_new: "bg-orange-fond text-orange-texte",
-  correction_ready: "bg-vert-fond text-vert-texte",
+  assignment_new: "bg-rouge-fond text-rouge-texte",
+  correction_ready: "bg-lavis-rouge text-stylo-rouge",
 };
 
 /** The newest first; what she had not seen is marked « Nouvelle », then counted as seen. */

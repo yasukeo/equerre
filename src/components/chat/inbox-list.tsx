@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Initials } from "@/components/initials";
 import type { InboxEntry } from "@/lib/chat/queries";
-import { renderChatText } from "@/lib/chat/text";
+import { renderChatPreview } from "@/lib/chat/text";
 import { formatLocal, localDateKey } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { InboxLink } from "./message-panes";
@@ -85,10 +85,10 @@ export async function InboxList({
                     {entry.lastFiles > 0 && entry.lastBody ? (
                       <Paperclip aria-hidden="true" className="size-3.5 shrink-0" />
                     ) : null}
-                    <span className="truncate">
+                    <span className="chat-preview truncate">
                       {who ? `${who} : ` : null}
                       {entry.lastBody
-                        ? renderChatText(entry.lastBody)
+                        ? renderChatPreview(entry.lastBody)
                         : entry.lastFiles > 0
                           ? t("filesOnly", { count: entry.lastFiles })
                           : t("noMessage")}

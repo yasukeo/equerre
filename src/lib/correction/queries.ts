@@ -137,13 +137,19 @@ export async function getCorrection(id: string): Promise<Correction | null> {
     // oldest — a copy she skips would otherwise send her back and forth between two.
     supabase
       .from("submissions")
-      .select("id")
+      .select("id, assignment_id")
       .eq("status", "rendu")
       .order("submitted_at")
       .order("id"),
     signPages(supabase, paths),
   ]);
-  const waitingIds = (must(queue) ?? []).map((entry) => entry.id);
+  // Homework by homework, as the queue's page lists them: each homework in the order of its
+  // longest-waiting copy, its copies oldest first.
+  const byHomework = new Map<string, string[]>();
+  for (const entry of must(queue) ?? []) {
+    byHomework.set(entry.assignment_id, [...(byHomework.get(entry.assignment_id) ?? []), entry.id]);
+  }
+  const waitingIds = [...byHomework.values()].flat();
   const here = waitingIds.indexOf(id);
   const next = (here === -1 ? waitingIds[0] : (waitingIds[here + 1] ?? waitingIds[0])) ?? null;
 

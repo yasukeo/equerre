@@ -950,6 +950,32 @@ Asked on 2026-10-07: the student and tutor areas were "not intuitive, hard to na
 - **French typography** now applies to every message, not only to titles: the space before « : ; ! ? % » and inside « » is non-breaking (`frenchSpacesDeep`, D-089).
 - **Reviewed** by three reviewers per area (security, logic, interface); the fixes are in the commits « Student area: fixes after review » and « Tutor area: fixes after review ».
 
+**D-105 — The rest of both areas in the same hand.**
+Asked on 2026-10-07, right after D-104: the screens D-104 had not touched still looked like the first version. They are redrawn with the same identity (DESIGN.md, « The rest of the workspace »); no table or policy changed.
+
+- **Homework.** The tutor's list puts the copies to correct first, with a way straight into the oldest, and shows each homework's hand-ins as a ruler. A homework's page opens on who handed something in, what waits and the average, then the grid of students × exercises; editing is folded away. The queue of copies is grouped by homework. The student's homework page offers « Commencer par » / « Continuer avec » the next exercise; an exercise page has numbered steps between the homework's exercises and a link back to its chapter in her course, when the chapter is in her programme.
+- **Sessions.** The tutor's week is drawn on a scale of hours from 1024px. A session's page, on both sides, is a diary leaf. Attendance is marked with pills. Booking is three steps with a month calendar.
+- **Messages** keep the inbox beside the open conversation on a wide screen, render formulas in the previews, and read the conversation's title after `connection()`: it read the session's clock while prerendering.
+- **Payments** open on this month's and last month's income (`monthlyIncome`, voided payments left out, read in pages) and the overdue balances, and draw six months of income.
+- **The library.** Leçons opens on one card per programme; a programme's chapters are folded; a search covers titles and chapters, accents ignored. The list is now read in pages of 1000: it had silently stopped at 1000 of the 1192 documents. The exercise bank gains a search and a filter by type of answer.
+- **The profile, the parent's page and the notifications**: a pupil's card at the top; the parent's page adds the average of the corrected exercises and links to its three sections; notifications are grouped by day.
+- **One page header** (`PageHeader`) across the remaining pages of the tutor's area.
+- **Not checked on screen**: the parent's pages, since production has no parent account and none was created for the check; they were reviewed in code.
+- **Reviewed** by three reviewers (security, logic, interface). Fixed after review:
+  - an inbox preview renders at most 140 characters and four formulas, cut before KaTeX, and a formula in it has no scrollbar of its own;
+  - the exercise bank is read in pages too;
+  - « Revoir le cours » appears only when the chapter has something to read;
+  - payments are put under their month by the day they were paid;
+  - « Copie suivante » follows the queue homework by homework, as its page lists it;
+  - the banner's count of copies comes from the database's count;
+  - the week grid gives a short session the room it is drawn with, and shows each status as an icon on its first line;
+  - a session's page is headed by who it is with (or its kind, for the student), not « Séance »;
+  - the figures on a homework's page fit a phone, and their labels are read before their values;
+  - handed-in exercises are marked with an icon as well as a fill, readable in dark mode;
+  - the booking calendar's days keep 44 px at 360 px, with the month above its first day;
+  - the list of conversations comes first for the keyboard, in its own landmark, under the page's one heading;
+  - banners and the empty queue are in ink, not green; notifications use the red of homework and of the correction.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.

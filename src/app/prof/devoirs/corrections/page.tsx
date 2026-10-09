@@ -59,7 +59,7 @@ async function Queue() {
 
       {queue.length === 0 ? (
         <div className="grid justify-items-start gap-3 rounded-2xl border border-quadrillage bg-surface px-5 py-6">
-          <span className="flex size-11 items-center justify-center rounded-full bg-vert-fond text-vert-texte">
+          <span className="flex size-11 items-center justify-center rounded-full bg-sunken">
             <Check aria-hidden="true" className="size-5" />
           </span>
           <p className="font-medium">{t("empty")}</p>

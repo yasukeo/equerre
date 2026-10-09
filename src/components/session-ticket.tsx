@@ -32,8 +32,8 @@ export function SessionTicket({
   endsAt: string;
   status: SessionStatus;
   statusLabel: string;
-  /** Who it is with, or what it is: the line read first. */
-  title: ReactNode;
+  /** Who it is with, or what it is, when the page's heading does not already say it. */
+  title?: ReactNode;
   mode: SessionMode;
   place: string;
   group?: string | null;
@@ -70,7 +70,9 @@ export function SessionTicket({
       </div>
       <div className="grid content-center gap-2 p-4 sm:p-5">
         <div className="grid gap-0.5">
-          <p className="text-lg leading-tight font-semibold break-words">{title}</p>
+          {title ? (
+            <p className="text-lg leading-tight font-semibold break-words">{title}</p>
+          ) : null}
           <p className="text-2xl font-semibold tabular [font-variation-settings:'HEXP'_45]">
             {formatLocal(startsAt, "HH:mm")} – {formatLocal(endsAt, "HH:mm")}
           </p>

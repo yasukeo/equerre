@@ -5,7 +5,7 @@ import type { Database } from "@/types/database";
 export type SessionStatus = Database["public"]["Enums"]["session_status"];
 
 // Status is carried by an icon and a word, never by colour alone (brief §8).
-const ICONS: Record<SessionStatus, LucideIcon> = {
+export const SESSION_STATUS_ICONS: Record<SessionStatus, LucideIcon> = {
   en_attente: Hourglass,
   planifiee: CalendarClock,
   terminee: Check,
@@ -24,7 +24,7 @@ const TONES: Record<SessionStatus, string> = {
 };
 
 export function SessionStatusChip({ status, label }: { status: SessionStatus; label: string }) {
-  const Icon = ICONS[status];
+  const Icon = SESSION_STATUS_ICONS[status];
   return (
     <span
       className={cn(

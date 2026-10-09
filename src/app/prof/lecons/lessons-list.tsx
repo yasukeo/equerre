@@ -326,7 +326,13 @@ export async function LessonsList({ filter }: { filter: LessonFilter }) {
                     <span className="hidden sm:inline">
                       {t("documents", { count: chapter.lessons.length })}
                     </span>
-                    <span className="tabular sm:hidden">{chapter.lessons.length}</span>
+                    <span className="tabular sm:hidden">
+                      {chapter.lessons.length}
+                      <span className="sr-only">
+                        {" "}
+                        {t("documentsWord", { count: chapter.lessons.length })}
+                      </span>
+                    </span>
                     <ChevronDown
                       aria-hidden="true"
                       className="size-4 transition-transform group-open:rotate-180"

@@ -14,6 +14,7 @@ export default async function StudentMessagesLayout({ children }: LayoutProps<"/
   return (
     <MessagesPanes
       title={t("title")}
+      listLabel={t("conversations")}
       className="mx-auto max-w-5xl"
       list={
         <Suspense fallback={<div aria-hidden="true" className="h-64 rounded-2xl bg-sunken" />}>

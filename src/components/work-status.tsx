@@ -3,7 +3,7 @@ import type { ExerciseWork } from "@/lib/homework/work";
 import { cn } from "@/lib/utils";
 
 // Where a student stands on an exercise: an icon and a word, never a colour on its own.
-const ICONS = {
+export const WORK_ICONS = {
   todo: Circle,
   handedIn: Clock,
   graded: CheckCheck,
@@ -20,7 +20,7 @@ const TONES = {
 } as const;
 
 export function WorkChip({ work, label }: { work: ExerciseWork; label: string }) {
-  const Icon = ICONS[work.kind];
+  const Icon = WORK_ICONS[work.kind];
   return (
     <span
       className={cn(

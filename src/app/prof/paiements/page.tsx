@@ -92,7 +92,10 @@ async function Payments() {
 
   // The latest payments, by the month they were paid in.
   const byMonth = new Map<string, Payment[]>();
-  for (const payment of payments) {
+  const byDay = [...payments].sort(
+    (a, b) => b.paidOn.localeCompare(a.paidOn) || Date.parse(b.createdAt) - Date.parse(a.createdAt),
+  );
+  for (const payment of byDay) {
     const key = payment.paidOn.slice(0, 7);
     byMonth.set(key, [...(byMonth.get(key) ?? []), payment]);
   }
@@ -318,19 +321,25 @@ async function Payments() {
               const current = index === income.length - 1;
               return (
                 <li key={entry.month} className="grid content-end justify-items-center gap-1">
-                  <span className="text-[0.65rem] font-medium tabular">
-                    <span className="sr-only">{month(entry.month, "MMMM yyyy")} : </span>
-                    {entry.total >= 1000
-                      ? `${new Intl.NumberFormat("fr", { maximumFractionDigits: 1 }).format(entry.total / 1000)} k`
-                      : new Intl.NumberFormat("fr").format(entry.total)}
-                    <span className="sr-only"> MAD</span>
+                  <span className="text-xs font-medium tabular">
+                    <span className="sr-only">
+                      {month(entry.month, "MMMM yyyy")} : {formatMad(entry.total)}
+                    </span>
+                    <span aria-hidden="true">
+                      {entry.total >= 1000
+                        ? `${new Intl.NumberFormat("fr", { maximumFractionDigits: 1 }).format(entry.total / 1000)} k`
+                        : new Intl.NumberFormat("fr").format(entry.total)}
+                    </span>
                   </span>
                   <span
                     aria-hidden="true"
                     className={cn(
                       "w-full max-w-8 rounded-t-md",
-                      current ? "bg-vert-bande" : "bg-vert-fond",
-                      entry.total === 0 && "bg-quadrillage",
+                      entry.total === 0
+                        ? "bg-quadrillage"
+                        : current
+                          ? "bg-stylo-bleu"
+                          : "bg-encre-douce",
                     )}
                     style={{ height: Math.max(Math.round((entry.total / highest) * 112), 3) }}
                   />

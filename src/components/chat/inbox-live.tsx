@@ -75,7 +75,10 @@ export function ConversationPicker({
       className="grid gap-2 rounded-2xl border border-quadrillage bg-surface p-3"
       onSubmit={(event) => {
         event.preventDefault();
-        if (chosen) router.push(`/prof/messages/${chosen}`);
+        if (!chosen) return;
+        router.push(`/prof/messages/${chosen}`);
+        // The picker lives in the layout and stays mounted: it must not keep the choice.
+        setChosen("");
       }}
     >
       <label className="grid min-w-0 gap-1.5 text-sm font-medium">

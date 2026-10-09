@@ -19,15 +19,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-export default async function StudentSessionPage({
+export default function StudentSessionPage({
   params,
   searchParams,
 }: PageProps<"/eleve/seances/[id]">) {
-  const t = await getTranslations("student.session");
-
   return (
     <div className="mx-auto grid max-w-2xl grid-cols-[minmax(0,1fr)] gap-6">
-      <PageHeader back={{ href: "/eleve/seances", label: t("back") }} title={t("title")} />
       <Suspense fallback={<div aria-hidden="true" className="h-80 rounded-2xl bg-sunken" />}>
         <StudentSession params={params} searchParams={searchParams} />
       </Suspense>
@@ -78,7 +75,7 @@ async function StudentSession({
       {query.demandee === "1" && session.status === "en_attente" ? (
         <p
           role="status"
-          className="flex items-start gap-2 rounded-2xl bg-vert-fond px-4 py-3 text-vert-texte"
+          className="flex items-start gap-2 rounded-2xl border border-quadrillage bg-surface px-4 py-3"
         >
           <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {t("requestSent")}
@@ -87,7 +84,7 @@ async function StudentSession({
       {query.reservee === "1" && session.status === "planifiee" ? (
         <p
           role="status"
-          className="flex items-start gap-2 rounded-2xl bg-vert-fond px-4 py-3 text-vert-texte"
+          className="flex items-start gap-2 rounded-2xl border border-quadrillage bg-surface px-4 py-3"
         >
           <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {t("booked")}
@@ -97,19 +94,23 @@ async function StudentSession({
       {query.annulee === "1" || query.retiree === "1" ? (
         <p
           role="status"
-          className="flex items-start gap-2 rounded-2xl bg-vert-fond px-4 py-3 text-vert-texte"
+          className="flex items-start gap-2 rounded-2xl border border-quadrillage bg-surface px-4 py-3"
         >
           <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {query.retiree === "1" ? t("withdrawn") : t("cancelled")}
         </p>
       ) : null}
 
+      <PageHeader
+        back={{ href: "/eleve/seances", label: t("back") }}
+        title={session.type?.name ?? t("title")}
+      />
+
       <SessionTicket
         startsAt={session.startsAt}
         endsAt={session.endsAt}
         status={session.status}
         statusLabel={statusLabel}
-        title={session.type?.name ?? t("title")}
         mode={session.mode}
         place={place}
         group={session.group?.name}

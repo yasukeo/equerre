@@ -10,14 +10,20 @@ import { cn } from "@/lib/utils";
  * there, the list is the page until a conversation is opened, and the conversation then has
  * the whole screen. An open conversation marks itself with `data-thread`; the panes read it
  * in CSS, so nothing waits for the address to be known on the client.
+ *
+ * The list comes first, for the eye and the keyboard alike, under the page's one heading;
+ * a conversation is a section of it (its name is an h2).
  */
 export function MessagesPanes({
   title,
+  listLabel,
   list,
   children,
   className,
 }: {
   title: string;
+  /** The list's landmark: « Conversations ». */
+  listLabel: string;
   list: ReactNode;
   children: ReactNode;
   className?: string;
@@ -29,12 +35,19 @@ export function MessagesPanes({
         className,
       )}
     >
-      {/* The page first: its heading, or the conversation, is what is read first. */}
-      <div className="min-w-0">{children}</div>
-      <div className="grid gap-4 group-has-[[data-thread]]/panes:hidden lg:sticky lg:top-20 lg:order-first lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pe-1 lg:group-has-[[data-thread]]/panes:grid">
-        <h2 className="sr-only text-xl font-semibold lg:not-sr-only">{title}</h2>
-        {list}
+      <div className="grid content-start gap-4 lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pe-1">
+        {/* On a phone with a conversation open, the heading stays for assistive technology. */}
+        <h1 className="text-[clamp(1.6rem,1.3rem+1.4vw,2.1rem)] leading-tight font-semibold [font-variation-settings:'HEXP'_45] max-lg:group-has-[[data-thread]]/panes:sr-only lg:text-xl lg:[font-variation-settings:normal]">
+          {title}
+        </h1>
+        <nav
+          aria-label={listLabel}
+          className="grid gap-4 max-lg:group-has-[[data-thread]]/panes:hidden"
+        >
+          {list}
+        </nav>
       </div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
@@ -57,7 +70,11 @@ export function InboxLink({
     <Link
       href={href}
       aria-current={current ? "page" : undefined}
-      className={cn(className, current && "bg-lavis-bleu hover:bg-lavis-bleu")}
+      className={cn(
+        className,
+        "border-s-4",
+        current ? "border-s-stylo-bleu bg-lavis-bleu hover:bg-lavis-bleu" : "border-s-transparent",
+      )}
     >
       {children}
     </Link>

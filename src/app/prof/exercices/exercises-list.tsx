@@ -13,6 +13,8 @@ const FIELDS =
   "id, title, difficulty, answer_type, tags, statement, chapter:chapters!inner(title, slug, semester, position, programme:programmes!inner(code, label, position)), solution:exercise_solutions(correct_numeric, correct_choice_ids)" as const;
 
 const TYPES = ["upload", "numeric", "mcq"] as const satisfies readonly AnswerType[];
+/** PostgREST answers this many rows at most. */
+const PAGE = 1000;
 
 export type ExerciseFilter = { q: string; type: AnswerType | null };
 
@@ -55,9 +57,21 @@ export async function ExercisesList({ filter }: { filter: ExerciseFilter }) {
 
   const t = await getTranslations("tutor.exercises");
   const supabase = await createClient();
-  const { data } = await supabase.from("exercises").select(FIELDS);
-
-  const bank = data ?? [];
+  // PostgREST answers 1000 rows at most: the bank is read in pages.
+  type Row = NonNullable<Awaited<ReturnType<typeof readPage>>["data"]>[number];
+  const readPage = (from: number) =>
+    supabase
+      .from("exercises")
+      .select(FIELDS)
+      .order("id")
+      .range(from, from + PAGE - 1);
+  const bank: Row[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await readPage(from);
+    if (error) throw new Error("Could not read the exercises", { cause: error });
+    bank.push(...data);
+    if (data.length < PAGE) break;
+  }
   const words = fold(filter.q)
     .split(/\s+/)
     .filter((word) => word.length > 0);
@@ -116,8 +130,14 @@ export async function ExercisesList({ filter }: { filter: ExerciseFilter }) {
     const search = params.toString();
     return search ? `/prof/exercices?${search}` : "/prof/exercices";
   };
+  // Each type's count under the current search, as the list will show it once chosen.
+  const searched = bank.filter((exercise) => {
+    if (words.length === 0) return true;
+    const text = fold(`${exercise.title} ${exercise.tags.join(" ")} ${exercise.chapter.title}`);
+    return words.every((word) => text.includes(word));
+  });
   const counts = new Map(TYPES.map((type) => [type, 0]));
-  for (const exercise of bank) {
+  for (const exercise of searched) {
     counts.set(exercise.answer_type, (counts.get(exercise.answer_type) ?? 0) + 1);
   }
 
@@ -161,7 +181,7 @@ export async function ExercisesList({ filter }: { filter: ExerciseFilter }) {
                 >
                   {type ? t(`answerType.${type}`) : t("allTypes")}
                   <span className="text-xs tabular opacity-70">
-                    {type ? counts.get(type) : bank.length}
+                    {type ? counts.get(type) : searched.length}
                   </span>
                 </Link>
               </li>

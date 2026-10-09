@@ -66,9 +66,9 @@ async function TutorConversation({ params }: { params: Promise<{ id: string }> }
         ) : (
           <Initials name={thread.student?.name ?? ""} />
         )}
-        <h1 className="min-w-0 text-xl font-semibold break-words">
+        <h2 className="min-w-0 text-xl font-semibold break-words">
           {thread.student?.name ?? thread.group?.name}
-        </h1>
+        </h2>
         {thread.student && thread.student.status !== "actif" ? (
           <StudentStatusChip
             status={thread.student.status as "en_pause" | "arrete"}

@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Ruler } from "@/components/student/ruler";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
-import { listCorrectionQueue } from "@/lib/correction/queries";
+import { countCorrectionQueue, listCorrectionQueue } from "@/lib/correction/queries";
 import { calendarDaysBetween, formatLocal } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -24,11 +24,12 @@ export async function AssignmentsList({
   const [t, params] = await Promise.all([getTranslations("tutor.assignments"), searchParams]);
   const supabase = await createClient();
 
-  const [{ data }, { data: counts }, queue] = await Promise.all([
+  const [{ data }, { data: counts }, queue, waitingTotal] = await Promise.all([
     supabase.from("assignments").select(FIELDS),
     // Counted by the database: reading every submission would stop at PostgREST's max_rows.
     supabase.from("assignment_hand_in_counts").select("assignment_id, students"),
     listCorrectionQueue(),
+    countCorrectionQueue(supabase),
   ]);
   const assignments = data ?? [];
 
@@ -59,7 +60,7 @@ export async function AssignmentsList({
   return (
     <div className="grid gap-6">
       <CorrectionsBanner
-        count={queue.length}
+        count={waitingTotal}
         firstId={queue[0]?.id ?? null}
         oldest={queue[0]?.submittedAt ?? null}
         now={now}

@@ -1,11 +1,22 @@
 import Link from "next/link";
-import { SessionStatusChip } from "@/components/session-status";
+import { SESSION_STATUS_ICONS } from "@/components/session-status";
 import { formatLocal, localMinutesOfDay } from "@/lib/dates";
 import { whoFor, type Session } from "@/lib/sessions/queries";
 import { cn } from "@/lib/utils";
 
 const PX_PER_HOUR = 52;
 const MIN_BLOCK = 30;
+/** The shortest block, in minutes of the scale. */
+const MIN_MINUTES = (MIN_BLOCK / PX_PER_HOUR) * 60;
+
+/** Where a session ends on the scale: at midnight past it, and never shorter than a block. */
+function drawnEnd(session: Session): { start: number; end: number } {
+  const start = localMinutesOfDay(session.startsAt);
+  const rawEnd = localMinutesOfDay(session.endsAt);
+  // A session past midnight is drawn to the end of its first day.
+  const end = rawEnd > start ? rawEnd : 24 * 60;
+  return { start, end: Math.min(Math.max(end, start + MIN_MINUTES), 24 * 60) };
+}
 
 /** A calendar date, read at noon so no offset can move it to another day. */
 function day(date: string, pattern: string): string {
@@ -29,10 +40,8 @@ function place(sessions: Session[]): Placed[] {
     run = [];
   };
   for (const session of sorted) {
-    const start = localMinutesOfDay(session.startsAt);
-    const rawEnd = localMinutesOfDay(session.endsAt);
-    // A session past midnight is drawn to the end of its first day.
-    const end = rawEnd > start ? rawEnd : 24 * 60;
+    // Lanes follow what is drawn: two short sessions back to back would otherwise overlap.
+    const { start, end } = drawnEnd(session);
     if (run.length > 0 && start >= runEnd) close();
     const taken = new Set(run.filter((entry) => entry.end > start).map((entry) => entry.lane));
     let lane = 0;
@@ -71,8 +80,7 @@ export function WeekGrid({
   const all = days.flatMap((key) => byDay.get(key) ?? []);
   const starts = all.map((session) => localMinutesOfDay(session.startsAt));
   const ends = all.map((session) => {
-    const end = localMinutesOfDay(session.endsAt);
-    return end > localMinutesOfDay(session.startsAt) ? end : 24 * 60;
+    return drawnEnd(session).end;
   });
   // Her working day at least, stretched to whatever the week holds.
   const firstHour = Math.min(8, ...starts.map((minutes) => Math.floor(minutes / 60)));
@@ -94,8 +102,11 @@ export function WeekGrid({
             href={dayHref(key)}
             className="grid min-h-14 content-center justify-items-center gap-0.5 border-s border-quadrillage px-1 py-2 hover:bg-sunken"
           >
-            <span className="text-xs text-encre-douce capitalize">{day(key, "EEE")}</span>
+            <span aria-hidden="true" className="text-xs text-encre-douce capitalize">
+              {day(key, "EEE")}
+            </span>
             <span
+              aria-hidden="true"
               className={cn(
                 "text-lg leading-none font-semibold tabular",
                 // The highlighter marks where she is, under the figure: it never carries text.
@@ -153,19 +164,28 @@ export function WeekGrid({
                 {placed.map(({ session, start, end, lane, lanes }) => {
                   const pending = session.status === "en_attente";
                   const done = session.status === "terminee" || session.status === "absent";
+                  const blockHeight = Math.max(
+                    ((end - start) / 60) * PX_PER_HOUR - 2,
+                    MIN_BLOCK - 2,
+                  );
+                  // Its status stays on the first line, as an icon and a word for a screen
+                  // reader: a short block has no room for a chip under its name.
+                  const StatusIcon =
+                    session.status === "planifiee" ? null : SESSION_STATUS_ICONS[session.status];
                   return (
                     <li
                       key={session.id}
                       className="absolute px-0.5"
                       style={{
                         top: y(start) + 1,
-                        height: Math.max(((end - start) / 60) * PX_PER_HOUR - 2, MIN_BLOCK),
+                        height: blockHeight,
                         insetInlineStart: `${(lane / lanes) * 100}%`,
                         width: `${100 / lanes}%`,
                       }}
                     >
                       <Link
                         href={`/prof/seances/${session.id}`}
+                        title={session.status === "planifiee" ? undefined : statusLabel(session)}
                         className={cn(
                           "flex h-full flex-col gap-0.5 overflow-hidden rounded-md border border-s-[3px] px-1.5 py-1 text-xs hover:z-20 hover:shadow-sm",
                           pending
@@ -175,21 +195,29 @@ export function WeekGrid({
                               : "border-quadrillage border-s-encre bg-surface",
                         )}
                       >
-                        <span className="font-semibold tabular">
-                          {formatLocal(session.startsAt, "HH:mm")}
-                          <span className="sr-only"> – {formatLocal(session.endsAt, "HH:mm")}</span>
+                        <span className="flex items-center justify-between gap-1">
+                          <span className="font-semibold tabular">
+                            {formatLocal(session.startsAt, "HH:mm")}
+                            <span className="sr-only">
+                              {" "}
+                              – {formatLocal(session.endsAt, "HH:mm")}
+                            </span>
+                          </span>
+                          {StatusIcon ? (
+                            <span
+                              className={cn(
+                                "flex shrink-0 items-center",
+                                session.status === "absent" && "text-stylo-rouge",
+                              )}
+                            >
+                              <StatusIcon aria-hidden="true" className="size-3.5" />
+                              <span className="sr-only">{statusLabel(session)}</span>
+                            </span>
+                          ) : null}
                         </span>
                         <span className="truncate font-medium">{whoFor(session)}</span>
-                        {session.type ? (
+                        {session.type && blockHeight >= 64 ? (
                           <span className="truncate text-encre-douce">{session.type.name}</span>
-                        ) : null}
-                        {session.status !== "planifiee" ? (
-                          <span className="mt-auto">
-                            <SessionStatusChip
-                              status={session.status}
-                              label={statusLabel(session)}
-                            />
-                          </span>
                         ) : null}
                       </Link>
                     </li>

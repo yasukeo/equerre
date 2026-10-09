@@ -165,20 +165,26 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
   const stats = [
     {
       key: "handedIn",
-      value: `${handedInCount}/${rows.length}`,
-      label: t("stats.handedIn", { count: rows.length }),
+      value: String(handedInCount),
+      unit: `/${rows.length}`,
+      label: t("stats.handedIn"),
       tone: "",
     },
     {
       key: "toCorrect",
       value: String(toCorrect.length),
-      label: t("stats.toCorrect", { count: toCorrect.length }),
+      unit: null,
+      label: t("stats.toCorrect"),
       tone: toCorrect.length > 0 ? "border-transparent bg-rouge-fond text-rouge-texte" : "",
     },
     {
       key: "average",
-      value: average === null ? "—" : `${gradeFormat.format(average)}/20`,
-      label: average === null ? t("stats.noAverage") : t("stats.average"),
+      value:
+        average === null
+          ? null
+          : new Intl.NumberFormat("fr", { maximumFractionDigits: 1 }).format(average),
+      unit: average === null ? null : "/20",
+      label: t("stats.average"),
       tone: "",
     },
   ];
@@ -230,13 +236,25 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
           <div
             key={stat.key}
             className={cn(
-              "flex flex-col-reverse justify-end gap-1 rounded-2xl border border-quadrillage bg-surface p-3 sm:p-4",
+              "grid min-w-0 content-start gap-1 rounded-2xl border border-quadrillage bg-surface p-3 sm:p-4",
               stat.tone,
             )}
           >
             <dt className="text-xs font-medium sm:text-sm">{stat.label}</dt>
-            <dd className="text-2xl font-semibold tabular [font-variation-settings:'HEXP'_45] sm:text-3xl">
-              {stat.value}
+            <dd className="text-xl font-semibold tabular [font-variation-settings:'HEXP'_45] sm:text-3xl">
+              {stat.value === null ? (
+                <>
+                  <span aria-hidden="true">—</span>
+                  <span className="sr-only">{t("stats.noAverage")}</span>
+                </>
+              ) : (
+                <>
+                  {stat.value}
+                  {stat.unit ? (
+                    <span className="text-sm font-medium sm:text-base">{stat.unit}</span>
+                  ) : null}
+                </>
+              )}
             </dd>
           </div>
         ))}

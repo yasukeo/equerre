@@ -8,6 +8,7 @@ import { z } from "zod";
 import { GradeMark } from "@/components/grade-mark";
 import { LateBadge } from "@/components/late-badge";
 import { PageHeader } from "@/components/shell/page-header";
+import { Ruler } from "@/components/student/ruler";
 import { WorkChip } from "@/components/work-status";
 import { requireViewer } from "@/lib/auth";
 import { calendarDaysBetween, formatLocal } from "@/lib/dates";
@@ -41,7 +42,7 @@ const ANSWER_ICONS: Record<AnswerType, typeof Camera> = {
 // ink once corrected. Its chip says the same in words.
 const NUMBER_TONES: Record<ExerciseWork["kind"], string> = {
   todo: "border-2 border-trait text-encre",
-  handedIn: "bg-stylo-bleu text-white",
+  handedIn: "bg-bleu-bande text-white",
   graded: "bg-encre text-papier",
   revealed: "bg-sunken text-encre-douce",
   doneElsewhere: "bg-sunken text-encre-douce",
@@ -94,12 +95,16 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
               ) : null}
               <span>{t("left", { left, total })}</span>
             </p>
-            <span aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-sunken">
-              <span
-                className="block h-full rounded-full bg-rouge"
-                style={{ width: `${Math.round((done / Math.max(total, 1)) * 100)}%` }}
-              />
-            </span>
+            {/* One graduation per exercise: ink once corrected, blue pen once handed in. */}
+            <Ruler
+              marks={homework.exercises.map((exercise) =>
+                exercise.work.kind === "todo"
+                  ? "new"
+                  : exercise.work.kind === "handedIn"
+                    ? "opened"
+                    : "understood",
+              )}
+            />
           </div>
         ) : null}
       </PageHeader>
@@ -118,7 +123,7 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
             </span>
             <ArrowRight
               aria-hidden="true"
-              className="size-5 shrink-0 transition-transform group-hover:translate-x-0.5 rtl:rotate-180"
+              className="size-5 shrink-0 transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
             />
           </span>
         </Link>

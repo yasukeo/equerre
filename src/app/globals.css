@@ -345,3 +345,9 @@
   vertical-align: middle;
   contain: paint;
 }
+
+/* In the inbox, one line is shown: a formula keeps its box, without a scrollbar of its own,
+   and is cut with the line. */
+.chat-preview .chat-math {
+  overflow: hidden;
+}

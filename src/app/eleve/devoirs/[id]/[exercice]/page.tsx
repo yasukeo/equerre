@@ -9,7 +9,7 @@ import { AnnotatedPage, RemarkNumber } from "@/components/annotated-page";
 import { GradeMark } from "@/components/grade-mark";
 import { PageGrid } from "@/components/page-grid";
 import { buttonVariants } from "@/components/ui/button-variants";
-import { WorkChip } from "@/components/work-status";
+import { WORK_ICONS, WorkChip } from "@/components/work-status";
 import { requireViewer } from "@/lib/auth";
 import { arrangeRemarks, type NumberedRemark } from "@/lib/correction/correction";
 import { formatDecimal, parseDecimal } from "@/lib/decimal";
@@ -48,7 +48,7 @@ const gradeFormat = new Intl.NumberFormat("fr", { maximumFractionDigits: 2 });
 // The same marks as on the homework page: outlined to do, blue pen handed in, ink corrected.
 const STEP_TONES: Record<ExerciseWork["kind"], string> = {
   todo: "border-2 border-trait bg-surface text-encre",
-  handedIn: "bg-stylo-bleu text-white",
+  handedIn: "bg-bleu-bande text-white",
   graded: "bg-encre text-papier",
   revealed: "bg-sunken text-encre-douce",
   doneElsewhere: "bg-sunken text-encre-douce",
@@ -69,7 +69,9 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
   if (!data) notFound();
   // The chapter it practises, when it is one of her programme's: a way back to the course.
   const chapter = data.exercise.chapterId
-    ? course.chapters.find((entry) => entry.id === data.exercise.chapterId)
+    ? course.chapters.find(
+        (entry) => entry.id === data.exercise.chapterId && entry.documents.length > 0,
+      )
     : undefined;
 
   const labels = Object.fromEntries(
@@ -161,6 +163,7 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
             <ol role="list" className="flex flex-wrap items-center gap-2">
               {homeworkDetails.exercises.map((step, index) => {
                 const current = step.id === exercise.id;
+                const StepIcon = step.work.kind === "todo" ? null : WORK_ICONS[step.work.kind];
                 const stepLabel =
                   step.work.kind === "graded"
                     ? t("work.graded", { grade: gradeFormat.format(step.work.grade) })
@@ -171,12 +174,21 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
                       href={`/eleve/devoirs/${homework.id}/${step.id}`}
                       aria-current={current ? "step" : undefined}
                       className={cn(
-                        "flex size-11 items-center justify-center rounded-full text-sm font-semibold tabular",
+                        "relative flex size-11 items-center justify-center rounded-full text-sm font-semibold tabular",
                         STEP_TONES[step.work.kind],
                         current && "ring-2 ring-encre ring-offset-2 ring-offset-papier",
                       )}
                     >
                       <span aria-hidden="true">{index + 1}</span>
+                      {/* Its state as a mark too, not only as a fill. */}
+                      {StepIcon ? (
+                        <span
+                          aria-hidden="true"
+                          className="absolute -end-1 -bottom-1 flex size-5 items-center justify-center rounded-full border border-quadrillage bg-surface text-encre"
+                        >
+                          <StepIcon className="size-3" />
+                        </span>
+                      ) : null}
                       <span className="sr-only">
                         {t("exercise.stepLabel", { number: index + 1, title: step.title })} —{" "}
                         {stepLabel}

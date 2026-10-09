@@ -64,9 +64,9 @@ async function StudentConversation({ params }: { params: Promise<{ id: string }>
         ) : (
           <Initials name={siteConfig.tutorName} />
         )}
-        <h1 className="min-w-0 text-xl font-semibold break-words">
+        <h2 className="min-w-0 text-xl font-semibold break-words">
           {thread.group?.name ?? siteConfig.tutorName}
-        </h1>
+        </h2>
       </header>
       <Thread
         conversationId={thread.id}

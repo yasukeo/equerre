@@ -13,6 +13,7 @@ export default async function TutorMessagesLayout({ children }: LayoutProps<"/pr
   return (
     <MessagesPanes
       title={t("title")}
+      listLabel={t("conversations")}
       className="max-w-6xl"
       list={
         <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>

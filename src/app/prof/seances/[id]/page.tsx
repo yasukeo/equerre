@@ -22,15 +22,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-export default async function TutorSessionPage({
+export default function TutorSessionPage({
   params,
   searchParams,
 }: PageProps<"/prof/seances/[id]">) {
-  const t = await getTranslations("tutor.session");
-
   return (
     <div className="grid max-w-5xl grid-cols-[minmax(0,1fr)] gap-6">
-      <PageHeader back={{ href: "/prof/seances", label: t("back") }} title={t("title")} />
       <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <TutorSession params={params} searchParams={searchParams} />
       </Suspense>
@@ -86,18 +83,16 @@ async function TutorSession({
       {banner ? (
         <p
           role="status"
-          className="flex items-start gap-2 rounded-2xl bg-vert-fond px-4 py-3 text-vert-texte"
+          className="flex items-start gap-2 rounded-2xl border border-quadrillage bg-surface px-4 py-3"
         >
           <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {banner}
         </p>
       ) : null}
 
-      <SessionTicket
-        startsAt={session.startsAt}
-        endsAt={session.endsAt}
-        status={session.status}
-        statusLabel={tSession(`status.${session.status}`)}
+      <PageHeader
+        back={{ href: "/prof/seances", label: t("back") }}
+        eyebrow={session.type?.name}
         title={
           session.student ? (
             <Link
@@ -117,6 +112,13 @@ async function TutorSession({
             whoFor(session)
           )
         }
+      />
+
+      <SessionTicket
+        startsAt={session.startsAt}
+        endsAt={session.endsAt}
+        status={session.status}
+        statusLabel={tSession(`status.${session.status}`)}
         mode={session.mode}
         place={place}
         when={when}

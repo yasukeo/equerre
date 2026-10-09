@@ -51,3 +51,42 @@ export function renderChatText(source: string): ReactNode {
     );
   });
 }
+
+/**
+ * The first words of a message for the inbox, where one line is seen: cut before rendering,
+ * so a long message full of formulas costs no more than a short one. A formula is kept whole
+ * or left out, never cut in half.
+ */
+export function renderChatPreview(
+  source: string,
+  { maxLength = 140, maxFormulas = 4 }: { maxLength?: number; maxFormulas?: number } = {},
+): ReactNode {
+  const parts = splitMathText(source.replace(/\s+/g, " ").trim());
+  const kept: ReactNode[] = [];
+  let length = 0;
+  let formulas = 0;
+  for (const [index, part] of parts.entries()) {
+    const room = maxLength - length;
+    if (room <= 0) break;
+    if (part.kind === "text") {
+      kept.push(part.text.length > room ? `${part.text.slice(0, room)}…` : part.text);
+      length += part.text.length;
+      continue;
+    }
+    if (formulas >= maxFormulas || part.latex.length > room) {
+      kept.push("…");
+      break;
+    }
+    formulas += 1;
+    length += part.latex.length;
+    const html = renderFormula(part.latex);
+    kept.push(
+      html === null ? (
+        `$${part.latex}$`
+      ) : (
+        <span key={index} className="chat-math" dangerouslySetInnerHTML={{ __html: html }} />
+      ),
+    );
+  }
+  return kept;
+}

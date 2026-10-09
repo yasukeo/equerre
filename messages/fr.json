@@ -305,7 +305,8 @@
       "documents": "{count, plural, one {# document} other {# documents}}",
       "chapters": "{count, plural, one {# chapitre} other {# chapitres}}",
       "toRead": "{count} à relire",
-      "backToLibrary": "Tous les programmes"
+      "backToLibrary": "Tous les programmes",
+      "documentsWord": "{count, plural, one {document} other {documents}}"
     },
     "newLesson": {
       "title": "Nouvelle leçon",
@@ -608,9 +609,9 @@
       },
       "legendElsewhere": "« Déjà fait ailleurs » : l’élève a été corrigé, ou a vu le corrigé, de cet exercice dans un autre devoir. Il ne peut plus le rendre ici.",
       "stats": {
-        "handedIn": "{count, plural, one {a rendu quelque chose} other {ont rendu quelque chose}}",
-        "toCorrect": "{count, plural, one {copie à corriger} other {copies à corriger}}",
-        "average": "de moyenne",
+        "handedIn": "Ont rendu quelque chose",
+        "toCorrect": "Copies à corriger",
+        "average": "Moyenne",
         "noAverage": "pas encore de note"
       },
       "correctNow": "{count, plural, one {Corriger la copie} other {Corriger les # copies}}",
@@ -1356,7 +1357,7 @@
       "noGroups": "Vous ne faites partie d’aucun groupe pour l’instant.",
       "notProvided": "Non renseigné",
       "help": "Une information est fausse ? Signalez-la à votre professeure.",
-      "card": "Votre carte d’élève",
+      "card": "Ma carte d’élève",
       "detailsHeading": "Mes coordonnées",
       "writeTutor": "Lui écrire"
     },
@@ -2004,7 +2005,8 @@
     "arrived": "Nouveau message de {name}.",
     "queued": "En attente d’envoi.",
     "hintKeys": "Ctrl + Entrée pour envoyer.",
-    "pickConversation": "Choisissez une conversation dans la liste pour la lire ici."
+    "pickConversation": "Choisissez une conversation dans la liste pour la lire ici.",
+    "conversations": "Conversations"
   },
   "notifications": {
     "title": "Notifications",
@@ -2097,9 +2099,9 @@
       "lastMonth": "Encaissé en {month}",
       "payments": "{count, plural, =0 {aucun paiement} one {# paiement} other {# paiements}}",
       "overdue": "{count, plural, one {solde en retard} other {soldes en retard}}",
-      "owed": "{hours} dues en tout"
+      "owed": "Reste à régler : {hours}"
     },
-    "incomeHeading": "Encaissements, {count} derniers mois",
+    "incomeHeading": "Encaissements des {count} derniers mois",
     "incomeNote": "Par date de paiement, sans les paiements annulés. En dirhams."
   },
   "plans": {

@@ -202,27 +202,33 @@ async function Booking({
             {t("noSlotsAtAll", { days: calendar.rules.horizonDays })}
           </p>
         ) : (
-          <div className="grid gap-2 rounded-2xl border border-quadrillage bg-surface p-3 sm:p-4">
+          <div className="grid gap-2 sm:rounded-2xl sm:border sm:border-quadrillage sm:bg-surface sm:p-4">
             <p className="text-sm font-medium first-letter:uppercase">
               {t("range", {
                 from: day(days[0]!.date, "d MMMM"),
                 to: day(days[days.length - 1]!.date, "d MMMM"),
               })}
             </p>
-            <div aria-hidden="true" className="grid grid-cols-7 gap-1 text-center">
+            <div aria-hidden="true" className="grid grid-cols-7 gap-0.5 text-center sm:gap-1">
               {weekdays.map((letter, index) => (
                 <span key={index} className="text-xs font-medium text-encre-douce">
                   {letter}
                 </span>
               ))}
             </div>
-            <ol role="list" className="grid grid-cols-7 gap-1">
+            <ol role="list" className="grid grid-cols-7 gap-0.5 sm:gap-1">
               {days.map((entry, index) => {
                 const current = entry.date === chosen?.date;
                 const count = entry.slots.length;
                 const number = day(entry.date, "d");
                 const firstOfMonth = number === "1";
                 const full = day(entry.date, "EEEE d MMMM");
+                // The month is written over its first day, never beside the figure.
+                const month = firstOfMonth ? (
+                  <span aria-hidden="true" className="text-[0.6rem] leading-none uppercase">
+                    {day(entry.date, "MMM")}
+                  </span>
+                ) : null;
                 return (
                   <li
                     key={entry.date}
@@ -230,9 +236,10 @@ async function Booking({
                     style={index === 0 ? { gridColumnStart: lead + 1 } : undefined}
                   >
                     {count === 0 ? (
-                      <span className="grid min-h-12 place-content-center rounded-lg text-center text-encre-douce/70">
-                        <span className="text-sm tabular line-through decoration-trait/60">
-                          {firstOfMonth ? day(entry.date, "d MMM") : number}
+                      <span className="grid min-h-12 place-content-center gap-0.5 rounded-lg text-center text-encre-douce">
+                        {month}
+                        <span aria-hidden="true" className="text-sm tabular line-through">
+                          {number}
                         </span>
                         <span className="sr-only">
                           {full}, {entry.open ? t("closed") : t("closedDay")}
@@ -244,19 +251,23 @@ async function Booking({
                         scroll={false}
                         aria-current={current ? "date" : undefined}
                         className={cn(
-                          "grid min-h-12 place-content-center gap-0.5 rounded-lg border text-center",
+                          "grid min-h-12 min-w-11 place-content-center gap-0.5 rounded-lg border text-center",
                           current
                             ? "border-encre bg-encre text-papier"
                             : "border-trait bg-surface hover:border-encre",
                         )}
                       >
-                        <span className="text-sm leading-none font-semibold tabular">
-                          {firstOfMonth ? day(entry.date, "d MMM") : number}
+                        {month}
+                        <span
+                          aria-hidden="true"
+                          className="text-sm leading-none font-semibold tabular"
+                        >
+                          {number}
                         </span>
                         <span
                           aria-hidden="true"
                           className={cn(
-                            "text-[0.65rem] leading-none tabular",
+                            "text-xs leading-none tabular",
                             current ? "" : "text-encre-douce",
                           )}
                         >

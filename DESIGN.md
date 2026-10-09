@@ -152,7 +152,18 @@ A student's progress uses the instruments in her pencil case, in the pens' colou
 └──────────┴──────────────────────────────────┴──────────────────┘
 ```
 
-The day is drawn as a **graduated ruler**: time runs down a scale with tick marks, and sessions hang off it at their real length. A 2-hour group session takes up twice the space of a 1-hour one, so she reads the shape of her day at a glance.
+The day is drawn as a **graduated ruler**: time runs down a scale with tick marks, and sessions hang off it at their real length. A 2-hour group session takes up twice the space of a 1-hour one, so she reads the shape of her day at a glance. The week on the Séances page (from 1024px) is seven of those rulers side by side on one scale of hours, today washed in blue and the present hour drawn as a red line; under 1024px it stays a list of days.
+
+### The rest of the workspace (D-105)
+
+- **Every page opens the same way** (`PageHeader`): a way back written as a place (« ← Tous les devoirs »), an eyebrow for where it sits, the title in the display width, one line on what the page is for, and its actions on the right — the one the page is for in blue.
+- **What waits comes first.** Copies to correct are a red banner over the homework list with a button straight into the oldest; a homework's page opens on three figures (who handed something in, what waits, the average) and its grid of students × exercises, where a grade is written in red pen and a copy to correct is a red pastille. Editing a homework is folded away.
+- **A session is a diary leaf**: the day torn off a calendar on the left (ink when it is to come, grey once past), the hours large beside it, then the place and the status — the same leaf for the student and the tutor.
+- **Booking is three numbered steps**, because it is a sequence: the kind of session, a day on a month calendar (each open day with its count of free times, closed days struck through), then the time.
+- **Messages sit beside the conversation** on a wide screen; on a phone the list is the page until a conversation is opened. Her own bubbles are washed in blue pen, the others' on paper.
+- **The library** (Leçons) starts on the shelves — one card per programme with its count of documents and what is left to read over, topped with the colour of its cycle — then opens a programme's chapters folded; a search reaches every document at once. The exercise bank filters by type of answer and shows difficulty as five graduations.
+- **Money** opens on the month's figures and the overdue balances, then the payments by month, and six months of income as bars in ink, this month's in blue pen, the amount written above each. No green: success is written in ink (see Colour tokens).
+- **Pupil's card**: the student's profile and a parent's page open on an ink card with the initials, the name, the level and the school.
 
 **Public site** (phase 4) — the squared grid appears here, as the page's structure: the headline sits on the grid and the columns snap to it. It stays out of the workspace, where it would only be noise.
 
@@ -180,8 +191,8 @@ All motion is disabled under `prefers-reduced-motion: reduce`.
 | Assignment | ○ À faire · ◐ Rendu (blue) · ✓ Corrigé (red)                               |
 | Session    | ⧗ En attente · ▢ Planifiée · ✓ Terminée · ✕ Annulée · ⊘ Absent · — Refusée |
 | Payment    | ✓ À jour · △ En retard de _n_ jours                                        |
-| Chapter    | ◌ À commencer · ◷ En cours (blue) · ✓ Compris (ink)                         |
-| Homework   | ○ À faire · ◷ En attente (blue) · ✓ Terminé                                 |
+| Chapter    | ◌ À commencer · ◷ En cours (blue) · ✓ Compris (ink)                        |
+| Homework   | ○ À faire · ◷ En attente (blue) · ✓ Terminé                                |
 
 ## Dark mode and RTL
 
