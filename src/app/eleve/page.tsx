@@ -152,7 +152,12 @@ async function StudentHome() {
                     />
                   </span>
                   <span className="text-sm">
-                    {tHomework("left", { left: entry.progress.left, total: entry.progress.total })}
+                    {entry.subject
+                      ? tHomework("subject.copyToHandIn")
+                      : tHomework("left", {
+                          left: entry.progress.left,
+                          total: entry.progress.total,
+                        })}
                   </span>
                 </div>
                 <Link

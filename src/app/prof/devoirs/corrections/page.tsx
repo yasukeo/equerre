@@ -118,7 +118,12 @@ async function Queue() {
                           <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-encre-douce">
                             <span className="inline-flex items-center gap-1">
                               <Images aria-hidden="true" className="size-4" />
-                              {t("pages", { count: entry.pages })}
+                              {[
+                                entry.pages > 0 ? t("pages", { count: entry.pages }) : null,
+                                entry.pdfs > 0 ? t("pdfs", { count: entry.pdfs }) : null,
+                              ]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </span>
                             <span className="inline-flex items-center gap-1">
                               <Clock aria-hidden="true" className="size-4" />

@@ -177,13 +177,17 @@ async function HomeworkList({
                   ) : view === "en-attente" ? (
                     <span className="inline-flex items-center gap-1.5 text-sm text-stylo-bleu">
                       <Clock aria-hidden="true" className="size-4" />
-                      {t("waiting", { count: entry.waiting })}
+                      {entry.subject
+                        ? t("subject.copyWaiting")
+                        : t("waiting", { count: entry.waiting })}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 text-sm text-encre-douce">
                       <CheckCheck aria-hidden="true" className="size-4" />
                       {entry.corrected > 0
-                        ? t("correctedCount", { count: entry.corrected })
+                        ? entry.subject
+                          ? t("subject.copyCorrected")
+                          : t("correctedCount", { count: entry.corrected })
                         : t("finished")}
                     </span>
                   )}

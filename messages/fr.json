@@ -518,7 +518,7 @@
       "startCorrecting": "Commencer à corriger",
       "seeQueue": "Voir la liste",
       "subjectPdf": "Sujet en PDF",
-      "newSubject": "Sujet en PDF",
+      "newSubject": "Donner un sujet en PDF",
       "soloHandedInCopy": "A rendu sa copie",
       "handedInCopy": "{total, plural, =1 {{done} sur 1 élève a rendu sa copie} other {{done} sur # élèves ont rendu leur copie}}"
     },
@@ -571,29 +571,31 @@
         "unknown": "L’envoi a échoué. Réessayez.",
         "dueSkipped": "Cette heure n’existe pas ce jour-là : les horloges sautent une heure au changement d’heure. Choisissez-en une autre.",
         "subject": "Ajoutez le sujet en PDF.",
-        "subjectLost": "Le sujet envoyé est introuvable. Choisissez le fichier à nouveau."
+        "subjectLost": "Le sujet envoyé est introuvable. Choisissez le fichier à nouveau.",
+        "subjectUsed": "Ce fichier a déjà servi pour un devoir. Choisissez le PDF à nouveau."
       },
       "mode": {
         "label": "Le travail à faire",
         "bank": "Exercices de la banque",
-        "bankHint": "Notés seuls ou sur photo, exercice par exercice.",
+        "bankHint": "Corrigés automatiquement ou rendus en photo, exercice par exercice.",
         "subject": "Un sujet en PDF",
         "subjectHint": "Un examen ou une série : l’élève rend sa copie en photos ou en PDF."
       },
       "subject": {
         "heading": "Sujet",
-        "hint": "Un fichier PDF de 20 Mo au plus. L’élève l’ouvre et le télécharge depuis son devoir.",
+        "hint": "Un fichier PDF de 20 Mo au plus. L’élève l’ouvre et le télécharge depuis son devoir.",
         "choose": "Choisir le PDF",
         "change": "Changer de fichier",
         "remove": "Retirer le fichier",
         "uploading": "Envoi du sujet…",
         "ready": "Sujet prêt",
-        "size": "{size} Mo",
+        "size": "{size} Mo",
         "notPdf": "Ce fichier n’est pas un PDF.",
-        "tooLarge": "Ce PDF dépasse 20 Mo. Réduisez-le, ou découpez-le en deux devoirs.",
+        "tooLarge": "Ce PDF dépasse 20 Mo. Réduisez-le, ou découpez-le en deux devoirs.",
         "failed": "Le sujet n’a pas pu être envoyé. Réessayez.",
         "waiting": "Attendez la fin de l’envoi du sujet.",
-        "sizeKb": "{size} Ko"
+        "sizeKb": "{size} Ko",
+        "drop": "ou déposez-le ici"
       }
     },
     "assignment": {
@@ -667,7 +669,8 @@
       "late": "En retard",
       "start": "Commencer",
       "copies": "{count, plural, one {# copie} other {# copies}}",
-      "waitingFor": "{days, plural, =0 {rendue aujourd’hui} =1 {rendue hier} other {attend depuis # jours}}"
+      "waitingFor": "{days, plural, =0 {rendue aujourd’hui} =1 {rendue hier} other {attend depuis # jours}}",
+      "pdfs": "{count, plural, one {# PDF} other {# PDF}}"
     },
     "correction": {
       "title": "Correction",
@@ -742,8 +745,10 @@
       },
       "pdfCopy": "Copie en PDF {number}",
       "openPdf": "Ouvrir le PDF",
-      "pdfHint": "Une copie en PDF reçoit des remarques sur l’ensemble du document.",
-      "addOnPdf": "Ajouter une remarque sur la copie en PDF {number}"
+      "pdfHint": "Sur une copie en PDF, les remarques portent sur l’ensemble du document.",
+      "addOnPdf": "Ajouter une remarque sur la copie en PDF {number}",
+      "newTab": "(nouvel onglet)",
+      "remarksOnPdf": "Remarques sur la copie en PDF {number}"
     },
     "students": {
       "title": "Élèves",
@@ -1496,9 +1501,9 @@
         "quota": "Trop de photos attendent d’être rendues dans vos devoirs. Rendez vos copies en cours, ou retirez des pages, puis réessayez.",
         "unreadable": "Cette image ne peut pas être lue. Reprenez la photo.",
         "tooLarge": "Cette photo est trop lourde, même réduite.",
-        "up": "Monter la page {number}",
-        "down": "Descendre la page {number}",
-        "remove": "Retirer la page {number}",
+        "up": "Monter « {item} »",
+        "down": "Descendre « {item} »",
+        "remove": "Retirer « {item} »",
         "empty": "Aucune page pour l’instant.",
         "full": "20 éléments au plus : retirez-en un pour en ajouter un autre.",
         "handIn": "Rendre ma copie",
@@ -1512,7 +1517,11 @@
         "addPdf": "Ajouter un PDF",
         "pdfItem": "Copie en PDF {number}",
         "notPdf": "Ce fichier n’est pas un PDF.",
-        "pdfTooLarge": "Ce PDF dépasse 20 Mo. Prenez plutôt des photos de vos pages."
+        "pdfTooLarge": "Ce PDF dépasse 20 Mo. Prenez plutôt des photos de vos pages.",
+        "pdfQuota": "Trois PDF attendent déjà d’être rendus. Rendez votre copie, ou retirez un PDF, puis réessayez.",
+        "failedPdf": "Ce PDF n’a pas pu être envoyé.",
+        "uploadingPdf": "Envoi du PDF…",
+        "openPdf": "Ouvrir"
       },
       "reveal": {
         "title": "Voir le corrigé",
@@ -1533,7 +1542,8 @@
         "tooManyPages": "20 pages au plus par exercice.",
         "pageLost": "Une page n’a pas été envoyée correctement. Retirez-la et ajoutez-la à nouveau.",
         "alreadyCorrected": "Cet exercice est déjà corrigé.",
-        "unknown": "L’envoi a échoué. Vérifiez votre connexion et réessayez."
+        "unknown": "L’envoi a échoué. Vérifiez votre connexion et réessayez.",
+        "tooManyPdfs": "Trois PDF au plus dans une copie."
       },
       "views": "Filtrer mes devoirs",
       "view": {
@@ -1568,7 +1578,9 @@
         "unavailable": "Le sujet ne s’ouvre pas pour l’instant : rechargez la page.",
         "lead": "Faites le travail sur papier, puis rendez votre copie en photos ou en PDF avant la date limite.",
         "backToList": "Tous les devoirs",
-        "copyToHandIn": "Une copie à rendre, en photos ou en PDF"
+        "copyToHandIn": "Une copie à rendre, en photos ou en PDF",
+        "copyWaiting": "Copie rendue, en attente de correction",
+        "copyCorrected": "Copie corrigée"
       }
     },
     "sessions": {

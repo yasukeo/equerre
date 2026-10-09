@@ -72,8 +72,12 @@ const SUBJECT_RPC_ERRORS = {
   ...RPC_ERRORS,
   subject_invalid: "subject",
   subject_not_uploaded: "subjectLost",
+  subject_used: "subjectUsed",
   title_invalid: "title",
 } as const;
+
+/** Refusals after which the form forgets its file, without deleting it, and asks for it again. */
+const ASK_FOR_FILE_AGAIN = new Set(["subject_not_uploaded", "subject_used"]);
 
 /**
  * A homework given as a PDF (D-106). The tutor's browser has already put the file in the
@@ -120,10 +124,15 @@ export async function createSubjectAssignment(
   if (error || !data) {
     const code = Object.keys(SUBJECT_RPC_ERRORS).find((key) => error?.message.includes(key)) as
       keyof typeof SUBJECT_RPC_ERRORS | undefined;
-    return {
-      status: "error",
-      message: t(`errors.${code ? SUBJECT_RPC_ERRORS[code] : "unknown"}`),
-    };
+    const message = t(`errors.${code ? SUBJECT_RPC_ERRORS[code] : "unknown"}`);
+    return code && ASK_FOR_FILE_AGAIN.has(code)
+      ? {
+          status: "error",
+          message,
+          fieldErrors: { subject: message },
+          values: { subject: "again" },
+        }
+      : { status: "error", message };
   }
 
   redirect(`/prof/devoirs/${data}`);
@@ -220,8 +229,17 @@ export async function deleteAssignment(
       ? [item.exercise.subject_path]
       : [],
   );
-  // Best effort: the homework is gone either way, and an orphan file only takes room.
-  if (files.length > 0) await supabase.storage.from(SUBJECT_BUCKET).remove(files);
+  if (files.length > 0) {
+    // Only a file whose subject went with the homework: one still held elsewhere stays.
+    const { data: kept } = await supabase
+      .from("exercises")
+      .select("subject_path")
+      .in("subject_path", files);
+    const held = new Set((kept ?? []).map((row) => row.subject_path));
+    const orphans = files.filter((file) => !held.has(file));
+    // Best effort: the homework is gone either way, and an orphan file only takes room.
+    if (orphans.length > 0) await supabase.storage.from(SUBJECT_BUCKET).remove(orphans);
+  }
 
   redirect("/prof/devoirs");
 }

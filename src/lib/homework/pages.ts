@@ -6,8 +6,18 @@ export const MAX_PAGES = 20;
 /** A photographed page, once reduced on the phone. */
 export const PAGE_MAX_BYTES = 8 * 1024 * 1024;
 
-/** A copy handed in as a PDF: the submissions bucket's own limit (subject_assignments). */
+/** A copy handed in as a PDF: the submission-pdfs bucket's limit (pdf_copies_bucket). */
 export const PDF_MAX_BYTES = 20 * 1024 * 1024;
+
+/** Photographed pages: images of 8 MB at most. */
+export const PAGES_BUCKET = "submissions";
+/** Copies written as PDFs: 20 MB at most, three waiting at a time (D-106). */
+export const PDF_BUCKET = "submission-pdfs";
+
+/** The bucket a handed-in name lives in, told by its extension. */
+export function bucketOf(path: string): typeof PAGES_BUCKET | typeof PDF_BUCKET {
+  return path.endsWith(".pdf") ? PDF_BUCKET : PAGES_BUCKET;
+}
 
 /**
  * Every page is drawn again in the browser before it leaves the phone: about 2,000 pixels on

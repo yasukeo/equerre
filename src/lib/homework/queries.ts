@@ -9,6 +9,7 @@ import {
 import { readStoredLesson, type StoredLesson } from "@/lib/lesson/document";
 import type { Remark } from "@/lib/correction/correction";
 import { isSubmissionPageName } from "@/lib/storage-paths";
+import { PAGES_BUCKET, PDF_BUCKET } from "@/lib/homework/pages";
 import { signSubject } from "@/lib/homework/subject";
 import { signPages, type Page } from "@/lib/submission-pages";
 import { createClient } from "@/lib/supabase/server";
@@ -305,31 +306,40 @@ export async function getMyExercise(
   if (index === -1) return null;
 
   const ref = draftReference(assignmentId, exerciseId);
-  const [exerciseRead, work, submissionRead, solutionRead, { data: folder }] = await Promise.all([
-    supabase
-      .from("exercises")
-      .select("id, title, statement, answer_type, choices, choice_mode, chapter_id, subject_path")
-      .eq("id", exerciseId)
-      .maybeSingle(),
-    myWork(supabase, [exerciseId]),
-    supabase
-      .from("submissions")
-      .select("id, answer, file_paths, feedback, auto_graded")
-      .eq("assignment_id", assignmentId)
-      .eq("exercise_id", exerciseId)
-      .maybeSingle(),
-    supabase
-      .from("exercise_solutions")
-      .select(
-        "solution, correct_numeric::text, tolerance::text, tolerance_kind, correct_choice_ids",
-      )
-      .eq("exercise_id", exerciseId)
-      .maybeSingle(),
-    supabase.storage.from("submissions").list(`${studentId}/${ref}`, {
-      limit: 100,
-      sortBy: { column: "created_at", order: "asc" },
-    }),
-  ]);
+  const [exerciseRead, work, submissionRead, solutionRead, pageFolder, pdfFolder] =
+    await Promise.all([
+      supabase
+        .from("exercises")
+        .select("id, title, statement, answer_type, choices, choice_mode, chapter_id, subject_path")
+        .eq("id", exerciseId)
+        .maybeSingle(),
+      myWork(supabase, [exerciseId]),
+      supabase
+        .from("submissions")
+        .select("id, answer, file_paths, feedback, auto_graded")
+        .eq("assignment_id", assignmentId)
+        .eq("exercise_id", exerciseId)
+        .maybeSingle(),
+      supabase
+        .from("exercise_solutions")
+        .select(
+          "solution, correct_numeric::text, tolerance::text, tolerance_kind, correct_choice_ids",
+        )
+        .eq("exercise_id", exerciseId)
+        .maybeSingle(),
+      supabase.storage.from(PAGES_BUCKET).list(`${studentId}/${ref}`, {
+        limit: 100,
+        sortBy: { column: "created_at", order: "asc" },
+      }),
+      supabase.storage.from(PDF_BUCKET).list(`${studentId}/${ref}`, {
+        limit: 100,
+        sortBy: { column: "created_at", order: "asc" },
+      }),
+    ]);
+  // Photographed pages and PDF copies, in the order they went up (D-106).
+  const folder = [...(pageFolder.data ?? []), ...(pdfFolder.data ?? [])].sort((a, b) =>
+    (a.created_at ?? "").localeCompare(b.created_at ?? ""),
+  );
   const exercise = read(exerciseRead);
   const submission = read(submissionRead);
   const solution = read(solutionRead);

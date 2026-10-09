@@ -7,7 +7,7 @@ import { requireViewer } from "@/lib/auth";
 import { parseDecimal } from "@/lib/decimal";
 import { CHOICE_ID, MAX_CHOICES } from "@/lib/exercise/exercise";
 import { textField, type FormState } from "@/lib/form-state";
-import { MAX_PAGES } from "@/lib/homework/pages";
+import { MAX_PAGES, PAGES_BUCKET, PDF_BUCKET } from "@/lib/homework/pages";
 import { draftReference } from "@/lib/homework/queries";
 import { isSubmissionPageName } from "@/lib/storage-paths";
 import { createClient } from "@/lib/supabase/server";
@@ -31,6 +31,7 @@ const REFUSALS: Record<string, string> = {
   pages_required: "pagesRequired",
   too_many_pages: "tooManyPages",
   page_not_uploaded: "pageLost",
+  too_many_pdfs: "tooManyPdfs",
   file_path_invalid: "pageLost",
   file_path_not_yours: "pageLost",
   submission_already_corrected: "alreadyCorrected",
@@ -125,12 +126,17 @@ async function removeDrafts(
   keep: string[],
 ) {
   const folder = `${studentId}/${draftReference(assignmentId, exerciseId)}`;
-  const { data } = await supabase.storage.from("submissions").list(folder, { limit: 100 });
-  const leftOver = (data ?? [])
-    .map((object) => `${folder}/${object.name}`)
-    .filter((path) => isSubmissionPageName(path) && !keep.includes(path));
-  // Best effort: the work is handed in or the solution open either way.
-  if (leftOver.length > 0) await supabase.storage.from("submissions").remove(leftOver);
+  // Photographed pages and PDF copies wait in a folder of the same name in each bucket.
+  await Promise.all(
+    [PAGES_BUCKET, PDF_BUCKET].map(async (bucket) => {
+      const { data } = await supabase.storage.from(bucket).list(folder, { limit: 100 });
+      const leftOver = (data ?? [])
+        .map((object) => `${folder}/${object.name}`)
+        .filter((path) => isSubmissionPageName(path) && !keep.includes(path));
+      // Best effort: the work is handed in or the solution open either way.
+      if (leftOver.length > 0) await supabase.storage.from(bucket).remove(leftOver);
+    }),
+  );
 }
 
 export async function revealSolution(_previous: FormState, formData: FormData): Promise<FormState> {

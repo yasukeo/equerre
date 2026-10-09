@@ -984,8 +984,17 @@ Asked on 2026-10-09: the tutor wants to publish an exam or a series as a PDF wit
   - A subject cannot be answered by a number or a choice (`exercises_subject_is_upload`), belongs to one homework (unique index on `subject_path`), is renamed with its homework (trigger), and is deleted with it (`delete_assignment`); its file is removed by the server action.
   - A subject has no corrigé, so the reveal policy refuses one: a reveal would have forbidden handing it in.
 - **Where files live.** Subjects are in a private `assignment-subjects` bucket (PDF, 20 MB), named `<uuid>.pdf`: the tutor writes and removes them, a student reads one through `can_read_subject` — the homework reaches her, as `is_assigned_to_me` says. The tutor's browser uploads the file; the database checks it is there before writing the homework. Addresses are signed for four hours.
-- **A copy may be a PDF.** The submissions bucket now takes `application/pdf` (its limit raised from 8 to 20 MB; photos are still reduced to a few hundred kilobytes on the phone), and `is_submission_page_name` accepts `.pdf`. A PDF goes up as it is, beside or instead of photographed pages, within the same 20 items. The tutor reads it in a frame on a wide screen, in her own viewer elsewhere, and writes remarks on the whole document rather than on a point.
+- **A copy may be a PDF.** A PDF goes up as it is, beside or instead of photographed pages, within the same 20 items, to a bucket of its own, `submission-pdfs` (PDF only, 20 MB): photographed pages stay in `submissions` at 8 MB. At most three PDFs wait to be handed in, and three go in one copy (`too_many_pdfs`); the 40 files waiting are counted across both buckets. The tutor opens a PDF copy in her own viewer — it is never framed in the page, since a student's document could draw links there — and writes remarks on the whole document rather than on a point.
 - **Screens.** « Nouveau devoir » starts with the choice between bank exercises and a PDF subject (a « Sujet en PDF » button on the homework list and in Ctrl K opens it chosen). A PDF homework opens, for the student, straight on its subject and her copy; for the tutor, on the subject beside the grid, whose one column is « Copie ».
+- **Reviewed** by three reviewers (security, logic, interface). Fixed after review (migrations `20261009150000_pdf_copies_bucket` and `20261009170000_subject_files_held`):
+  - PDF copies moved to their own bucket, so photos are capped at 8 MB again and PDFs are counted;
+  - a subject's file cannot be removed while a homework names it, and the form comes back empty after a homework is given: « Changer de fichier » could otherwise delete a live subject; a file already given is refused as such (`subject_used`);
+  - a subject uploaded and then left for bank exercises is removed at once; deleting a homework removes only a file no exercise holds;
+  - the tutor's instructions show on the PDF homework's page, under the subject;
+  - the subject is framed only on a wide screen, and only once it is (no 20 MB download hidden on a phone);
+  - a student's copy is drawn in blue pen, her PDF shows its file name and opens, pages and PDFs are numbered each among their own kind, and the student's home, agenda and list speak of « une copie » rather than « 1 exercice »;
+  - outline links had lost their border to a later `border-transparent`: each button variant now names its own;
+  - the two kinds of work are radio cards with a visible mark, the file picker keeps focus and announces its state, and takes a dropped file.
 
 ## Secret key usage
 

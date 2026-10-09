@@ -8,7 +8,15 @@ import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { ImagePreparationError, prepareImage } from "@/lib/images/prepare-image";
 import { initialFormState, type FormState } from "@/lib/form-state";
-import { MAX_PAGES, PAGE_PREPARATION, PDF_MAX_BYTES, pagePath } from "@/lib/homework/pages";
+import {
+  MAX_PAGES,
+  PAGE_PREPARATION,
+  PAGES_BUCKET,
+  PDF_BUCKET,
+  PDF_MAX_BYTES,
+  bucketOf,
+  pagePath,
+} from "@/lib/homework/pages";
 import { isPdfPage } from "@/lib/storage-paths";
 import { createClient } from "@/lib/supabase/client";
 import { PageGrid } from "@/components/page-grid";
@@ -29,6 +37,8 @@ type PageState = {
   local?: boolean;
   /** A copy handed in as a PDF rather than a photographed page (D-106). */
   pdf: boolean;
+  /** The PDF's own file name, while it is known: so she can tell her copy from the subject. */
+  name?: string;
 };
 
 type Props = {
@@ -101,7 +111,7 @@ export function PhotoAnswer({
     setPages((current) => [...current, ...added]);
 
     // One at a time: a phone decoding several twelve-megapixel photos at once runs out of memory.
-    const bucket = createClient().storage.from("submissions");
+    const bucket = createClient().storage.from(PAGES_BUCKET);
     for (const [index, file] of chosen.entries()) {
       const page = added[index];
       if (!page) continue;
@@ -149,10 +159,11 @@ export function PhotoAnswer({
       handedIn: false,
       status: "uploading",
       pdf: true,
+      name: file.name,
     }));
     setPages((current) => [...current, ...added]);
 
-    const bucket = createClient().storage.from("submissions");
+    const bucket = createClient().storage.from(PDF_BUCKET);
     for (const [index, file] of chosen.entries()) {
       const page = added[index];
       if (!page) continue;
@@ -176,9 +187,11 @@ export function PhotoAnswer({
         update(page.key, {
           status: "failed",
           error:
+            // Her folder and the name are right: a refusal is the cap on PDF copies, or on
+            // pages, waiting to be handed in (D-106).
             error instanceof Error && /row-level security/i.test(error.message)
-              ? t("photos.quota")
-              : t("photos.failed"),
+              ? t("photos.pdfQuota")
+              : t("photos.failedPdf"),
         });
       }
     }
@@ -189,7 +202,7 @@ export function PhotoAnswer({
     if (page.local && page.url) URL.revokeObjectURL(page.url);
     // A page that was never handed in is deleted; one handed in stays where it is (D-052).
     if (page.path && !page.handedIn) {
-      void createClient().storage.from("submissions").remove([page.path]);
+      void createClient().storage.from(bucketOf(page.path)).remove([page.path]);
     }
   };
 
@@ -198,7 +211,10 @@ export function PhotoAnswer({
     const added = pages.filter((page) => !page.handedIn);
     for (const page of added) if (page.local && page.url) URL.revokeObjectURL(page.url);
     const paths = added.flatMap((page) => (page.path ? [page.path] : []));
-    if (paths.length > 0) void createClient().storage.from("submissions").remove(paths);
+    for (const bucket of [PAGES_BUCKET, PDF_BUCKET]) {
+      const ofBucket = paths.filter((path) => bucketOf(path) === bucket);
+      if (ofBucket.length > 0) void createClient().storage.from(bucket).remove(ofBucket);
+    }
     setPages(handedInPages.map(fromStorage));
     setEditing(false);
   };
@@ -226,6 +242,7 @@ export function PhotoAnswer({
           pages={handedInPages}
           label={(number) => t("photos.page", { number })}
           pdfLabel={(number) => t("photos.pdfItem", { number })}
+          newTabLabel={t("subject.newTab")}
         />
         <Button
           type="button"
@@ -251,21 +268,39 @@ export function PhotoAnswer({
       ) : (
         <ol className="grid gap-3" aria-label={t("photos.title")}>
           {pages.map((page, index) => {
-            const number = index + 1;
+            // Pages and PDF copies are each counted among their own kind.
+            const number = pages
+              .slice(0, index + 1)
+              .filter((other) => other.pdf === page.pdf).length;
+            const item = page.pdf ? t("photos.pdfItem", { number }) : t("photos.page", { number });
             return (
               <li
                 key={page.key}
                 className="flex items-center gap-3 rounded-md border border-quadrillage p-2"
               >
-                <Thumbnail page={page} alt={t("photos.page", { number })} />
+                <Thumbnail page={page} alt={item} />
                 <div className="grid min-w-0 flex-1 gap-1">
-                  <span className="text-sm font-medium">
-                    {page.pdf ? t("photos.pdfItem", { number }) : t("photos.page", { number })}
-                  </span>
+                  <span className="text-sm font-medium">{item}</span>
+                  {page.pdf && (page.name || page.url) ? (
+                    <span className="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-encre-douce">
+                      {page.name ? <span className="min-w-0 truncate">{page.name}</span> : null}
+                      {page.url ? (
+                        <a
+                          href={page.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex min-h-11 items-center underline decoration-trait underline-offset-4 hover:decoration-encre"
+                        >
+                          {t("photos.openPdf")}
+                          <span className="sr-only"> {t("subject.newTab")}</span>
+                        </a>
+                      ) : null}
+                    </span>
+                  ) : null}
                   {page.status === "uploading" ? (
                     <span className="flex items-center gap-1 text-sm text-encre-douce">
                       <Loader2 aria-hidden="true" className="size-4 animate-spin" />
-                      {t("photos.uploading")}
+                      {page.pdf ? t("photos.uploadingPdf") : t("photos.uploading")}
                     </span>
                   ) : page.status === "failed" ? (
                     <span role="alert" className="text-sm text-stylo-rouge">
@@ -275,21 +310,21 @@ export function PhotoAnswer({
                 </div>
                 <span className="flex">
                   <IconButton
-                    label={t("photos.up", { number })}
+                    label={t("photos.up", { item })}
                     disabled={locked || index === 0}
                     onClick={() => move(index, -1)}
                   >
                     <ArrowUp aria-hidden="true" className="size-4" />
                   </IconButton>
                   <IconButton
-                    label={t("photos.down", { number })}
+                    label={t("photos.down", { item })}
                     disabled={locked || index === pages.length - 1}
                     onClick={() => move(index, 1)}
                   >
                     <ArrowDown aria-hidden="true" className="size-4" />
                   </IconButton>
                   <IconButton
-                    label={t("photos.remove", { number })}
+                    label={t("photos.remove", { item })}
                     disabled={locked || page.status === "uploading"}
                     onClick={() => remove(page)}
                   >
@@ -428,7 +463,7 @@ function Thumbnail({ page, alt }: { page: PageState; alt: string }) {
     return (
       <span
         aria-hidden="true"
-        className="flex size-16 shrink-0 items-center justify-center rounded border border-quadrillage bg-rouge-fond text-rouge-texte"
+        className="flex size-16 shrink-0 items-center justify-center rounded border border-quadrillage bg-lavis-bleu text-stylo-bleu"
       >
         <FileText className="size-6" />
       </span>

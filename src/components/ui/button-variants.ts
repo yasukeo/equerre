@@ -6,16 +6,16 @@ import { cva } from "class-variance-authority";
 
 // Every size keeps a 44px hit target (brief §8). Focus styling comes from globals.css.
 export const buttonVariants = cva(
-  "inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md border border-transparent font-medium whitespace-nowrap transition-colors select-none disabled:pointer-events-none disabled:opacity-60 aria-invalid:border-stylo-rouge [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
+  "inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md border font-medium whitespace-nowrap transition-colors select-none disabled:pointer-events-none disabled:opacity-60 aria-invalid:border-stylo-rouge [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
   {
     variants: {
       variant: {
         // The site's blue (D-100): the one action a screen is for.
-        default: "bg-bleu-bande text-white hover:bg-bleu-bande/90",
+        default: "border-transparent bg-bleu-bande text-white hover:bg-bleu-bande/90",
         outline: "border-trait bg-surface text-encre hover:bg-sunken",
-        ghost: "text-encre hover:bg-sunken",
+        ghost: "border-transparent text-encre hover:bg-sunken",
         destructive: "border-stylo-rouge bg-surface text-stylo-rouge hover:bg-lavis-rouge",
-        link: "min-h-0 px-0 text-encre underline decoration-trait underline-offset-4 hover:decoration-encre",
+        link: "min-h-0 border-transparent px-0 text-encre underline decoration-trait underline-offset-4 hover:decoration-encre",
       },
       size: {
         default: "px-4 text-base",

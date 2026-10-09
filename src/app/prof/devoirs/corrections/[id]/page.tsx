@@ -195,7 +195,6 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
               downloadLabel={t("subject.download")}
               newTabLabel={t("subject.newTab")}
               unavailableLabel={t("subject.unavailable")}
-              previewLabel={t("subject.heading")}
             />
           ) : (
             <details className="group rounded-2xl border border-quadrillage bg-surface p-4">

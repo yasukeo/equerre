@@ -23,6 +23,8 @@ export type QueueEntry = {
   submittedAt: string;
   late: boolean;
   pages: number;
+  /** Copies handed in as PDFs, counted apart from photographed pages (D-106). */
+  pdfs: number;
   student: string;
   exercise: string;
   homework: string;
@@ -47,7 +49,8 @@ export async function listCorrectionQueue(): Promise<QueueEntry[]> {
     id: row.id,
     submittedAt: row.submitted_at,
     late: Date.parse(row.submitted_at) > Date.parse(row.assignment.due_at),
-    pages: row.file_paths.length,
+    pages: row.file_paths.filter((path) => !path.endsWith(".pdf")).length,
+    pdfs: row.file_paths.filter((path) => path.endsWith(".pdf")).length,
     student: row.student.full_name,
     exercise: row.exercise.title,
     homework: row.assignment.title,

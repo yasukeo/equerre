@@ -1,4 +1,4 @@
-import { FileText } from "lucide-react";
+import { ExternalLink, FileText } from "lucide-react";
 import type { MouseEvent } from "react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,7 @@ export function AnnotatedPage({
   onPoint,
   openLabel,
   pdf = false,
+  newTabLabel,
 }: {
   url: string | null;
   alt: string;
@@ -22,40 +23,37 @@ export function AnnotatedPage({
   onPoint?: (x: number, y: number) => void;
   openLabel: string;
   /**
-   * A copy handed in as a PDF (D-106): read in a frame on a wide screen, opened in the
-   * reader's own viewer anywhere. Its remarks are about the whole document, never on a point.
+   * A copy handed in as a PDF (D-106), opened in the reader's own viewer. Its remarks are about
+   * the whole document, never on a point.
    */
   pdf?: boolean;
+  /** Said after the link to open a PDF: « (nouvel onglet) ». */
+  newTabLabel?: string;
 }) {
   if (pdf) {
+    // A student's PDF is opened in the reader's own viewer, never framed in the page: a
+    // document from outside could otherwise draw links inside the app's own frame (D-106).
     return (
-      <figure className="grid gap-2">
-        <div className="flex flex-wrap items-center gap-3 rounded border border-quadrillage bg-surface p-3">
-          <span
-            aria-hidden="true"
-            className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-rouge-fond text-rouge-texte"
-          >
-            <FileText className="size-5" />
-          </span>
-          {/* Named by the heading above it; the card only says what it is. */}
-          <span className="min-w-0 flex-1 text-sm text-encre-douce">PDF</span>
-          {url ? (
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-            >
-              {openLabel}
-            </a>
-          ) : null}
-        </div>
+      <figure className="flex flex-wrap items-center gap-3 rounded border border-quadrillage bg-surface p-3">
+        <span
+          aria-hidden="true"
+          className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-lavis-bleu text-stylo-bleu"
+        >
+          <FileText className="size-5" />
+        </span>
+        {/* Named by the heading above it; the card only says what it is. */}
+        <span className="min-w-0 flex-1 text-sm text-encre-douce">PDF</span>
         {url ? (
-          <iframe
-            src={url}
-            title={alt}
-            className="hidden h-[80vh] w-full rounded border border-quadrillage bg-white lg:block"
-          />
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-trait bg-surface px-3 text-sm font-medium hover:bg-sunken"
+          >
+            <ExternalLink aria-hidden="true" className="size-4" />
+            {openLabel}
+            {newTabLabel ? <span className="sr-only"> {newTabLabel}</span> : null}
+          </a>
         ) : null}
       </figure>
     );

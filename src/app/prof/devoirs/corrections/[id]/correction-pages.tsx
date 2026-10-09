@@ -125,9 +125,17 @@ export function CorrectionPages({
               onPoint={pdf ? undefined : (x, y) => setPoint({ path: page.path, x, y })}
               openLabel={pdf ? t("openPdf") : t("openPage")}
               pdf={pdf}
+              newTabLabel={t("newTab")}
             />
             {onPage.length > 0 ? (
-              <ol className="grid gap-2" aria-label={t("remarksOn", { number: index + 1 })}>
+              <ol
+                className="grid gap-2"
+                aria-label={
+                  pdf
+                    ? t("remarksOnPdf", { number: index + 1 })
+                    : t("remarksOn", { number: index + 1 })
+                }
+              >
                 {onPage.map((remark) => (
                   <RemarkItem key={remark.id} remark={remark} onRemoved={() => backTo(index)} />
                 ))}

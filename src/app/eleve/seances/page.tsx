@@ -31,7 +31,16 @@ const SHOWN = 6;
 
 type Entry =
   | { kind: "session"; at: string; session: Session }
-  | { kind: "homework"; at: string; id: string; title: string; left: number; total: number };
+  | {
+      kind: "homework";
+      at: string;
+      id: string;
+      title: string;
+      left: number;
+      total: number;
+      /** Given as a PDF: one copy to hand in (D-106). */
+      subject: boolean;
+    };
 
 async function Agenda() {
   const viewer = await requireViewer("student");
@@ -61,6 +70,7 @@ async function Agenda() {
         title: entry.title,
         left: entry.progress.left,
         total: entry.progress.total,
+        subject: entry.subject,
       })),
   ].sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
   const days = new Map<string, Entry[]>();
@@ -189,7 +199,9 @@ async function Agenda() {
                             <span className="truncate">{entry.title}</span>
                           </span>
                           <span className="text-sm text-encre-douce">
-                            {tHomework("left", { left: entry.left, total: entry.total })}
+                            {entry.subject
+                              ? tHomework("subject.copyToHandIn")
+                              : tHomework("left", { left: entry.left, total: entry.total })}
                           </span>
                         </span>
                       </Link>

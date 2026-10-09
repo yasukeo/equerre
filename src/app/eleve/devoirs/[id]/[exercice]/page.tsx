@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, BookOpen, Check, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, MessageSquareText, X } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -103,6 +103,7 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
       pages={data.submission?.pages ?? []}
       label={(number) => t("photos.page", { number })}
       pdfLabel={(number) => t("photos.pdfItem", { number })}
+      newTabLabel={t("subject.newTab")}
     />
   );
 
@@ -243,11 +244,26 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
             downloadLabel={t("subject.download")}
             newTabLabel={t("subject.newTab")}
             unavailableLabel={t("subject.unavailable")}
-            previewLabel={t("subject.heading")}
             preview
+            primary
           />
           {work.kind === "todo" && canHandIn ? (
             <p className="text-sm text-encre-douce">{t("subject.lead")}</p>
+          ) : null}
+          {homeworkDetails?.instructions ? (
+            <section
+              aria-labelledby="homework-instructions"
+              className="grid gap-2 rounded-2xl border border-s-4 border-quadrillage border-s-surligneur bg-surface p-4"
+            >
+              <h2
+                id="homework-instructions"
+                className="inline-flex items-center gap-2 text-sm font-semibold"
+              >
+                <MessageSquareText aria-hidden="true" className="size-4" />
+                {t("instructions")}
+              </h2>
+              <p className="break-words whitespace-pre-line">{homeworkDetails.instructions}</p>
+            </section>
           ) : null}
         </div>
       ) : (
@@ -435,6 +451,7 @@ async function GradedAnswer({ data, grade }: { data: MyExercise; grade: number }
               alt={label}
               pdf={pdf}
               openLabel={pdf ? t("exercise.openPdf") : t("exercise.openPage")}
+              newTabLabel={t("subject.newTab")}
               marks={remarks.flatMap((remark) =>
                 remark.anchor?.x != null && remark.anchor.y != null
                   ? [

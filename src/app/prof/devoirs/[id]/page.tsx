@@ -356,7 +356,6 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
               downloadLabel={t("subject.download")}
               newTabLabel={t("subject.newTab")}
               unavailableLabel={t("subject.unavailable")}
-              previewLabel={t("subject.heading")}
             />
           ) : (
             <section aria-labelledby="assignment-exercises" className="grid gap-2">

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, FileText, ListChecks, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Circle, CircleCheck, FileText, ListChecks, X } from "lucide-react";
 import { unstable_rethrow } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -22,9 +22,19 @@ import type { AssignableExercise, RecipientOptions } from "@/lib/assignment/quer
 import { fieldError, initialFormState, type FormState } from "@/lib/form-state";
 import { cn } from "@/lib/utils";
 import { createAssignment, createSubjectAssignment } from "../actions";
-import { SubjectPicker, type Subject } from "./subject-picker";
+import { SubjectPicker, discardSubject, type Subject } from "./subject-picker";
 
 export type AssignmentMode = "bank" | "subject";
+
+/** The error Next throws for a redirect: the action succeeded. */
+function isRedirect(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "digest" in error &&
+    String((error as { digest: unknown }).digest).startsWith("NEXT_REDIRECT")
+  );
+}
 
 type Props = {
   recipients: RecipientOptions;
@@ -67,10 +77,22 @@ export function NewAssignmentForm({
   const [state, formAction, pending] = useActionState(
     async (previous: FormState, formData: FormData): Promise<FormState> => {
       try {
-        return formData.get("mode") === "subject"
-          ? await createSubjectAssignment(previous, formData)
-          : await createAssignment(previous, formData);
+        if (formData.get("mode") !== "subject") return await createAssignment(previous, formData);
+        const result = await createSubjectAssignment(previous, formData);
+        // The file is gone, or already a homework's: forget it here, delete nothing.
+        if (result.status === "error" && result.values?.subject === "again") {
+          setSubject({ status: "empty" });
+        }
+        return result;
       } catch (error) {
+        // Given: the page may keep this form alive and show it again on « retour ». It must come
+        // back empty, or « Changer de fichier » would reach for the subject just given.
+        if (isRedirect(error)) {
+          setSubject({ status: "empty" });
+          setTitle("");
+          setInstructions("");
+          setSelected([]);
+        }
         // The success path is a redirect, which must go through; anything else keeps the form.
         unstable_rethrow(error);
         return { status: "error", message: t("errors.unknown") };
@@ -205,8 +227,8 @@ export function NewAssignmentForm({
             <label
               key={option.value}
               className={cn(
-                "flex cursor-pointer items-start gap-3 rounded-2xl border bg-surface p-4 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-encre",
-                mode === option.value ? "border-encre ring-1 ring-encre" : "border-quadrillage",
+                "relative flex cursor-pointer items-start gap-3 rounded-2xl border bg-surface p-4 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-encre",
+                mode === option.value ? "border-encre ring-1 ring-encre" : "border-trait",
               )}
             >
               <input
@@ -214,7 +236,14 @@ export function NewAssignmentForm({
                 name="assignment-mode"
                 value={option.value}
                 checked={mode === option.value}
-                onChange={() => setMode(option.value)}
+                onChange={() => {
+                  // Back to the bank: a subject uploaded for nothing is taken back at once.
+                  if (option.value === "bank" && subject.status === "ready") {
+                    discardSubject(subject.path);
+                    setSubject({ status: "empty" });
+                  }
+                  setMode(option.value);
+                }}
                 className="sr-only"
               />
               <span
@@ -226,9 +255,17 @@ export function NewAssignmentForm({
               >
                 <option.icon className="size-5" />
               </span>
-              <span className="grid gap-0.5">
+              <span className="grid gap-0.5 pe-6">
                 <span className="font-medium">{option.label}</span>
                 <span className="text-sm text-encre-douce">{option.hint}</span>
+              </span>
+              {/* The choice made, as a sign as well as an outline (D-104: never colour alone). */}
+              <span aria-hidden="true" className="absolute end-3 top-3">
+                {mode === option.value ? (
+                  <CircleCheck className="size-5" />
+                ) : (
+                  <Circle className="size-5 text-trait" />
+                )}
               </span>
             </label>
           ))}
