@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 const FIELDS =
-  "id, title, due_at, student:profiles!assignments_student_id_fkey(full_name), group:groups(name, members:group_members(joined_at, left_at)), items:assignment_items(count)" as const;
+  "id, title, due_at, student:profiles!assignments_student_id_fkey(full_name), group:groups(name, members:group_members(joined_at, left_at)), items:assignment_items(exercise:exercises(subject_path))" as const;
 
 const VIEWS = ["en-cours", "passes"] as const;
 type View = (typeof VIEWS)[number];
@@ -130,6 +130,7 @@ export async function AssignmentsList({
                 const toCorrect = waiting.get(assignment.id) ?? 0;
                 const days = calendarDaysBetween(now, assignment.due_at);
                 const RecipientIcon = assignment.student ? User : Users;
+                const subject = assignment.items.some((item) => item.exercise?.subject_path);
                 return (
                   <li key={assignment.id} className="grid">
                     <Link
@@ -164,7 +165,9 @@ export async function AssignmentsList({
                           </span>
                           <span aria-hidden="true">·</span>
                           <span className="shrink-0">
-                            {t("exercises", { count: assignment.items[0]?.count ?? 0 })}
+                            {subject
+                              ? t("subjectPdf")
+                              : t("exercises", { count: assignment.items.length })}
                           </span>
                         </span>
                         <span className="inline-flex items-center gap-1.5">
@@ -198,9 +201,9 @@ export async function AssignmentsList({
                             ? t("nobody")
                             : assignment.student
                               ? done > 0
-                                ? t("soloHandedIn")
+                                ? t(subject ? "soloHandedInCopy" : "soloHandedIn")
                                 : t("soloNotYet")
-                              : t("handedIn", { done, total })}
+                              : t(subject ? "handedInCopy" : "handedIn", { done, total })}
                         </span>
                       </span>
                     </Link>

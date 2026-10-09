@@ -169,7 +169,9 @@ async function HomeworkList({
                         />
                       </span>
                       <span className="text-sm">
-                        {t("left", { left: entry.progress.left, total: entry.progress.total })}
+                        {entry.subject
+                          ? t("subject.copyToHandIn")
+                          : t("left", { left: entry.progress.left, total: entry.progress.total })}
                       </span>
                     </span>
                   ) : view === "en-attente" ? (

@@ -3,6 +3,7 @@ import { localDateKeyInDays } from "@/lib/dates";
 import {
   parseAssignmentDetails,
   parseAssignmentForm,
+  parseSubjectAssignmentForm,
   readDue,
   readRecipient,
   type AssignmentFormValues,
@@ -132,5 +133,45 @@ describe("localDateKeyInDays", () => {
     // 00:30 on 2 February 2027 (UTC+1) and 23:30 on 7 March 2027 (UTC+0).
     expect(localDateKeyInDays(new Date("2027-02-01T23:30:00Z"), 7)).toBe("2027-02-09");
     expect(localDateKeyInDays(new Date("2027-03-07T23:30:00Z"), 7)).toBe("2027-03-14");
+  });
+});
+
+describe("parseSubjectAssignmentForm", () => {
+  const common = {
+    title: base.title,
+    instructions: base.instructions,
+    dueDate: base.dueDate,
+    dueTime: base.dueTime,
+    recipient: base.recipient,
+  };
+  const SUBJECT = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.pdf";
+
+  it("reads the homework and the subject's file in place of exercises", () => {
+    const result = parseSubjectAssignmentForm({ ...common, subjectPath: SUBJECT }, NOW);
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        title: "Devoir — limites",
+        instructions: "Rendez les pages dans l’ordre.",
+        dueAt: new Date("2026-10-01T19:00:00Z"),
+        recipient: { kind: "student", id: STUDENT },
+        subjectPath: SUBJECT,
+      },
+    });
+  });
+
+  it("asks for the file when none was sent, or a name of another shape", () => {
+    for (const subjectPath of ["", "sujet.pdf", `../${SUBJECT}`]) {
+      const result = parseSubjectAssignmentForm({ ...common, subjectPath }, NOW);
+      expect(result.ok ? null : result.errors.subject).toBe("subject");
+    }
+  });
+
+  it("checks the other fields as for any homework", () => {
+    const result = parseSubjectAssignmentForm(
+      { ...common, title: " ", dueDate: "2026-09-01", subjectPath: SUBJECT },
+      NOW,
+    );
+    expect(result.ok ? null : result.errors).toEqual({ title: "title", due: "dueInPast" });
   });
 });

@@ -9,6 +9,7 @@ import {
 import { readStoredLesson, type StoredLesson } from "@/lib/lesson/document";
 import type { Remark } from "@/lib/correction/correction";
 import { isSubmissionPageName } from "@/lib/storage-paths";
+import { signSubject } from "@/lib/homework/subject";
 import { signPages, type Page } from "@/lib/submission-pages";
 import { createClient } from "@/lib/supabase/server";
 import { readAnswer, type SubmittedAnswer } from "./answer";
@@ -88,6 +89,8 @@ export type HomeworkEntry = {
   /** Exercises the tutor has corrected, and the mean of their grades out of 20. */
   corrected: number;
   grade: number | null;
+  /** Given as a PDF: one copy to hand in rather than exercises (D-106). */
+  subject: boolean;
 };
 
 /** Every homework that reaches her, with how much is left. */
@@ -97,7 +100,9 @@ export async function listMyHomework(now: Date): Promise<HomeworkEntry[]> {
     readAll((from, to) =>
       supabase
         .from("assignments")
-        .select("id, title, due_at, items:assignment_items(exercise_id)")
+        .select(
+          "id, title, due_at, items:assignment_items(exercise_id, exercise:exercises(subject_path))",
+        )
         .order("id")
         .range(from, to),
     ),
@@ -126,6 +131,7 @@ export async function listMyHomework(now: Date): Promise<HomeworkEntry[]> {
       corrected: grades.length,
       grade:
         grades.length === 0 ? null : grades.reduce((sum, grade) => sum + grade, 0) / grades.length,
+      subject: assignment.items.some((item) => item.exercise?.subject_path),
     };
   });
 }
@@ -180,7 +186,14 @@ export type HomeworkDetails = {
   instructions: string | null;
   dueAt: string;
   progress: HomeworkProgress;
-  exercises: { id: string; title: string; answerType: AnswerType; work: ExerciseWork }[];
+  exercises: {
+    id: string;
+    title: string;
+    answerType: AnswerType;
+    /** Set when the homework was given as a PDF: its one exercise is the subject (D-106). */
+    subjectPath: string | null;
+    work: ExerciseWork;
+  }[];
 };
 
 export async function getMyHomework(id: string, now: Date): Promise<HomeworkDetails | null> {
@@ -189,7 +202,7 @@ export async function getMyHomework(id: string, now: Date): Promise<HomeworkDeta
     await supabase
       .from("assignments")
       .select(
-        "id, title, instructions, due_at, items:assignment_items(position, exercise:exercises(id, title, answer_type))",
+        "id, title, instructions, due_at, items:assignment_items(position, exercise:exercises(id, title, answer_type, subject_path))",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -212,6 +225,7 @@ export async function getMyHomework(id: string, now: Date): Promise<HomeworkDeta
       id: exercise.id,
       title: exercise.title,
       answerType: exercise.answer_type,
+      subjectPath: exercise.subject_path,
       work: workOn(data.id, exercise.id, submissions, reveals),
     })),
   };
@@ -248,6 +262,8 @@ export type MyExercise = {
     choiceMode: ChoiceMode;
     /** The chapter it practises, to go back to the course. */
     chapterId: string | null;
+    /** A homework given as a PDF: an address to open its subject (D-106). */
+    subject: { url: string | null } | null;
   };
   position: { index: number; count: number; previous: string | null; next: string | null };
   work: ExerciseWork;
@@ -292,7 +308,7 @@ export async function getMyExercise(
   const [exerciseRead, work, submissionRead, solutionRead, { data: folder }] = await Promise.all([
     supabase
       .from("exercises")
-      .select("id, title, statement, answer_type, choices, choice_mode, chapter_id")
+      .select("id, title, statement, answer_type, choices, choice_mode, chapter_id, subject_path")
       .eq("id", exerciseId)
       .maybeSingle(),
     myWork(supabase, [exerciseId]),
@@ -324,7 +340,7 @@ export async function getMyExercise(
   const draftPaths = (folder ?? [])
     .map((object) => `${studentId}/${ref}/${object.name}`)
     .filter((path) => isSubmissionPageName(path) && !handedIn.includes(path));
-  const [pages, drafts, remarks] = await Promise.all([
+  const [pages, drafts, remarks, subjectUrl] = await Promise.all([
     signPages(supabase, handedIn),
     signPages(supabase, draftPaths),
     submission
@@ -334,6 +350,7 @@ export async function getMyExercise(
           .eq("submission_id", submission.id)
           .order("created_at")
       : null,
+    signSubject(supabase, exercise.subject_path),
   ]);
 
   return {
@@ -346,6 +363,7 @@ export async function getMyExercise(
       choices: readChoices(exercise.choices),
       choiceMode: exercise.choice_mode ?? "unique",
       chapterId: exercise.chapter_id,
+      subject: exercise.subject_path ? { url: subjectUrl } : null,
     },
     position: {
       index,

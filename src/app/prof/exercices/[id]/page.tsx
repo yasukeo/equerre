@@ -63,7 +63,8 @@ async function EditExercise({ params }: { params: Promise<{ id: string }> }) {
       .eq("exercise_id", id),
     listChapterOptions(),
   ]);
-  if (!data) notFound();
+  // A homework's PDF subject is not in the bank, and has nothing to edit here (D-106).
+  if (!data || !data.chapter_id) notFound();
 
   const t = await getTranslations("lesson");
   const calloutLabels = Object.fromEntries(

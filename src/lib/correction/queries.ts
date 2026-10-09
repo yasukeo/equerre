@@ -2,6 +2,7 @@ import "server-only";
 import { readChoices, type AnswerType, type Choice } from "@/lib/exercise/exercise";
 import { readAnswer, type SubmittedAnswer } from "@/lib/homework/answer";
 import { readStoredLesson, type StoredLesson } from "@/lib/lesson/document";
+import { signSubject } from "@/lib/homework/subject";
 import { signPages, type Page } from "@/lib/submission-pages";
 import { createClient } from "@/lib/supabase/server";
 import type { Remark } from "./correction";
@@ -85,6 +86,9 @@ export type Correction = {
     title: string;
     answerType: AnswerType;
     statement: StoredLesson;
+    /** A homework given as a PDF: an address to open its subject (D-106). */
+    subjectUrl: string | null;
+    subject: boolean;
     choices: Choice[];
   };
   solution: {
@@ -110,7 +114,7 @@ export async function getCorrection(id: string): Promise<Correction | null> {
     await supabase
       .from("submissions")
       .select(
-        "id, status, answer, file_paths, grade::text, feedback, submitted_at, corrected_at, auto_graded, student:profiles!submissions_student_id_fkey(id, full_name), assignment:assignments(id, title, due_at), exercise:exercises(id, title, answer_type, statement, choices, solution:exercise_solutions(solution, correct_numeric::text, tolerance::text, tolerance_kind, correct_choice_ids))",
+        "id, status, answer, file_paths, grade::text, feedback, submitted_at, corrected_at, auto_graded, student:profiles!submissions_student_id_fkey(id, full_name), assignment:assignments(id, title, due_at), exercise:exercises(id, title, answer_type, statement, choices, subject_path, solution:exercise_solutions(solution, correct_numeric::text, tolerance::text, tolerance_kind, correct_choice_ids))",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -119,7 +123,7 @@ export async function getCorrection(id: string): Promise<Correction | null> {
 
   // A page named twice would be drawn, and its remarks numbered, twice (D-047).
   const paths = [...new Set(row.file_paths)];
-  const [remarks, reveal, queue, pages] = await Promise.all([
+  const [remarks, reveal, queue, pages, subjectUrl] = await Promise.all([
     supabase
       .from("submission_comments")
       .select("id, body, anchor, created_at")
@@ -142,6 +146,7 @@ export async function getCorrection(id: string): Promise<Correction | null> {
       .order("submitted_at")
       .order("id"),
     signPages(supabase, paths),
+    signSubject(supabase, row.exercise.subject_path),
   ]);
   // Homework by homework, as the queue's page lists them: each homework in the order of its
   // longest-waiting copy, its copies oldest first.
@@ -178,6 +183,8 @@ export async function getCorrection(id: string): Promise<Correction | null> {
       title: row.exercise.title,
       answerType: row.exercise.answer_type,
       statement: readStoredLesson(row.exercise.statement),
+      subjectUrl,
+      subject: row.exercise.subject_path !== null,
       choices: readChoices(row.exercise.choices),
     },
     solution: solution

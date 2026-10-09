@@ -7,10 +7,13 @@ import { z } from "zod";
 import {
   parseAssignmentDetails,
   parseAssignmentForm,
+  parseSubjectAssignmentForm,
   type AssignmentFieldErrors,
 } from "@/lib/assignment/form";
 import { requireViewer } from "@/lib/auth";
 import { textField, type FormState } from "@/lib/form-state";
+import { SUBJECT_BUCKET } from "@/lib/homework/subject";
+import { isSubjectName } from "@/lib/storage-paths";
 import { createClient } from "@/lib/supabase/server";
 
 const FIELDS = ["title", "instructions", "dueDate", "dueTime", "recipient", "exerciseIds"] as const;
@@ -59,6 +62,68 @@ export async function createAssignment(
     const code = Object.keys(RPC_ERRORS).find((key) => error?.message.includes(key)) as
       keyof typeof RPC_ERRORS | undefined;
     return { status: "error", message: t(`errors.${code ? RPC_ERRORS[code] : "unknown"}`) };
+  }
+
+  redirect(`/prof/devoirs/${data}`);
+}
+
+/** The codes public.create_subject_assignment raises beyond create_assignment's. */
+const SUBJECT_RPC_ERRORS = {
+  ...RPC_ERRORS,
+  subject_invalid: "subject",
+  subject_not_uploaded: "subjectLost",
+  title_invalid: "title",
+} as const;
+
+/**
+ * A homework given as a PDF (D-106). The tutor's browser has already put the file in the
+ * subjects bucket under an id-shaped name; the database checks it is there, writes the subject
+ * as the homework's one exercise and gives it, or refuses the whole.
+ */
+export async function createSubjectAssignment(
+  _previous: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireViewer("tutor");
+  const t = await getTranslations("tutor.newAssignment");
+
+  const parsed = parseSubjectAssignmentForm(
+    {
+      title: textField(formData, "title"),
+      instructions: textField(formData, "instructions"),
+      dueDate: textField(formData, "dueDate"),
+      dueTime: textField(formData, "dueTime"),
+      recipient: textField(formData, "recipient"),
+      subjectPath: textField(formData, "subjectPath"),
+    },
+    new Date(),
+  );
+  if (!parsed.ok) {
+    return {
+      status: "error",
+      message: t("errors.fields"),
+      fieldErrors: messages((key) => t(key as Parameters<typeof t>[0]), parsed.errors),
+    };
+  }
+
+  const { title, instructions, dueAt, recipient, subjectPath } = parsed.value;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("create_subject_assignment", {
+    p_title: title,
+    p_due_at: dueAt.toISOString(),
+    p_subject_path: subjectPath,
+    ...(instructions ? { p_instructions: instructions } : {}),
+    ...(recipient.kind === "student"
+      ? { p_student_id: recipient.id }
+      : { p_group_id: recipient.id }),
+  });
+  if (error || !data) {
+    const code = Object.keys(SUBJECT_RPC_ERRORS).find((key) => error?.message.includes(key)) as
+      keyof typeof SUBJECT_RPC_ERRORS | undefined;
+    return {
+      status: "error",
+      message: t(`errors.${code ? SUBJECT_RPC_ERRORS[code] : "unknown"}`),
+    };
   }
 
   redirect(`/prof/devoirs/${data}`);
@@ -132,6 +197,11 @@ export async function deleteAssignment(
   if (!id.success) return { status: "error", message: t("errors.notFound") };
 
   const supabase = await createClient();
+  // Read before it goes: a homework given as a PDF takes its file with it (D-106).
+  const { data: subjects } = await supabase
+    .from("assignment_items")
+    .select("exercise:exercises(subject_path)")
+    .eq("assignment_id", id.data);
   const { error } = await supabase.rpc("delete_assignment", { p_id: id.data });
   if (error) {
     // Deleting would take the students' answers with it (D-045). The page is redrawn so the
@@ -144,6 +214,14 @@ export async function deleteAssignment(
         : t("errors.unknown");
     return { status: "error", message };
   }
+
+  const files = (subjects ?? []).flatMap((item) =>
+    item.exercise?.subject_path && isSubjectName(item.exercise.subject_path)
+      ? [item.exercise.subject_path]
+      : [],
+  );
+  // Best effort: the homework is gone either way, and an orphan file only takes room.
+  if (files.length > 0) await supabase.storage.from(SUBJECT_BUCKET).remove(files);
 
   redirect("/prof/devoirs");
 }

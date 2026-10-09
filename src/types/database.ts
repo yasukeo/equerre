@@ -516,7 +516,7 @@ export type Database = {
       exercises: {
         Row: {
           answer_type: Database["public"]["Enums"]["answer_type"]
-          chapter_id: string
+          chapter_id: string | null
           choice_mode: Database["public"]["Enums"]["choice_mode"] | null
           choices: Json | null
           created_at: string
@@ -524,13 +524,14 @@ export type Database = {
           figure_path: string | null
           id: string
           statement: Json
+          subject_path: string | null
           tags: string[]
           title: string
           updated_at: string
         }
         Insert: {
           answer_type?: Database["public"]["Enums"]["answer_type"]
-          chapter_id: string
+          chapter_id?: string | null
           choice_mode?: Database["public"]["Enums"]["choice_mode"] | null
           choices?: Json | null
           created_at?: string
@@ -538,13 +539,14 @@ export type Database = {
           figure_path?: string | null
           id?: string
           statement: Json
+          subject_path?: string | null
           tags?: string[]
           title: string
           updated_at?: string
         }
         Update: {
           answer_type?: Database["public"]["Enums"]["answer_type"]
-          chapter_id?: string
+          chapter_id?: string | null
           choice_mode?: Database["public"]["Enums"]["choice_mode"] | null
           choices?: Json | null
           created_at?: string
@@ -552,6 +554,7 @@ export type Database = {
           figure_path?: string | null
           id?: string
           statement?: Json
+          subject_path?: string | null
           tags?: string[]
           title?: string
           updated_at?: string
@@ -1937,6 +1940,17 @@ export type Database = {
           p_group_id?: string
           p_instructions?: string
           p_student_id?: string
+          p_title: string
+        }
+        Returns: string
+      }
+      create_subject_assignment: {
+        Args: {
+          p_due_at: string
+          p_group_id?: string
+          p_instructions?: string
+          p_student_id?: string
+          p_subject_path: string
           p_title: string
         }
         Returns: string

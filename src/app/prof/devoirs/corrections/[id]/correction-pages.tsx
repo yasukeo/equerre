@@ -8,6 +8,7 @@ import { AnnotatedPage, RemarkNumber, type Mark } from "@/components/annotated-p
 import { Button } from "@/components/ui/button";
 import { Label, Textarea } from "@/components/ui/input";
 import { MAX_REMARK_LENGTH, type NumberedRemark } from "@/lib/correction/correction";
+import { isPdfPage } from "@/lib/storage-paths";
 import { initialFormState, type FormState } from "@/lib/form-state";
 import { addRemark, deleteRemark, updateRemark } from "../actions";
 
@@ -109,7 +110,9 @@ export function CorrectionPages({
         if (point?.path === page.path && point.x !== null && point.y !== null) {
           marks.push({ key: "new", label: "+", x: point.x, y: point.y, pending: true });
         }
-        const label = t("page", { number: index + 1 });
+        // A copy handed in as a PDF takes remarks on the whole document (D-106).
+        const pdf = isPdfPage(page.path);
+        const label = pdf ? t("pdfCopy", { number: index + 1 }) : t("page", { number: index + 1 });
         return (
           <section key={page.path} aria-label={label} className="grid gap-3">
             <h3 id={`page-heading-${index}`} tabIndex={-1} className="text-sm font-semibold">
@@ -119,8 +122,9 @@ export function CorrectionPages({
               url={addresses.get(page.path) ?? page.url}
               alt={label}
               marks={marks}
-              onPoint={(x, y) => setPoint({ path: page.path, x, y })}
-              openLabel={t("openPage")}
+              onPoint={pdf ? undefined : (x, y) => setPoint({ path: page.path, x, y })}
+              openLabel={pdf ? t("openPdf") : t("openPage")}
+              pdf={pdf}
             />
             {onPage.length > 0 ? (
               <ol className="grid gap-2" aria-label={t("remarksOn", { number: index + 1 })}>
@@ -147,7 +151,7 @@ export function CorrectionPages({
               />
             ) : (
               <div className="grid gap-1">
-                <p className="text-sm text-encre-douce">{t("pointHint")}</p>
+                <p className="text-sm text-encre-douce">{pdf ? t("pdfHint") : t("pointHint")}</p>
                 <Button
                   id={`add-remark-${index}`}
                   type="button"
@@ -155,7 +159,9 @@ export function CorrectionPages({
                   className="justify-self-start"
                   onClick={() => setPoint({ path: page.path, x: null, y: null })}
                 >
-                  {t("addOnPage", { number: index + 1 })}
+                  {pdf
+                    ? t("addOnPdf", { number: index + 1 })
+                    : t("addOnPage", { number: index + 1 })}
                 </Button>
               </div>
             )}

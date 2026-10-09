@@ -1,7 +1,7 @@
 import { ArrowRight, Camera, Hash, ListChecks, MessageSquareText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { z } from "zod";
@@ -56,6 +56,9 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
   const now = new Date();
   const homework = await getMyHomework(id, now);
   if (!homework) notFound();
+  // Given as a PDF: the homework is its subject and her copy, on the exercise's page (D-106).
+  const only = homework.exercises.length === 1 ? homework.exercises[0] : undefined;
+  if (only?.subjectPath) redirect(`/eleve/devoirs/${homework.id}/${only.id}`);
 
   // A stopped student reads her past work; nothing is late or left for her (D-060).
   const open = viewer.status !== "arrete";

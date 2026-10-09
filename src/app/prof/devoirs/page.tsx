@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -21,10 +21,19 @@ export default async function TutorAssignmentsPage({ searchParams }: PageProps<"
         title={t("title")}
         lead={t("lead")}
         actions={
-          <Link href="/prof/devoirs/nouveau" className={buttonVariants()}>
-            <Plus aria-hidden="true" className="size-4" />
-            {t("new")}
-          </Link>
+          <>
+            <Link
+              href="/prof/devoirs/nouveau?type=pdf"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <FileText aria-hidden="true" className="size-4" />
+              {t("newSubject")}
+            </Link>
+            <Link href="/prof/devoirs/nouveau" className={buttonVariants()}>
+              <Plus aria-hidden="true" className="size-4" />
+              {t("new")}
+            </Link>
+          </>
         }
       />
       <Suspense fallback={<ListSkeleton />}>

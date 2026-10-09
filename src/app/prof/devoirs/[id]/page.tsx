@@ -7,10 +7,12 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { AnswerTypeChip } from "@/components/exercise-status";
 import { GradeMark } from "@/components/grade-mark";
+import { SubjectCard } from "@/components/subject-card";
 import { PageHeader } from "@/components/shell/page-header";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
 import { calendarDaysBetween, formatLocal, localDateKey } from "@/lib/dates";
+import { signSubject } from "@/lib/homework/subject";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { AssignmentDetailsForm, DeleteAssignment } from "./assignment-forms";
@@ -51,7 +53,7 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
   const { data: assignment } = await supabase
     .from("assignments")
     .select(
-      "id, title, instructions, due_at, student_id, group_id, student:profiles!assignments_student_id_fkey(id, full_name), group:groups(name), items:assignment_items(position, exercise:exercises(id, title, answer_type))",
+      "id, title, instructions, due_at, student_id, group_id, student:profiles!assignments_student_id_fkey(id, full_name), group:groups(name), items:assignment_items(position, exercise:exercises(id, title, answer_type, subject_path))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -85,6 +87,8 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
   const items = [...assignment.items]
     .sort((a, b) => a.position - b.position)
     .flatMap((item) => (item.exercise ? [item.exercise] : []));
+  // Given as a PDF (D-106): one hidden exercise, the subject itself.
+  const subjectPath = items.length === 1 ? (items[0]?.subject_path ?? null) : null;
 
   // Everyone the homework reaches — the group's members when it fell due (D-070) — and anyone
   // who answered it: their work is still here.
@@ -138,6 +142,7 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
         : { kind: "handedIn", submissionId: submission.id },
     );
   }
+  const subjectUrl = subjectPath ? await signSubject(supabase, subjectPath) : null;
   const hasWork = (submissions.data?.length ?? 0) + (reveals.data?.length ?? 0) > 0;
 
   const gradeFormat = new Intl.NumberFormat("fr", { maximumFractionDigits: 2 });
@@ -287,9 +292,13 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
                         scope="col"
                         className="px-2 py-3 text-center font-medium text-encre-douce"
                       >
-                        <abbr title={exercise.title} className="no-underline">
-                          {t("exerciseColumn", { number: index + 1 })}
-                        </abbr>
+                        {subjectPath ? (
+                          t("copyColumn")
+                        ) : (
+                          <abbr title={exercise.title} className="no-underline">
+                            {t("exerciseColumn", { number: index + 1 })}
+                          </abbr>
+                        )}
                       </th>
                     ))}
                   </tr>
@@ -339,38 +348,50 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
             </section>
           ) : null}
 
-          <section aria-labelledby="assignment-exercises" className="grid gap-2">
-            <h2 id="assignment-exercises" className="text-lg font-semibold">
-              {t("exercises", { count: items.length })}
-            </h2>
-            <ol
-              role="list"
-              className="grid gap-px overflow-hidden rounded-2xl border border-quadrillage bg-quadrillage"
-            >
-              {items.map((exercise, index) => (
-                <li
-                  key={exercise.id}
-                  className="grid justify-items-start gap-1.5 bg-surface px-4 py-3"
-                >
-                  <span className="flex items-baseline gap-2">
-                    <span className="shrink-0 text-sm text-encre-douce tabular">
-                      {t("exerciseColumn", { number: index + 1 })}
+          {subjectPath ? (
+            <SubjectCard
+              url={subjectUrl}
+              heading={t("subject.heading")}
+              openLabel={t("subject.open")}
+              downloadLabel={t("subject.download")}
+              newTabLabel={t("subject.newTab")}
+              unavailableLabel={t("subject.unavailable")}
+              previewLabel={t("subject.heading")}
+            />
+          ) : (
+            <section aria-labelledby="assignment-exercises" className="grid gap-2">
+              <h2 id="assignment-exercises" className="text-lg font-semibold">
+                {t("exercises", { count: items.length })}
+              </h2>
+              <ol
+                role="list"
+                className="grid gap-px overflow-hidden rounded-2xl border border-quadrillage bg-quadrillage"
+              >
+                {items.map((exercise, index) => (
+                  <li
+                    key={exercise.id}
+                    className="grid justify-items-start gap-1.5 bg-surface px-4 py-3"
+                  >
+                    <span className="flex items-baseline gap-2">
+                      <span className="shrink-0 text-sm text-encre-douce tabular">
+                        {t("exerciseColumn", { number: index + 1 })}
+                      </span>
+                      <Link
+                        href={`/prof/exercices/${exercise.id}`}
+                        className="min-w-0 font-medium break-words underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
+                      >
+                        {exercise.title}
+                      </Link>
                     </span>
-                    <Link
-                      href={`/prof/exercices/${exercise.id}`}
-                      className="min-w-0 font-medium break-words underline decoration-quadrillage underline-offset-4 hover:decoration-encre"
-                    >
-                      {exercise.title}
-                    </Link>
-                  </span>
-                  <AnswerTypeChip
-                    type={exercise.answer_type}
-                    label={tTypes(exercise.answer_type)}
-                  />
-                </li>
-              ))}
-            </ol>
-          </section>
+                    <AnswerTypeChip
+                      type={exercise.answer_type}
+                      label={tTypes(exercise.answer_type)}
+                    />
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
 
           <details className="rounded-2xl border border-quadrillage bg-surface">
             <summary className="flex min-h-12 cursor-pointer items-center gap-2 px-4 font-medium">

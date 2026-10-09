@@ -3,6 +3,8 @@ import {
   isLessonFileName,
   isLessonImageName,
   isLessonImageUrl,
+  isPdfPage,
+  isSubjectName,
   isSubmissionPageName,
 } from "./storage-paths";
 
@@ -66,7 +68,7 @@ describe("lesson images", () => {
 });
 
 describe("isSubmissionPageName", () => {
-  it.each(["webp", "jpg", "jpeg", "png", "heic", "heif"])("accepts a .%s page", (ext) => {
+  it.each(["webp", "jpg", "jpeg", "png", "heic", "heif", "pdf"])("accepts a .%s page", (ext) => {
     expect(isSubmissionPageName(`${a}/${b}/${c}.${ext}`)).toBe(true);
   });
 
@@ -80,5 +82,25 @@ describe("isSubmissionPageName", () => {
     `${a}x/${b}/${c}.webp`,
   ])("refuses %j", (name) => {
     expect(isSubmissionPageName(name)).toBe(false);
+  });
+});
+
+describe("isSubjectName", () => {
+  it("accepts a subject's own name", () => {
+    expect(isSubjectName(`${a}.pdf`)).toBe(true);
+  });
+
+  it.each([`${a}/${b}.pdf`, `${a}.pdf?x=1`, `../${a}.pdf`, `${a}.png`, `sujet.pdf`])(
+    "refuses %j",
+    (name) => {
+      expect(isSubjectName(name)).toBe(false);
+    },
+  );
+});
+
+describe("isPdfPage", () => {
+  it("tells a PDF copy from a photographed page", () => {
+    expect(isPdfPage(`${a}/${b}/${c}.pdf`)).toBe(true);
+    expect(isPdfPage(`${a}/${b}/${c}.webp`)).toBe(false);
   });
 });

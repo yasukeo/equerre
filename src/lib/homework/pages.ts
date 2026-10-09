@@ -3,8 +3,11 @@
 /** submit_exercise_answer refuses more (too_many_pages). */
 export const MAX_PAGES = 20;
 
-/** The submissions bucket's limit, in step with supabase/migrations (storage_buckets). */
+/** A photographed page, once reduced on the phone. */
 export const PAGE_MAX_BYTES = 8 * 1024 * 1024;
+
+/** A copy handed in as a PDF: the submissions bucket's own limit (subject_assignments). */
+export const PDF_MAX_BYTES = 20 * 1024 * 1024;
 
 /**
  * Every page is drawn again in the browser before it leaves the phone: about 2,000 pixels on

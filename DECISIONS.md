@@ -976,6 +976,17 @@ Asked on 2026-10-07, right after D-104: the screens D-104 had not touched still 
   - the list of conversations comes first for the keyboard, in its own landmark, under the page's one heading;
   - banners and the empty queue are in ink, not green; notifications use the red of homework and of the correction.
 
+**D-106 — Homework given as a PDF, handed in as photos or a PDF.**
+Asked on 2026-10-09: the tutor wants to publish an exam or a series as a PDF with a due date, and students to hand in their work as a PDF or as images.
+
+- **A subject is a hidden exercise.** `create_subject_assignment` writes an exercise with no chapter, `answer_type = 'upload'` and the file's name in `subject_path`, then gives it through `create_assignment` as the homework's only item. Handing in, the queue, the grade and remarks, the notifications, the student's, the tutor's and the parent's views therefore work as for a bank exercise, with nothing parallel to keep in step.
+  - The bank never shows a subject: its lists join chapters (`!inner`), and the exercise editor refuses a row with no chapter.
+  - A subject cannot be answered by a number or a choice (`exercises_subject_is_upload`), belongs to one homework (unique index on `subject_path`), is renamed with its homework (trigger), and is deleted with it (`delete_assignment`); its file is removed by the server action.
+  - A subject has no corrigé, so the reveal policy refuses one: a reveal would have forbidden handing it in.
+- **Where files live.** Subjects are in a private `assignment-subjects` bucket (PDF, 20 MB), named `<uuid>.pdf`: the tutor writes and removes them, a student reads one through `can_read_subject` — the homework reaches her, as `is_assigned_to_me` says. The tutor's browser uploads the file; the database checks it is there before writing the homework. Addresses are signed for four hours.
+- **A copy may be a PDF.** The submissions bucket now takes `application/pdf` (its limit raised from 8 to 20 MB; photos are still reduced to a few hundred kilobytes on the phone), and `is_submission_page_name` accepts `.pdf`. A PDF goes up as it is, beside or instead of photographed pages, within the same 20 items. The tutor reads it in a frame on a wide screen, in her own viewer elsewhere, and writes remarks on the whole document rather than on a point.
+- **Screens.** « Nouveau devoir » starts with the choice between bank exercises and a PDF subject (a « Sujet en PDF » button on the homework list and in Ctrl K opens it chosen). A PDF homework opens, for the student, straight on its subject and her copy; for the tutor, on the subject beside the grid, whose one column is « Copie ».
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.

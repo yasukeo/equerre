@@ -51,6 +51,13 @@ export async function TutorSearch() {
       keywords: "devoir exercice",
     },
     {
+      href: "/prof/devoirs/nouveau?type=pdf",
+      label: t("newSubject"),
+      group: actions,
+      suggested: true,
+      keywords: "devoir pdf sujet examen serie",
+    },
+    {
       href: "/prof/paiements/nouveau",
       label: t("recordPayment"),
       group: actions,

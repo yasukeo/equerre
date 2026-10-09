@@ -53,6 +53,8 @@ async function NewAssignment({
       preselected={preselected}
       // A week from today, at 20:00 in Casablanca: a starting point the tutor changes at will.
       defaultDue={{ date: localDateKeyInDays(now, 7), time: "20:00" }}
+      // « Donner un sujet en PDF » arrives with that choice already made.
+      initialMode={params.type === "pdf" ? "subject" : "bank"}
     />
   );
 }

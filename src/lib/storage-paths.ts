@@ -25,10 +25,16 @@ export const LESSON_IMAGE_URL = new RegExp(
   `^https?://[^/?#\\s]+/storage/v1/object/public/lesson-assets/${UUID}/${UUID}\\.(?:webp|jpg|png)$`,
 );
 
-/** `<student_id>/<submission_ref>/<page_id>.<ext>` in the submissions bucket. */
+/**
+ * `<student_id>/<submission_ref>/<page_id>.<ext>` in the submissions bucket: a photographed
+ * page, or a copy handed in as a PDF (D-106).
+ */
 export const SUBMISSION_PAGE_NAME = new RegExp(
-  `^${UUID}/${UUID}/${UUID}\\.(?:webp|jpe?g|png|heic|heif)$`,
+  `^${UUID}/${UUID}/${UUID}\\.(?:webp|jpe?g|png|heic|heif|pdf)$`,
 );
+
+/** `<file_id>.pdf` in the assignment-subjects bucket: a homework given as a PDF (D-106). */
+export const SUBJECT_NAME = new RegExp(`^${UUID}\\.pdf$`);
 
 export function isLessonFileName(name: string): boolean {
   return LESSON_FILE_NAME.test(name);
@@ -44,4 +50,13 @@ export function isLessonImageUrl(src: string): boolean {
 
 export function isSubmissionPageName(name: string): boolean {
   return SUBMISSION_PAGE_NAME.test(name);
+}
+
+export function isSubjectName(name: string): boolean {
+  return SUBJECT_NAME.test(name);
+}
+
+/** A copy handed in as a PDF rather than as a photographed page. */
+export function isPdfPage(name: string): boolean {
+  return name.endsWith(".pdf");
 }

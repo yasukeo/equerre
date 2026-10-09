@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Initials } from "@/components/initials";
 import { LateBadge } from "@/components/late-badge";
 import { PageHeader } from "@/components/shell/page-header";
+import { SubjectCard } from "@/components/subject-card";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
 import { arrangeRemarks } from "@/lib/correction/correction";
@@ -186,12 +187,24 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
             />
           </section>
 
-          <details className="group rounded-2xl border border-quadrillage bg-surface p-4">
-            <summary className="flex min-h-11 cursor-pointer items-center font-medium">
-              {t("statement")}
-            </summary>
-            <div className="lecon-corps mt-3">{draw(data.exercise.statement)}</div>
-          </details>
+          {data.exercise.subject ? (
+            <SubjectCard
+              url={data.exercise.subjectUrl}
+              heading={t("subject.heading")}
+              openLabel={t("subject.open")}
+              downloadLabel={t("subject.download")}
+              newTabLabel={t("subject.newTab")}
+              unavailableLabel={t("subject.unavailable")}
+              previewLabel={t("subject.heading")}
+            />
+          ) : (
+            <details className="group rounded-2xl border border-quadrillage bg-surface p-4">
+              <summary className="flex min-h-11 cursor-pointer items-center font-medium">
+                {t("statement")}
+              </summary>
+              <div className="lecon-corps mt-3">{draw(data.exercise.statement)}</div>
+            </details>
+          )}
           {data.solution ? (
             <details className="rounded-2xl border border-quadrillage bg-surface p-4">
               <summary className="flex min-h-11 cursor-pointer items-center font-medium">

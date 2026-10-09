@@ -8,10 +8,13 @@ import { z } from "zod";
 import { AnnotatedPage, RemarkNumber } from "@/components/annotated-page";
 import { GradeMark } from "@/components/grade-mark";
 import { PageGrid } from "@/components/page-grid";
+import { SubjectCard } from "@/components/subject-card";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { WORK_ICONS, WorkChip } from "@/components/work-status";
 import { requireViewer } from "@/lib/auth";
 import { arrangeRemarks, type NumberedRemark } from "@/lib/correction/correction";
+import { isPdfPage } from "@/lib/storage-paths";
+import { formatLocal } from "@/lib/dates";
 import { formatDecimal, parseDecimal } from "@/lib/decimal";
 import { getMyExercise, getMyHomework, type MyExercise } from "@/lib/homework/queries";
 import type { ExerciseWork } from "@/lib/homework/work";
@@ -87,6 +90,9 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
   const target = { assignmentId: homework.id, exerciseId: exercise.id };
   // Only an active student hands work in; a paused one keeps reading (D-060).
   const canHandIn = viewer.status === "actif";
+  // Given as a PDF (D-106): the page is the homework itself, its subject and her copy.
+  const subject = exercise.subject;
+  const backHref = subject ? "/eleve/devoirs" : `/eleve/devoirs/${homework.id}`;
   const workLabel =
     work.kind === "graded"
       ? t("work.graded", { grade: gradeFormat.format(work.grade) })
@@ -96,6 +102,7 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
     <PageGrid
       pages={data.submission?.pages ?? []}
       label={(number) => t("photos.page", { number })}
+      pdfLabel={(number) => t("photos.pdfItem", { number })}
     />
   );
 
@@ -151,11 +158,13 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
     <article className="grid gap-6">
       <header className="grid gap-4">
         <Link
-          href={`/eleve/devoirs/${homework.id}`}
+          href={backHref}
           className="-ms-1 inline-flex min-h-11 items-center gap-1.5 justify-self-start rounded-full ps-1 pe-3 text-sm text-encre-douce hover:text-encre"
         >
           <ArrowLeft aria-hidden="true" className="size-4 rtl:rotate-180" />
-          <span className="min-w-0 truncate">{homework.title}</span>
+          <span className="min-w-0 truncate">
+            {subject ? t("subject.backToList") : homework.title}
+          </span>
         </Link>
 
         {homeworkDetails && homeworkDetails.exercises.length > 1 ? (
@@ -202,8 +211,10 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
         ) : null}
 
         <div className="grid gap-2">
-          <p className="text-sm text-encre-douce">
-            {t("exercise.position", { index: position.index + 1, count: position.count })}
+          <p className="text-sm text-encre-douce first-letter:uppercase">
+            {subject
+              ? t("due", { date: formatLocal(homework.dueAt, "EEEE d MMMM 'à' HH:mm") })
+              : t("exercise.position", { index: position.index + 1, count: position.count })}
           </p>
           <h1 className="text-[clamp(1.5rem,1.25rem+1.2vw,2rem)] leading-tight font-semibold break-words">
             {exercise.title}
@@ -223,12 +234,30 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
         </div>
       </header>
 
-      <section aria-labelledby="exercise-statement" className="grid gap-2">
-        <h2 id="exercise-statement" className="sr-only">
-          {t("exercise.statement")}
-        </h2>
-        <div className="lecon-corps">{draw(exercise.statement)}</div>
-      </section>
+      {subject ? (
+        <div className="grid gap-3">
+          <SubjectCard
+            url={subject.url}
+            heading={t("subject.heading")}
+            openLabel={t("subject.open")}
+            downloadLabel={t("subject.download")}
+            newTabLabel={t("subject.newTab")}
+            unavailableLabel={t("subject.unavailable")}
+            previewLabel={t("subject.heading")}
+            preview
+          />
+          {work.kind === "todo" && canHandIn ? (
+            <p className="text-sm text-encre-douce">{t("subject.lead")}</p>
+          ) : null}
+        </div>
+      ) : (
+        <section aria-labelledby="exercise-statement" className="grid gap-2">
+          <h2 id="exercise-statement" className="sr-only">
+            {t("exercise.statement")}
+          </h2>
+          <div className="lecon-corps">{draw(exercise.statement)}</div>
+        </section>
+      )}
 
       <section
         aria-labelledby="exercise-answer"
@@ -243,7 +272,8 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
         <div aria-live={exercise.answerType === "upload" ? undefined : "polite"}>{answer}</div>
       </section>
 
-      {work.kind === "todo" && canHandIn ? <RevealSolution {...target} /> : null}
+      {/* A PDF subject has no corrigé to open (D-106). */}
+      {work.kind === "todo" && canHandIn && !subject ? <RevealSolution {...target} /> : null}
 
       {data.submission?.feedback ? (
         <section
@@ -291,10 +321,10 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
           </Link>
         ) : (
           <Link
-            href={`/eleve/devoirs/${homework.id}`}
+            href={backHref}
             className={cn(buttonVariants({ variant: "outline" }), "justify-self-end")}
           >
-            {t("exercise.backToHomework")}
+            {subject ? t("subject.backToList") : t("exercise.backToHomework")}
           </Link>
         )}
       </nav>
@@ -393,14 +423,18 @@ async function GradedAnswer({ data, grade }: { data: MyExercise; grade: number }
       <GradeMark grade={gradeFormat.format(grade)} label={t("exercise.gradeLabel")} circled />
       {pages.map((page, index) => {
         const remarks = arranged.pages[index]?.remarks ?? [];
-        const label = t("photos.page", { number: index + 1 });
+        const pdf = isPdfPage(page.path);
+        const label = pdf
+          ? t("photos.pdfItem", { number: index + 1 })
+          : t("photos.page", { number: index + 1 });
         return (
           <section key={page.path} aria-label={label} className="grid gap-3">
             <h3 className="text-sm font-semibold">{label}</h3>
             <AnnotatedPage
               url={page.url}
               alt={label}
-              openLabel={t("exercise.openPage")}
+              pdf={pdf}
+              openLabel={pdf ? t("exercise.openPdf") : t("exercise.openPage")}
               marks={remarks.flatMap((remark) =>
                 remark.anchor?.x != null && remark.anchor.y != null
                   ? [

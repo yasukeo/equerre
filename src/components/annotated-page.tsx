@@ -1,3 +1,4 @@
+import { FileText } from "lucide-react";
 import type { MouseEvent } from "react";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,7 @@ export function AnnotatedPage({
   marks,
   onPoint,
   openLabel,
+  pdf = false,
 }: {
   url: string | null;
   alt: string;
@@ -19,7 +21,46 @@ export function AnnotatedPage({
   /** Given only by the correction view: a click on the page places a remark there. */
   onPoint?: (x: number, y: number) => void;
   openLabel: string;
+  /**
+   * A copy handed in as a PDF (D-106): read in a frame on a wide screen, opened in the
+   * reader's own viewer anywhere. Its remarks are about the whole document, never on a point.
+   */
+  pdf?: boolean;
 }) {
+  if (pdf) {
+    return (
+      <figure className="grid gap-2">
+        <div className="flex flex-wrap items-center gap-3 rounded border border-quadrillage bg-surface p-3">
+          <span
+            aria-hidden="true"
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-rouge-fond text-rouge-texte"
+          >
+            <FileText className="size-5" />
+          </span>
+          {/* Named by the heading above it; the card only says what it is. */}
+          <span className="min-w-0 flex-1 text-sm text-encre-douce">PDF</span>
+          {url ? (
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
+            >
+              {openLabel}
+            </a>
+          ) : null}
+        </div>
+        {url ? (
+          <iframe
+            src={url}
+            title={alt}
+            className="hidden h-[80vh] w-full rounded border border-quadrillage bg-white lg:block"
+          />
+        ) : null}
+      </figure>
+    );
+  }
+
   const place = onPoint
     ? (event: MouseEvent<HTMLDivElement>) => {
         const box = event.currentTarget.getBoundingClientRect();

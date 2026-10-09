@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, X } from "lucide-react";
+import { ArrowDown, ArrowUp, FileText, ListChecks, X } from "lucide-react";
 import { unstable_rethrow } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -20,13 +20,18 @@ import { Input, Label } from "@/components/ui/input";
 import { MAX_ASSIGNMENT_EXERCISES, readRecipient } from "@/lib/assignment/form";
 import type { AssignableExercise, RecipientOptions } from "@/lib/assignment/queries";
 import { fieldError, initialFormState, type FormState } from "@/lib/form-state";
-import { createAssignment } from "../actions";
+import { cn } from "@/lib/utils";
+import { createAssignment, createSubjectAssignment } from "../actions";
+import { SubjectPicker, type Subject } from "./subject-picker";
+
+export type AssignmentMode = "bank" | "subject";
 
 type Props = {
   recipients: RecipientOptions;
   exercises: AssignableExercise[];
   preselected: string[];
   defaultDue: { date: string; time: string };
+  initialMode: AssignmentMode;
 };
 
 /** « Équation » finds « équations »: lower case, accents dropped. */
@@ -37,8 +42,16 @@ function fold(text: string): string {
     .toLocaleLowerCase("fr");
 }
 
-export function NewAssignmentForm({ recipients, exercises, preselected, defaultDue }: Props) {
+export function NewAssignmentForm({
+  recipients,
+  exercises,
+  preselected,
+  defaultDue,
+  initialMode,
+}: Props) {
   const t = useTranslations("tutor.newAssignment");
+  const [mode, setMode] = useState<AssignmentMode>(initialMode);
+  const [subject, setSubject] = useState<Subject>({ status: "empty" });
   const tTypes = useTranslations("tutor.exercises.answerType");
 
   const [title, setTitle] = useState("");
@@ -54,7 +67,9 @@ export function NewAssignmentForm({ recipients, exercises, preselected, defaultD
   const [state, formAction, pending] = useActionState(
     async (previous: FormState, formData: FormData): Promise<FormState> => {
       try {
-        return await createAssignment(previous, formData);
+        return formData.get("mode") === "subject"
+          ? await createSubjectAssignment(previous, formData)
+          : await createAssignment(previous, formData);
       } catch (error) {
         // The success path is a redirect, which must go through; anything else keeps the form.
         unstable_rethrow(error);
@@ -162,12 +177,64 @@ export function NewAssignmentForm({ recipients, exercises, preselected, defaultD
         formData.set("dueDate", dueDate);
         formData.set("dueTime", dueTime);
         formData.set("recipient", recipient);
-        formData.set("exerciseIds", JSON.stringify(selected));
+        formData.set("mode", mode);
+        if (mode === "subject") {
+          formData.set("subjectPath", subject.status === "ready" ? subject.path : "");
+        } else {
+          formData.set("exerciseIds", JSON.stringify(selected));
+        }
         startTransition(() => formAction(formData));
       }}
       className="grid gap-6"
       noValidate
     >
+      <fieldset className="grid gap-2">
+        <legend className="mb-1 text-sm font-medium">{t("mode.label")}</legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {(
+            [
+              { value: "bank", icon: ListChecks, label: t("mode.bank"), hint: t("mode.bankHint") },
+              {
+                value: "subject",
+                icon: FileText,
+                label: t("mode.subject"),
+                hint: t("mode.subjectHint"),
+              },
+            ] as const
+          ).map((option) => (
+            <label
+              key={option.value}
+              className={cn(
+                "flex cursor-pointer items-start gap-3 rounded-2xl border bg-surface p-4 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-encre",
+                mode === option.value ? "border-encre ring-1 ring-encre" : "border-quadrillage",
+              )}
+            >
+              <input
+                type="radio"
+                name="assignment-mode"
+                value={option.value}
+                checked={mode === option.value}
+                onChange={() => setMode(option.value)}
+                className="sr-only"
+              />
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "flex size-10 shrink-0 items-center justify-center rounded-full",
+                  mode === option.value ? "bg-encre text-papier" : "bg-sunken",
+                )}
+              >
+                <option.icon className="size-5" />
+              </span>
+              <span className="grid gap-0.5">
+                <span className="font-medium">{option.label}</span>
+                <span className="text-sm text-encre-douce">{option.hint}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       <Field
         id="assignment-title"
         label={t("fields.title")}
@@ -261,164 +328,201 @@ export function NewAssignmentForm({ recipients, exercises, preselected, defaultD
         error={fieldError(state, "instructions")}
       />
 
-      <section aria-labelledby="assignment-chosen-title" className="grid gap-3">
-        <h2
-          id="assignment-chosen-title"
-          ref={control("heading")}
-          tabIndex={-1}
-          className="text-base font-semibold"
-        >
-          {t("exercises.chosen", { count: selected.length })}
-        </h2>
-        {/* Always in the page, so reaching the limit is announced as it happens. */}
-        <p id="assignment-exercises-full" aria-live="polite" className="text-sm text-encre-douce">
-          {selected.length >= MAX_ASSIGNMENT_EXERCISES
-            ? t("exercises.full", { max: MAX_ASSIGNMENT_EXERCISES })
-            : null}
-        </p>
-        {selected.length === 0 ? (
-          <p className="text-sm text-encre-douce">{t("exercises.chosenEmpty")}</p>
-        ) : (
-          <ol className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
-            {selected.map((id, index) => {
-              const exercise = byId.get(id);
-              if (!exercise) return null;
-              return (
-                <li key={id} className="flex flex-wrap items-center gap-2 bg-surface px-3 py-2">
-                  <span className="w-6 text-sm text-encre-douce">{index + 1}.</span>
-                  <span className="min-w-0 grow basis-40 font-medium">{exercise.title}</span>
-                  <AnswerTypeChip type={exercise.answerType} label={tTypes(exercise.answerType)} />
-                  <span className="flex">
-                    <IconButton
-                      buttonRef={control(`${id}:up`)}
-                      label={t("exercises.up", { title: exercise.title })}
-                      disabled={index === 0}
-                      onClick={() => move(index, -1)}
-                    >
-                      <ArrowUp aria-hidden="true" className="size-4" />
-                    </IconButton>
-                    <IconButton
-                      buttonRef={control(`${id}:down`)}
-                      label={t("exercises.down", { title: exercise.title })}
-                      disabled={index === selected.length - 1}
-                      onClick={() => move(index, 1)}
-                    >
-                      <ArrowDown aria-hidden="true" className="size-4" />
-                    </IconButton>
-                    <IconButton
-                      buttonRef={control(`${id}:remove`)}
-                      label={t("exercises.remove", { title: exercise.title })}
-                      onClick={() => removeAt(index)}
-                    >
-                      <X aria-hidden="true" className="size-4" />
-                    </IconButton>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-        )}
-        {exercisesError ? (
-          <p role="alert" className="text-sm text-stylo-rouge">
-            {exercisesError}
-          </p>
-        ) : null}
-      </section>
-
-      <section aria-labelledby="assignment-bank-title" className="grid gap-3">
-        <div>
-          <h2 id="assignment-bank-title" className="text-base font-semibold">
-            {t("exercises.bank")}
+      {mode === "subject" ? (
+        <section aria-labelledby="assignment-subject-title" className="grid gap-3">
+          <h2 id="assignment-subject-title" className="text-base font-semibold">
+            {t("subject.heading")}
           </h2>
-          <p className="text-sm text-encre-douce">{t("exercises.bankHint")}</p>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
-          <SelectField
-            id="assignment-level"
-            label={t("exercises.level")}
-            value={level}
-            onChange={(event) => {
-              setLevel(event.target.value);
-              setLevelChosen(true);
-            }}
-          >
-            <option value="">{t("exercises.allLevels")}</option>
-            {levels.map((option) => (
-              <option key={option.code} value={option.code}>
-                {option.label}
-              </option>
-            ))}
-          </SelectField>
-          <div className="grid content-start gap-1.5">
-            <Label htmlFor="assignment-search">{t("exercises.search")}</Label>
-            <Input
-              id="assignment-search"
-              type="search"
-              value={search}
-              placeholder={t("exercises.searchPlaceholder")}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </div>
-        </div>
+          <SubjectPicker
+            subject={subject}
+            onChange={setSubject}
+            error={fieldError(state, "subject")}
+            disabled={pending}
+          />
+        </section>
+      ) : (
+        <>
+          <section aria-labelledby="assignment-chosen-title" className="grid gap-3">
+            <h2
+              id="assignment-chosen-title"
+              ref={control("heading")}
+              tabIndex={-1}
+              className="text-base font-semibold"
+            >
+              {t("exercises.chosen", { count: selected.length })}
+            </h2>
+            {/* Always in the page, so reaching the limit is announced as it happens. */}
+            <p
+              id="assignment-exercises-full"
+              aria-live="polite"
+              className="text-sm text-encre-douce"
+            >
+              {selected.length >= MAX_ASSIGNMENT_EXERCISES
+                ? t("exercises.full", { max: MAX_ASSIGNMENT_EXERCISES })
+                : null}
+            </p>
+            {selected.length === 0 ? (
+              <p className="text-sm text-encre-douce">{t("exercises.chosenEmpty")}</p>
+            ) : (
+              <ol className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
+                {selected.map((id, index) => {
+                  const exercise = byId.get(id);
+                  if (!exercise) return null;
+                  return (
+                    <li key={id} className="flex flex-wrap items-center gap-2 bg-surface px-3 py-2">
+                      <span className="w-6 text-sm text-encre-douce">{index + 1}.</span>
+                      <span className="min-w-0 grow basis-40 font-medium">{exercise.title}</span>
+                      <AnswerTypeChip
+                        type={exercise.answerType}
+                        label={tTypes(exercise.answerType)}
+                      />
+                      <span className="flex">
+                        <IconButton
+                          buttonRef={control(`${id}:up`)}
+                          label={t("exercises.up", { title: exercise.title })}
+                          disabled={index === 0}
+                          onClick={() => move(index, -1)}
+                        >
+                          <ArrowUp aria-hidden="true" className="size-4" />
+                        </IconButton>
+                        <IconButton
+                          buttonRef={control(`${id}:down`)}
+                          label={t("exercises.down", { title: exercise.title })}
+                          disabled={index === selected.length - 1}
+                          onClick={() => move(index, 1)}
+                        >
+                          <ArrowDown aria-hidden="true" className="size-4" />
+                        </IconButton>
+                        <IconButton
+                          buttonRef={control(`${id}:remove`)}
+                          label={t("exercises.remove", { title: exercise.title })}
+                          onClick={() => removeAt(index)}
+                        >
+                          <X aria-hidden="true" className="size-4" />
+                        </IconButton>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+            {exercisesError ? (
+              <p role="alert" className="text-sm text-stylo-rouge">
+                {exercisesError}
+              </p>
+            ) : null}
+          </section>
 
-        {chapters.length === 0 ? (
-          <p className="text-sm text-encre-douce" aria-live="polite">
-            {t("exercises.none")}
-          </p>
-        ) : (
-          <div className="grid gap-5">
-            {chapters.map((chapter) => (
-              <fieldset key={chapter.key} className="grid gap-2">
-                <legend className="text-sm font-semibold text-encre-douce">
-                  {chapter.heading}
-                </legend>
-                <ul className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
-                  {chapter.exercises.map((exercise) => {
-                    const checked = selected.includes(exercise.id);
-                    return (
-                      <li key={exercise.id} className="bg-surface">
-                        <label className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            disabled={!checked && selected.length >= MAX_ASSIGNMENT_EXERCISES}
-                            onChange={(event) => toggle(exercise.id, event.target.checked)}
-                            // Named by the title alone; the kind of answer and the difficulty
-                            // are read after it rather than glued to it.
-                            aria-labelledby={`bank-${exercise.id}-title`}
-                            aria-describedby={
-                              !checked && selected.length >= MAX_ASSIGNMENT_EXERCISES
-                                ? `bank-${exercise.id}-meta assignment-exercises-full`
-                                : `bank-${exercise.id}-meta`
-                            }
-                            className="size-4 accent-stylo-bleu"
-                          />
-                          <span id={`bank-${exercise.id}-title`} className="min-w-0 grow basis-40">
-                            {exercise.title}
-                          </span>
-                          <span id={`bank-${exercise.id}-meta`} className="flex items-center gap-3">
-                            <AnswerTypeChip
-                              type={exercise.answerType}
-                              label={tTypes(exercise.answerType)}
-                            />
-                            <span className="text-xs text-encre-douce">
-                              {t("exercises.difficulty", { level: exercise.difficulty })}
-                            </span>
-                          </span>
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </fieldset>
-            ))}
-          </div>
-        )}
-      </section>
+          <section aria-labelledby="assignment-bank-title" className="grid gap-3">
+            <div>
+              <h2 id="assignment-bank-title" className="text-base font-semibold">
+                {t("exercises.bank")}
+              </h2>
+              <p className="text-sm text-encre-douce">{t("exercises.bankHint")}</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
+              <SelectField
+                id="assignment-level"
+                label={t("exercises.level")}
+                value={level}
+                onChange={(event) => {
+                  setLevel(event.target.value);
+                  setLevelChosen(true);
+                }}
+              >
+                <option value="">{t("exercises.allLevels")}</option>
+                {levels.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.label}
+                  </option>
+                ))}
+              </SelectField>
+              <div className="grid content-start gap-1.5">
+                <Label htmlFor="assignment-search">{t("exercises.search")}</Label>
+                <Input
+                  id="assignment-search"
+                  type="search"
+                  value={search}
+                  placeholder={t("exercises.searchPlaceholder")}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </div>
+            </div>
+
+            {chapters.length === 0 ? (
+              <p className="text-sm text-encre-douce" aria-live="polite">
+                {t("exercises.none")}
+              </p>
+            ) : (
+              <div className="grid gap-5">
+                {chapters.map((chapter) => (
+                  <fieldset key={chapter.key} className="grid gap-2">
+                    <legend className="text-sm font-semibold text-encre-douce">
+                      {chapter.heading}
+                    </legend>
+                    <ul className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
+                      {chapter.exercises.map((exercise) => {
+                        const checked = selected.includes(exercise.id);
+                        return (
+                          <li key={exercise.id} className="bg-surface">
+                            <label className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                disabled={!checked && selected.length >= MAX_ASSIGNMENT_EXERCISES}
+                                onChange={(event) => toggle(exercise.id, event.target.checked)}
+                                // Named by the title alone; the kind of answer and the difficulty
+                                // are read after it rather than glued to it.
+                                aria-labelledby={`bank-${exercise.id}-title`}
+                                aria-describedby={
+                                  !checked && selected.length >= MAX_ASSIGNMENT_EXERCISES
+                                    ? `bank-${exercise.id}-meta assignment-exercises-full`
+                                    : `bank-${exercise.id}-meta`
+                                }
+                                className="size-4 accent-stylo-bleu"
+                              />
+                              <span
+                                id={`bank-${exercise.id}-title`}
+                                className="min-w-0 grow basis-40"
+                              >
+                                {exercise.title}
+                              </span>
+                              <span
+                                id={`bank-${exercise.id}-meta`}
+                                className="flex items-center gap-3"
+                              >
+                                <AnswerTypeChip
+                                  type={exercise.answerType}
+                                  label={tTypes(exercise.answerType)}
+                                />
+                                <span className="text-xs text-encre-douce">
+                                  {t("exercises.difficulty", { level: exercise.difficulty })}
+                                </span>
+                              </span>
+                            </label>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </fieldset>
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
 
       <FormMessage state={state} />
 
-      <Button type="submit" size="lg" disabled={pending} className="justify-self-start">
+      {mode === "subject" && subject.status === "uploading" ? (
+        <p className="text-sm text-encre-douce">{t("subject.waiting")}</p>
+      ) : null}
+      <Button
+        type="submit"
+        size="lg"
+        disabled={pending || (mode === "subject" && subject.status === "uploading")}
+        className="justify-self-start"
+      >
         {pending ? t("submitting") : t("submit")}
       </Button>
     </form>

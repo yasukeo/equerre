@@ -4,6 +4,7 @@
 
 import { z } from "zod";
 import { formatLocal, localDateTimeToUtc } from "@/lib/dates";
+import { isSubjectName } from "@/lib/storage-paths";
 
 export const MAX_ASSIGNMENT_EXERCISES = 30;
 
@@ -72,13 +73,14 @@ export type AssignmentArgs = {
   exerciseIds: string[];
 };
 
-/** Reads the whole form, or says which fields are wrong. `now` is passed in, never read here. */
-export function parseAssignmentForm(
-  values: AssignmentFormValues,
-  now: Date,
-): { ok: true; value: AssignmentArgs } | { ok: false; errors: AssignmentFieldErrors } {
-  const errors: AssignmentFieldErrors = {};
+type Common = Omit<AssignmentArgs, "exerciseIds">;
 
+/** The fields every homework has: its title, instructions, due date and recipient. */
+function readCommon(
+  values: Omit<AssignmentFormValues, "exerciseIds">,
+  now: Date,
+  errors: AssignmentFieldErrors,
+): Common | null {
   const title = values.title.trim();
   if (title.length < 1 || title.length > 160) errors.title = "title";
 
@@ -94,13 +96,44 @@ export function parseAssignmentForm(
   const recipient = readRecipient(values.recipient);
   if (!recipient) errors.recipient = "recipient";
 
+  return dueAt && recipient ? { title, instructions, dueAt, recipient } : null;
+}
+
+/** Reads the whole form, or says which fields are wrong. `now` is passed in, never read here. */
+export function parseAssignmentForm(
+  values: AssignmentFormValues,
+  now: Date,
+): { ok: true; value: AssignmentArgs } | { ok: false; errors: AssignmentFieldErrors } {
+  const errors: AssignmentFieldErrors = {};
+  const common = readCommon(values, now, errors);
+
   const exerciseIds = readIds(values.exerciseIds);
   if (!exerciseIds) errors.exerciseIds = "exercises";
 
-  if (Object.keys(errors).length > 0 || !dueAt || !recipient || !exerciseIds) {
+  if (Object.keys(errors).length > 0 || !common || !exerciseIds) {
     return { ok: false, errors };
   }
-  return { ok: true, value: { title, instructions, dueAt, recipient, exerciseIds } };
+  return { ok: true, value: { ...common, exerciseIds } };
+}
+
+export type SubjectAssignmentArgs = Common & { subjectPath: string };
+
+/**
+ * The form when the work is a PDF the tutor uploaded (D-106): the same fields, and the file's
+ * name in place of the exercises.
+ */
+export function parseSubjectAssignmentForm(
+  values: Omit<AssignmentFormValues, "exerciseIds"> & { subjectPath: string },
+  now: Date,
+):
+  | { ok: true; value: SubjectAssignmentArgs }
+  | { ok: false; errors: AssignmentFieldErrors & { subject?: string } } {
+  const errors: AssignmentFieldErrors & { subject?: string } = {};
+  const common = readCommon(values, now, errors);
+  const subjectPath = isSubjectName(values.subjectPath) ? values.subjectPath : null;
+  if (!subjectPath) errors.subject = "subject";
+  if (Object.keys(errors).length > 0 || !common || !subjectPath) return { ok: false, errors };
+  return { ok: true, value: { ...common, subjectPath } };
 }
 
 /** For editing: the same fields without the recipient and exercises, which stay as they are. */

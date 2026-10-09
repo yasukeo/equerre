@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Camera, ImagePlus, Loader2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Camera, FileText, FileUp, ImagePlus, Loader2, X } from "lucide-react";
 import { unstable_rethrow } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { startTransition, useActionState, useRef, useState, type ReactNode } from "react";
@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { ImagePreparationError, prepareImage } from "@/lib/images/prepare-image";
 import { initialFormState, type FormState } from "@/lib/form-state";
-import { MAX_PAGES, PAGE_PREPARATION, pagePath } from "@/lib/homework/pages";
+import { MAX_PAGES, PAGE_PREPARATION, PDF_MAX_BYTES, pagePath } from "@/lib/homework/pages";
+import { isPdfPage } from "@/lib/storage-paths";
 import { createClient } from "@/lib/supabase/client";
 import { PageGrid } from "@/components/page-grid";
 import { submitAnswer } from "../../actions";
@@ -26,6 +27,8 @@ type PageState = {
   error?: string;
   /** A preview made on the phone, to revoke when the page goes. */
   local?: boolean;
+  /** A copy handed in as a PDF rather than a photographed page (D-106). */
+  pdf: boolean;
 };
 
 type Props = {
@@ -58,6 +61,7 @@ export function PhotoAnswer({
   const [editing, setEditing] = useState(!handedIn);
   const cameraInput = useRef<HTMLInputElement>(null);
   const galleryInput = useRef<HTMLInputElement>(null);
+  const pdfInput = useRef<HTMLInputElement>(null);
 
   const [state, action, pending] = useActionState(
     async (previous: FormState, formData: FormData): Promise<FormState> => {
@@ -92,6 +96,7 @@ export function PhotoAnswer({
       local: true,
       handedIn: false,
       status: "uploading",
+      pdf: false,
     }));
     setPages((current) => [...current, ...added]);
 
@@ -123,6 +128,57 @@ export function PhotoAnswer({
                 error instanceof Error && /row-level security/i.test(error.message)
                 ? t("photos.quota")
                 : t("photos.failed"),
+        });
+      }
+    }
+  };
+
+  /**
+   * A copy already written as a PDF goes as it is: it is not drawn again on the phone, only
+   * checked to be a PDF the bucket will take (D-106).
+   */
+  const addPdfs = async (files: FileList | null) => {
+    if (!files) return;
+    const room = MAX_PAGES - pages.length;
+    const chosen = [...files].slice(0, Math.max(0, room));
+    const added: PageState[] = chosen.map((file) => ({
+      key: crypto.randomUUID(),
+      path: null,
+      url: URL.createObjectURL(file),
+      local: true,
+      handedIn: false,
+      status: "uploading",
+      pdf: true,
+    }));
+    setPages((current) => [...current, ...added]);
+
+    const bucket = createClient().storage.from("submissions");
+    for (const [index, file] of chosen.entries()) {
+      const page = added[index];
+      if (!page) continue;
+      if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+        update(page.key, { status: "failed", error: t("photos.notPdf") });
+        continue;
+      }
+      if (file.size > PDF_MAX_BYTES) {
+        update(page.key, { status: "failed", error: t("photos.pdfTooLarge") });
+        continue;
+      }
+      try {
+        const path = pagePath(studentId, reference, "pdf");
+        const { error } = await bucket.upload(path, file, {
+          contentType: "application/pdf",
+          upsert: false,
+        });
+        if (error) throw error;
+        update(page.key, { path, status: "ready" });
+      } catch (error) {
+        update(page.key, {
+          status: "failed",
+          error:
+            error instanceof Error && /row-level security/i.test(error.message)
+              ? t("photos.quota")
+              : t("photos.failed"),
         });
       }
     }
@@ -166,7 +222,11 @@ export function PhotoAnswer({
     return (
       <div className="grid gap-4">
         <p className="text-sm">{t("photos.handedIn")}</p>
-        <PageGrid pages={handedInPages} label={(number) => t("photos.page", { number })} />
+        <PageGrid
+          pages={handedInPages}
+          label={(number) => t("photos.page", { number })}
+          pdfLabel={(number) => t("photos.pdfItem", { number })}
+        />
         <Button
           type="button"
           variant="outline"
@@ -199,7 +259,9 @@ export function PhotoAnswer({
               >
                 <Thumbnail page={page} alt={t("photos.page", { number })} />
                 <div className="grid min-w-0 flex-1 gap-1">
-                  <span className="text-sm font-medium">{t("photos.page", { number })}</span>
+                  <span className="text-sm font-medium">
+                    {page.pdf ? t("photos.pdfItem", { number }) : t("photos.page", { number })}
+                  </span>
                   {page.status === "uploading" ? (
                     <span className="flex items-center gap-1 text-sm text-encre-douce">
                       <Loader2 aria-hidden="true" className="size-4 animate-spin" />
@@ -256,6 +318,19 @@ export function PhotoAnswer({
           }}
         />
         <input
+          ref={pdfInput}
+          type="file"
+          accept="application/pdf,.pdf"
+          multiple
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(event) => {
+            void addPdfs(event.target.files);
+            event.target.value = "";
+          }}
+        />
+        <input
           ref={galleryInput}
           type="file"
           // Named types: an iPhone then hands over a JPEG rather than a HEIC.
@@ -286,6 +361,15 @@ export function PhotoAnswer({
         >
           <ImagePlus aria-hidden="true" className="size-4" />
           {t("photos.choose")}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={locked || full}
+          onClick={() => pdfInput.current?.click()}
+        >
+          <FileUp aria-hidden="true" className="size-4" />
+          {t("photos.addPdf")}
         </Button>
       </div>
       <p aria-live="polite" className="text-sm text-encre-douce">
@@ -335,10 +419,21 @@ function fromStorage(page: InitialPage): PageState {
     url: page.url,
     handedIn: page.handedIn,
     status: "ready",
+    pdf: isPdfPage(page.path),
   };
 }
 
 function Thumbnail({ page, alt }: { page: PageState; alt: string }) {
+  if (page.pdf) {
+    return (
+      <span
+        aria-hidden="true"
+        className="flex size-16 shrink-0 items-center justify-center rounded border border-quadrillage bg-rouge-fond text-rouge-texte"
+      >
+        <FileText className="size-6" />
+      </span>
+    );
+  }
   return page.url ? (
     // A local preview or a signed address in her own folder: neither goes through the optimizer.
     // eslint-disable-next-line @next/next/no-img-element
