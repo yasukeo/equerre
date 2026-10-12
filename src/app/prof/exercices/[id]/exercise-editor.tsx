@@ -360,6 +360,7 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
             initialContent={exercise.statement}
             folderId={exercise.id}
             attachments
+            fileHint={t("fileHint.statement")}
             calloutLabels={calloutLabels}
             size="field"
             onReady={(written) => {
@@ -598,6 +599,7 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
             initialContent={exercise.solution}
             folderId={exercise.id}
             attachments
+            fileHint={t("fileHint.solution")}
             calloutLabels={calloutLabels}
             size="field"
             onReady={(written) => {

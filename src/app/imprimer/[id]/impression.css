@@ -96,7 +96,7 @@ body:has(.impression) {
     line-height: 1.6;
   }
 
-  .impression :is(.lecon-encadre, .lecon-math-bloc, img, .lecon-corrige-titre) {
+  .impression :is(.lecon-encadre, .lecon-math-bloc, img, .lecon-corrige-titre, .lecon-fichier) {
     break-inside: avoid;
   }
 

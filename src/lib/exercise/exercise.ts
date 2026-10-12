@@ -67,11 +67,16 @@ export function parseTags(input: string): string[] {
   return tags;
 }
 
-/** True when a document holds nothing a student could read: no words, formula or image. */
+/** True when a document holds nothing a student could read: no words, formula, image or PDF. */
 export function isDocumentEmpty(doc: JSONContent | null | undefined): boolean {
   const visit = (node: JSONContent): boolean => {
     if (node.type === "text") return !node.text?.trim();
-    if (node.type === "inlineMath" || node.type === "blockMath" || node.type === "image") {
+    if (
+      node.type === "inlineMath" ||
+      node.type === "blockMath" ||
+      node.type === "image" ||
+      node.type === "fileAttachment"
+    ) {
       return false;
     }
     return (node.content ?? []).every(visit);

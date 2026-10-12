@@ -4,13 +4,24 @@
  * the whole stays well under the 255 bytes file systems allow.
  */
 export function pdfFileName(name: string | null | undefined, fallback: string): string {
-  const base = (name ?? "")
+  const cleaned = (name ?? "")
+    .toWellFormed()
     .replace(/[\\/:*?"<>|\u0000-\u001f\u007f]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 120)
+    .replace(/\.pdf$/i, "")
     .trim();
+  // By character: a cut through « 𝑓 » or an emoji would leave half of it, which no URL takes.
+  const base = Array.from(cleaned).slice(0, 120).join("").trim();
   return `${base || fallback}.pdf`;
+}
+
+/**
+ * `telecharger=1&nom=…`, the query that asks a file route for the file under `name`. A name
+ * the editor let through with half of a character in it is mended rather than left to throw.
+ */
+export function downloadQuery(name: string): string {
+  return `telecharger=1&nom=${encodeURIComponent(name.toWellFormed())}`;
 }
 
 /**
@@ -22,5 +33,5 @@ export function pdfFileName(name: string | null | undefined, fallback: string): 
  */
 export function withDownloadName(signedUrl: string, name: string): string {
   const separator = signedUrl.includes("?") ? "&" : "?";
-  return `${signedUrl}${separator}download=${encodeURIComponent(name)}`;
+  return `${signedUrl}${separator}download=${encodeURIComponent(name.toWellFormed())}`;
 }

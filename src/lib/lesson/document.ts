@@ -190,6 +190,22 @@ export const exerciseDocumentSchema = z.object({
 export type ExerciseDocument = z.infer<typeof exerciseDocumentSchema>;
 
 /**
+ * True when every PDF a document attaches sits in `folderId`, the folder of lesson-files named
+ * after its own lesson or exercise: the only one whose files open by that document's rules
+ * (D-107). A card copied from another lesson or an exercise keeps its first folder, and would
+ * open for that one's readers rather than this one's. Attachments are top-level blocks in both
+ * vocabularies.
+ */
+export function attachmentsIn(
+  document: LessonDocument | ExerciseDocument,
+  folderId: string,
+): boolean {
+  return document.content.every(
+    (block) => block.type !== "fileAttachment" || block.attrs.path.startsWith(`${folderId}/`),
+  );
+}
+
+/**
  * A blog post: the lesson vocabulary without images or attached documents, in an encadré or
  * out of one. Both buckets are keyed by lesson (D-052), and a post is not a lesson (D-089).
  */

@@ -8,6 +8,7 @@ const PRIVATE_PREFIXES = [
   "/prof",
   "/eleve",
   "/parent",
+  "/devoirs",
   "/agenda",
   "/recus",
   "/nouveau-mot-de-passe",

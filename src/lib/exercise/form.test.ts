@@ -161,21 +161,27 @@ describe("parseExerciseForm", () => {
     }
   });
 
-  it("accepts an attached PDF, as a lesson does (D-107)", () => {
-    const withFile = JSON.stringify({
+  const withFileIn = (folder: string) =>
+    JSON.stringify({
       type: "doc",
       content: [
         {
           type: "fileAttachment",
-          attrs: {
-            path: "0b6f1c3e-8d2a-4f7b-9c1e-5a4d3b2c1f00/2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f.pdf",
-            name: "Fiche",
-          },
+          attrs: { path: `${folder}/2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f.pdf`, name: "Fiche" },
         },
       ],
     });
+
+  it("accepts a PDF in the exercise's own folder, as a lesson does (D-107)", () => {
+    const withFile = withFileIn(base.id);
     expect(args({ statement: withFile }).p_statement).toMatchObject({ type: "doc" });
     expect(args({ solution: withFile }).p_solution).toMatchObject({ type: "doc" });
+  });
+
+  it("refuses a PDF pasted from a lesson's folder, which would follow the lesson", () => {
+    const pasted = withFileIn("0b6f1c3e-8d2a-4f7b-9c1e-5a4d3b2c1f00");
+    expect(errors({ statement: pasted })).toEqual({ statement: "foreignFile" });
+    expect(errors({ solution: pasted })).toEqual({ solution: "foreignFile" });
   });
 
   it("refuses a document outside the exercise vocabulary", () => {
@@ -233,6 +239,16 @@ describe("the exercise helpers", () => {
     ).toBe(true);
     expect(
       isDocumentEmpty({ type: "doc", content: [{ type: "blockMath", attrs: { latex: "x" } }] }),
+    ).toBe(false);
+    // A series given as a PDF: the card is the whole statement (D-107).
+    expect(
+      isDocumentEmpty({
+        type: "doc",
+        content: [
+          { type: "paragraph" },
+          { type: "fileAttachment", attrs: { path: "a/b.pdf", name: "Série 3" } },
+        ],
+      }),
     ).toBe(false);
     expect(isDocumentEmpty(null)).toBe(true);
   });

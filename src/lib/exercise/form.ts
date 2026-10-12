@@ -4,7 +4,11 @@
 
 import { z } from "zod";
 import { parseDecimal } from "@/lib/decimal";
-import { exerciseDocumentSchema, type ExerciseDocument } from "@/lib/lesson/document";
+import {
+  attachmentsIn,
+  exerciseDocumentSchema,
+  type ExerciseDocument,
+} from "@/lib/lesson/document";
 import type { Json } from "@/types/database";
 import {
   ANSWER_TYPES,
@@ -102,7 +106,9 @@ export function parseExerciseForm(
   const statement = document(values.statement);
   const solution = document(values.solution);
   if (!statement) errors.statement = "document";
+  else if (id.success && !attachmentsIn(statement, id.data)) errors.statement = "foreignFile";
   if (!solution) errors.solution = "document";
+  else if (id.success && !attachmentsIn(solution, id.data)) errors.solution = "foreignFile";
 
   // Every argument gets a value, whatever the type: the function ignores those that do not
   // apply to it, and PostgREST's generated signature has no room for null.

@@ -6,7 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { requireViewer } from "@/lib/auth";
 import { fieldErrorsFor, textField, type FormState } from "@/lib/form-state";
-import { lessonDocumentSchema, type LessonDocument } from "@/lib/lesson/document";
+import { attachmentsIn, lessonDocumentSchema, type LessonDocument } from "@/lib/lesson/document";
 import { COURSE_INDEX_TAG, lessonTag } from "@/lib/lesson/queries";
 import { slugify } from "@/lib/slug";
 import { createClient } from "@/lib/supabase/server";
@@ -159,6 +159,9 @@ export async function saveLesson(_previous: FormState, formData: FormData): Prom
   const content = parseContent(textField(formData, "content"));
   if (content === null) {
     return { status: "error", message: t("errors.content") };
+  }
+  if (!attachmentsIn(content, parsed.data.id)) {
+    return { status: "error", message: t("errors.foreignFile") };
   }
 
   const supabase = await createClient();

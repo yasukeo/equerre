@@ -18,6 +18,8 @@ export type InsertedFile = { path: string; name: string; size: number };
 
 type Props = {
   lessonId: string;
+  /** Who will open the file; the lesson's readers when absent. */
+  hint?: string;
   target: FileTarget;
   onInsert: (file: InsertedFile) => void;
   onUpdate: (name: string) => void;
@@ -37,7 +39,15 @@ function readableName(fileName: string): string {
  * Attaches a PDF, or renames one already in the lesson. The document goes to the private
  * bucket, where only those who may read the lesson can open it (DECISIONS.md, D-050).
  */
-export function FileDialog({ lessonId, target, onInsert, onUpdate, onRemove, onClose }: Props) {
+export function FileDialog({
+  lessonId,
+  hint,
+  target,
+  onInsert,
+  onUpdate,
+  onRemove,
+  onClose,
+}: Props) {
   const t = useTranslations("editor.file");
   const ref = useRef<HTMLDialogElement>(null);
   const closed = useRef(false);
@@ -110,7 +120,7 @@ export function FileDialog({ lessonId, target, onInsert, onUpdate, onRemove, onC
           <div className="grid gap-1.5">
             <Label htmlFor="file-file">{t("file")}</Label>
             <p id="file-file-hint" className="text-sm text-encre-douce">
-              {t("fileHint")}
+              {hint ?? t("fileHint")}
             </p>
             <input
               id="file-file"

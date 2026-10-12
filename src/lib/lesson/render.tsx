@@ -3,12 +3,16 @@
 // displayed formula (ScrollableMath), which takes the focus when it has to scroll.
 
 import { renderJSONContentToReactElement } from "@tiptap/static-renderer/json/react";
+import { Download, ExternalLink } from "lucide-react";
 import type { ReactNode } from "react";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { ScrollableMath } from "@/components/lesson/scrollable-math";
 import { CALLOUT_KINDS, type CalloutKind, type StoredLesson } from "./document";
 import { formatFileSize } from "./file-size";
 import { renderMath } from "./math";
+import { downloadQuery } from "@/lib/download-name";
 import { frenchSpaces } from "@/lib/typography";
+import { cn } from "@/lib/utils";
 
 type Attrs = Record<string, unknown> | undefined;
 
@@ -41,7 +45,7 @@ export type LessonRenderOptions = {
 /** The words around an attached PDF (D-107). */
 const DEFAULT_FILE_LABELS = {
   download: "Télécharger",
-  newTab: "(nouvel onglet)",
+  newTab: "(PDF, nouvel onglet)",
 };
 
 const DEFAULT_EXERCISE_LABELS = {
@@ -204,28 +208,35 @@ export function createLessonRenderer({
         />
       ),
       fileAttachment: ({ node }) => {
-        const name = stringAttr(node.attrs, "name") || "Document";
+        const given = stringAttr(node.attrs, "name") || "Document";
+        const name = frenchSpaces(given);
         const size = readableSize(node.attrs);
         const href = fileHref(stringAttr(node.attrs, "path"));
-        // Saved under the name the tutor gave it, rather than an id (D-107).
-        const download = `${href}?telecharger=1&nom=${encodeURIComponent(name)}`;
         return (
-          <span className="lecon-fichier">
+          <div className="lecon-fichier">
             <span aria-hidden="true" className="lecon-fichier-icone">
               PDF
             </span>
-            <span className="lecon-fichier-texte">
-              <a href={href} target="_blank" rel="noreferrer">
+            {/* The name and the size are one target, tall enough for a finger. */}
+            <a href={href} target="_blank" rel="noreferrer" className="lecon-fichier-ouvrir">
+              <span className="lecon-fichier-nom">
                 {name}
-                <span className="sr-only"> {fileLabels.newTab}</span>
-              </a>
+                <ExternalLink aria-hidden="true" className="lecon-fichier-externe" />
+              </span>
               {size === null ? null : <span className="lecon-fichier-taille">{size}</span>}
-            </span>
-            <a href={download} className="lecon-fichier-telecharger">
+              <span className="sr-only"> {fileLabels.newTab}</span>
+            </a>
+            {/* Saved under the name the tutor gave it, rather than an id (D-107). Paper has
+                no use for it. */}
+            <a
+              href={`${href}?${downloadQuery(given)}`}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "print:hidden")}
+            >
+              <Download aria-hidden="true" />
               {fileLabels.download}
               <span className="sr-only"> {name}</span>
             </a>
-          </span>
+          </div>
         );
       },
     },

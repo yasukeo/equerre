@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pdfFileName, withDownloadName } from "./download-name";
+import { downloadQuery, pdfFileName, withDownloadName } from "./download-name";
 
 describe("pdfFileName", () => {
   it.each([
@@ -7,6 +7,7 @@ describe("pdfFileName", () => {
     ["Examen blanc n°1 : analyse", "Examen blanc n°1 analyse.pdf"],
     ['Fiche "3" / corrigé?', "Fiche 3 corrigé.pdf"],
     ["  ligne\nsuivante\t", "ligne suivante.pdf"],
+    ["Fiche 3.PDF", "Fiche 3.pdf"],
   ])("turns %j into %j", (name, file) => {
     expect(pdfFileName(name, "document")).toBe(file);
   });
@@ -18,6 +19,25 @@ describe("pdfFileName", () => {
 
   it("keeps the name short", () => {
     expect(pdfFileName("a".repeat(300), "document")).toHaveLength(124);
+  });
+
+  it("never cuts a character in half", () => {
+    // « 𝑓 » is two UTF-16 units: a cut at 120 units would keep half of it.
+    const name = pdfFileName(`${"a".repeat(119)}𝑓𝑓`, "document");
+    expect(name).toBe(`${"a".repeat(119)}𝑓.pdf`);
+    expect(() => encodeURIComponent(name)).not.toThrow();
+  });
+});
+
+describe("downloadQuery", () => {
+  it("reads back as the name", () => {
+    const query = new URLSearchParams(downloadQuery("Série 1 : suites & limites"));
+    expect(query.get("telecharger")).toBe("1");
+    expect(query.get("nom")).toBe("Série 1 : suites & limites");
+  });
+
+  it("mends half a character rather than throwing", () => {
+    expect(() => downloadQuery("Fiche \ud835")).not.toThrow();
   });
 });
 

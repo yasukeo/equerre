@@ -352,7 +352,8 @@
         "summary": "Le résumé tient en 300 caractères au plus.",
         "content": "Le contenu contient un élément que la leçon ne sait pas afficher. Rechargez la page puis réessayez.",
         "notFound": "Cette leçon n’existe plus.",
-        "unknown": "L’enregistrement a échoué. Réessayez."
+        "unknown": "L’enregistrement a échoué. Réessayez.",
+        "foreignFile": "Un PDF de ce document a été copié depuis un exercice ou une autre leçon. Retirez-le, puis joignez le fichier ici avec le bouton « PDF »."
       }
     },
     "exercises": {
@@ -484,10 +485,15 @@
         "answerTypeLocked": "Des élèves ont déjà répondu ou demandé le corrigé : la façon de répondre ne peut plus changer.",
         "deleteAssigned": "Cet exercice a été donné en devoir : il ne peut pas être supprimé.",
         "tolerancePercent": "Pour une tolérance en pourcentage, choisissez « en % » dans Unité.",
-        "assignedNeedsAnswer": "Cet exercice est donné en devoir : il doit garder une réponse attendue, sans quoi les élèves ne pourraient plus le rendre."
+        "assignedNeedsAnswer": "Cet exercice est donné en devoir : il doit garder une réponse attendue, sans quoi les élèves ne pourraient plus le rendre.",
+        "foreignFile": "Un PDF de ce texte a été copié depuis une leçon ou un autre exercice. Retirez-le, puis joignez le fichier ici avec le bouton « PDF »."
       },
       "assign": "Donner en devoir",
-      "assignedHint": "Cet exercice est donné en devoir : il doit garder une réponse attendue."
+      "assignedHint": "Cet exercice est donné en devoir : il doit garder une réponse attendue.",
+      "fileHint": {
+        "statement": "Un PDF de 20 Mo au plus. Seuls les élèves à qui cet exercice est donné pourront l’ouvrir.",
+        "solution": "Un PDF de 20 Mo au plus. L’élève l’ouvrira avec le reste du corrigé : une fois sa copie corrigée, ou s’il demande la solution."
+      }
     },
     "assignments": {
       "title": "Devoirs",
@@ -1943,7 +1949,7 @@
     "previousDocument": "Document précédent",
     "nextDocument": "Document suivant",
     "downloadFile": "Télécharger",
-    "newTab": "(nouvel onglet)"
+    "newTab": "(PDF, nouvel onglet)"
   },
   "editor": {
     "mathShortcut": "Astuce : tapez $$x^2$$ dans le texte pour une formule, et $$$x^2$$$ seul sur une ligne pour une formule centrée. Au clavier, les flèches sélectionnent une formule, une image ou un document, et Entrée l’ouvre.",
@@ -1965,7 +1971,7 @@
       "image": "Ajouter une image",
       "imageEdit": "Modifier l’image",
       "file": "Joindre un PDF",
-      "fileEdit": "Modifier le document",
+      "fileEdit": "Modifier le PDF",
       "exercise": "Exercice",
       "exerciseRemove": "Retirer l’exercice, garder son texte",
       "solution": "Corrigé de l’exercice"
@@ -2006,7 +2012,7 @@
       "titleNew": "Joindre un document PDF",
       "titleEdit": "Modifier le document",
       "file": "Document",
-      "fileHint": "Un PDF de 20 Mo au plus. Seuls les élèves qui peuvent lire ce contenu pourront l’ouvrir.",
+      "fileHint": "Un PDF de 20 Mo au plus. Seuls les élèves qui peuvent lire ce document pourront l’ouvrir.",
       "name": "Nom affiché",
       "nameHint": "Ce que les élèves verront, par exemple « Fiche d’exercices ».",
       "insert": "Joindre",

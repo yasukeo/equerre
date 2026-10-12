@@ -64,8 +64,10 @@ export type DocumentEditorProps = {
   initialContent: StoredLesson;
   /** The lesson or exercise whose storage folder receives the images. */
   folderId: string;
-  /** Attached PDFs, for lessons only (D-044). */
+  /** Attached PDFs, for lessons and exercises (D-044, D-107). */
   attachments: boolean;
+  /** Who will open an attached PDF, when it is not the lesson's readers. */
+  fileHint?: string;
   /** Images, for lessons and exercises; the blog's posts have none in v1 (D-089). */
   images?: boolean;
   calloutLabels: Record<CalloutKind, string>;
@@ -86,6 +88,7 @@ export function DocumentEditor({
   initialContent,
   folderId,
   attachments,
+  fileHint,
   images = true,
   calloutLabels,
   exercises,
@@ -324,6 +327,7 @@ export function DocumentEditor({
               {file && attachments ? (
                 <FileDialog
                   lessonId={folderId}
+                  hint={fileHint}
                   target={file}
                   onInsert={(inserted) => {
                     insertMedia("fileAttachment", inserted);
