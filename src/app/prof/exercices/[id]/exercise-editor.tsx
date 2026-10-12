@@ -359,7 +359,7 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
             label={t("fields.statement")}
             initialContent={exercise.statement}
             folderId={exercise.id}
-            attachments={false}
+            attachments
             calloutLabels={calloutLabels}
             size="field"
             onReady={(written) => {
@@ -597,7 +597,7 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
             label={t("fields.solution")}
             initialContent={exercise.solution}
             folderId={exercise.id}
-            attachments={false}
+            attachments
             calloutLabels={calloutLabels}
             size="field"
             onReady={(written) => {

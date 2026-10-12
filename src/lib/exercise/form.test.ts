@@ -161,7 +161,7 @@ describe("parseExerciseForm", () => {
     }
   });
 
-  it("refuses a document outside the exercise vocabulary", () => {
+  it("accepts an attached PDF, as a lesson does (D-107)", () => {
     const withFile = JSON.stringify({
       type: "doc",
       content: [
@@ -174,7 +174,21 @@ describe("parseExerciseForm", () => {
         },
       ],
     });
-    expect(errors({ statement: withFile })).toEqual({ statement: "document" });
+    expect(args({ statement: withFile }).p_statement).toMatchObject({ type: "doc" });
+    expect(args({ solution: withFile }).p_solution).toMatchObject({ type: "doc" });
+  });
+
+  it("refuses a document outside the exercise vocabulary", () => {
+    const withSeriesExercise = JSON.stringify({
+      type: "doc",
+      content: [{ type: "exercise", content: [{ type: "paragraph" }] }],
+    });
+    const withForeignFile = JSON.stringify({
+      type: "doc",
+      content: [{ type: "fileAttachment", attrs: { path: "../autre/fichier.pdf", name: "Fiche" } }],
+    });
+    expect(errors({ statement: withSeriesExercise })).toEqual({ statement: "document" });
+    expect(errors({ statement: withForeignFile })).toEqual({ statement: "document" });
     expect(errors({ solution: "{" })).toEqual({ solution: "document" });
   });
 

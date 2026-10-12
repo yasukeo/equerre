@@ -381,14 +381,14 @@ describe("where a new image or document goes", () => {
 });
 
 describe("the exercise editor's schema", () => {
-  const exerciseSchema = getSchema(lessonExtensions({ attachments: false }));
+  // As the exercise editor builds it: attached PDFs (D-107), none of the series' exercises.
+  const exerciseSchema = getSchema(lessonExtensions({ attachments: true }));
 
-  it("is the lesson's without attached documents", () => {
-    expect(Object.keys(exerciseSchema.nodes).sort()).toEqual(
-      Object.keys(schema.nodes)
-        .filter((name) => name !== "fileAttachment")
-        .sort(),
-    );
+  it("is the lesson's, attached PDFs included, without the series' exercises", () => {
+    const nodes = Object.keys(exerciseSchema.nodes);
+    expect(nodes).toContain("fileAttachment");
+    expect(nodes).not.toContain("exercise");
+    expect(nodes.sort()).toEqual(Object.keys(schema.nodes).sort());
   });
 
   it("produces only documents that saving an exercise accepts", () => {
@@ -398,6 +398,7 @@ describe("the exercise editor's schema", () => {
         content: [
           paragraph(text("Calculer "), { type: "inlineMath", attrs: { latex: "f'(2)" } }),
           image,
+          attachment,
           {
             type: "callout",
             attrs: { kind: "attention" },
@@ -407,7 +408,5 @@ describe("the exercise editor's schema", () => {
       })
       .toJSON();
     expect(exerciseDocumentSchema.safeParse(statement).error?.issues ?? []).toEqual([]);
-    const withFile = { type: "doc", content: [attachment] };
-    expect(exerciseDocumentSchema.safeParse(withFile).success).toBe(false);
   });
 });

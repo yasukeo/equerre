@@ -490,8 +490,18 @@ function Toolbar({
       {onImage
         ? tool(active.image ? t("imageEdit") : t("image"), <ImagePlus {...icon} />, onImage)
         : null}
+      {/* Named in the bar, not only by its icon: a PDF is often the whole document (D-107). */}
       {onFile
-        ? tool(active.file ? t("fileEdit") : t("file"), <Paperclip {...icon} />, onFile)
+        ? tool(
+            active.file ? t("fileEdit") : t("file"),
+            <>
+              <Paperclip {...icon} />
+              <span className="editeur-bouton-texte" aria-hidden="true">
+                PDF
+              </span>
+            </>,
+            onFile,
+          )
         : null}
       <span className="editeur-separateur" aria-hidden="true" />
       {exercises ? (

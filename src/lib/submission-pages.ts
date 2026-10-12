@@ -15,11 +15,20 @@ export async function signPages(
   supabase: Awaited<ReturnType<typeof createClient>>,
   paths: readonly string[],
 ): Promise<Page[]> {
-  const signable = paths.filter(isSubmissionPageName);
-  if (signable.length === 0) return paths.map((path) => ({ path, url: null }));
+  // A PDF copy is opened in its own tab, through an address signed at the click: a page
+  // kept open for hours still opens it. A photographed page is drawn here, so it is signed now.
+  const opened = new Map(
+    paths
+      .filter((path) => isSubmissionPageName(path) && bucketOf(path) === PDF_BUCKET)
+      .map((path) => [path, `/devoirs/copie/${path}`]),
+  );
+  const signable = paths.filter((path) => isSubmissionPageName(path) && !opened.has(path));
+  if (signable.length === 0) {
+    return paths.map((path) => ({ path, url: opened.get(path) ?? null }));
+  }
   const signed = new Map<string, string>();
   await Promise.all(
-    [PAGES_BUCKET, PDF_BUCKET].map(async (bucket) => {
+    [PAGES_BUCKET].map(async (bucket) => {
       const names = signable.filter((path) => bucketOf(path) === bucket);
       if (names.length === 0) return;
       const { data } = await supabase.storage.from(bucket).createSignedUrls(names, 3600);
@@ -28,5 +37,5 @@ export async function signPages(
       }
     }),
   );
-  return paths.map((path) => ({ path, url: signed.get(path) ?? null }));
+  return paths.map((path) => ({ path, url: opened.get(path) ?? signed.get(path) ?? null }));
 }

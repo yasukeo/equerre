@@ -10,7 +10,7 @@ import { readStoredLesson, type StoredLesson } from "@/lib/lesson/document";
 import type { Remark } from "@/lib/correction/correction";
 import { isSubmissionPageName } from "@/lib/storage-paths";
 import { PAGES_BUCKET, PDF_BUCKET } from "@/lib/homework/pages";
-import { signSubject } from "@/lib/homework/subject";
+import { subjectHref } from "@/lib/homework/subject";
 import { signPages, type Page } from "@/lib/submission-pages";
 import { createClient } from "@/lib/supabase/server";
 import { readAnswer, type SubmittedAnswer } from "./answer";
@@ -350,7 +350,8 @@ export async function getMyExercise(
   const draftPaths = (folder ?? [])
     .map((object) => `${studentId}/${ref}/${object.name}`)
     .filter((path) => isSubmissionPageName(path) && !handedIn.includes(path));
-  const [pages, drafts, remarks, subjectUrl] = await Promise.all([
+  const subjectUrl = subjectHref(exercise.subject_path);
+  const [pages, drafts, remarks] = await Promise.all([
     signPages(supabase, handedIn),
     signPages(supabase, draftPaths),
     submission
@@ -360,7 +361,6 @@ export async function getMyExercise(
           .eq("submission_id", submission.id)
           .order("created_at")
       : null,
-    signSubject(supabase, exercise.subject_path),
   ]);
 
   return {

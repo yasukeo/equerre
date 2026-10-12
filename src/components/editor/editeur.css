@@ -38,6 +38,18 @@
     color: var(--encre);
   }
 
+  /* A button that also says its name: the icon and a short word side by side. */
+  .editeur-bouton:has(.editeur-bouton-texte) {
+    display: inline-flex;
+    gap: 0.375rem;
+    padding-inline: 0.625rem;
+  }
+
+  .editeur-bouton-texte {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
   .editeur-bouton:hover:not(:disabled) {
     background: var(--quadrillage);
   }

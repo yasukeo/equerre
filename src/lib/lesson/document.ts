@@ -167,9 +167,9 @@ export type LessonDocument = z.infer<typeof lessonDocumentSchema>;
 export type LessonBlock = z.infer<typeof lessonBlockSchema>;
 
 /**
- * An exercise's statement and its worked solution: the lesson vocabulary without attached
- * documents. The lesson-files bucket lets a reader open a PDF only when the lesson in its
- * folder name is hers to read, and an exercise is not a lesson (D-050, D-044).
+ * An exercise's statement and its worked solution: the lesson vocabulary without the series'
+ * numbered exercises. A PDF attached to either sits in the exercise's folder of lesson-files,
+ * and opens for whoever may read the part of the exercise that names it (D-107).
  */
 export const exerciseBlockSchema = z.discriminatedUnion("type", [
   paragraphSchema,
@@ -179,6 +179,7 @@ export const exerciseBlockSchema = z.discriminatedUnion("type", [
   orderedListSchema,
   calloutSchema,
   imageSchema,
+  fileAttachmentSchema,
 ]);
 
 export const exerciseDocumentSchema = z.object({

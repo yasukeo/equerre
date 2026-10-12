@@ -117,6 +117,7 @@ async function Printable({
         {renderLesson(lesson.content, {
           calloutLabel: (kind) => callout[kind],
           fileHref: (path) => `/cours/fichiers/${path}`,
+          fileLabels: { download: t("downloadFile"), newTab: t("newTab") },
           exerciseLabels: {
             exercise: (number) => t("exercise", { number }),
             solution: t("solution"),

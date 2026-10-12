@@ -16,7 +16,7 @@ export type LessonEditorOptions = {
   /** Called when a formula is clicked, to reopen it for editing. */
   onMathClick?: (kind: "inline" | "block", node: ProseMirrorNode, pos: number) => void;
   calloutLabels?: Partial<Record<CalloutKind, string>>;
-  /** Attached PDFs: lessons only, since the lesson-files bucket follows lesson visibility. */
+  /** Attached PDFs: lessons and exercises (D-107), not posts, whose readers have no folder. */
   attachments?: boolean;
   /**
    * Exercises and their corrections (D-095): lessons only, for series and practice tests. Their

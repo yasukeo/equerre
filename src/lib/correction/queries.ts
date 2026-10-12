@@ -2,7 +2,7 @@ import "server-only";
 import { readChoices, type AnswerType, type Choice } from "@/lib/exercise/exercise";
 import { readAnswer, type SubmittedAnswer } from "@/lib/homework/answer";
 import { readStoredLesson, type StoredLesson } from "@/lib/lesson/document";
-import { signSubject } from "@/lib/homework/subject";
+import { subjectHref } from "@/lib/homework/subject";
 import { signPages, type Page } from "@/lib/submission-pages";
 import { createClient } from "@/lib/supabase/server";
 import type { Remark } from "./correction";
@@ -126,7 +126,8 @@ export async function getCorrection(id: string): Promise<Correction | null> {
 
   // A page named twice would be drawn, and its remarks numbered, twice (D-047).
   const paths = [...new Set(row.file_paths)];
-  const [remarks, reveal, queue, pages, subjectUrl] = await Promise.all([
+  const subjectUrl = subjectHref(row.exercise.subject_path);
+  const [remarks, reveal, queue, pages] = await Promise.all([
     supabase
       .from("submission_comments")
       .select("id, body, anchor, created_at")
@@ -149,7 +150,6 @@ export async function getCorrection(id: string): Promise<Correction | null> {
       .order("submitted_at")
       .order("id"),
     signPages(supabase, paths),
-    signSubject(supabase, row.exercise.subject_path),
   ]);
   // Homework by homework, as the queue's page lists them: each homework in the order of its
   // longest-waiting copy, its copies oldest first.

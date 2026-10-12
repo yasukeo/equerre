@@ -84,6 +84,7 @@ async function Exercise({ params }: { params: Promise<{ id: string; exercice: st
     renderLesson(document, {
       calloutLabel: (kind) => labels[kind],
       fileHref: (path) => `/cours/fichiers/${path}`,
+      fileLabels: { download: tLesson("downloadFile"), newTab: tLesson("newTab") },
     });
 
   const { homework, exercise, position, work } = data;

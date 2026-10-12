@@ -17,6 +17,8 @@ export type LessonRenderOptions = {
   calloutLabel: (kind: CalloutKind) => string;
   /** Where an attachment points, so the renderer stays free of the routing table. */
   fileHref: (path: string) => string;
+  /** « Télécharger » and « (nouvel onglet) » beside an attached PDF. */
+  fileLabels?: { download: string; newTab: string };
   /**
    * Exercises of a series or a test (D-095): « Exercice 3 », « Corrigé », « Voir le corrigé »,
    * « Masquer le corrigé », and « de l’exercice 3 », which a screen reader hears after the last
@@ -34,6 +36,12 @@ export type LessonRenderOptions = {
    * statements' PDF, printed after each exercise in the PDF with corrections.
    */
   solutions?: "fold" | "hide" | "show";
+};
+
+/** The words around an attached PDF (D-107). */
+const DEFAULT_FILE_LABELS = {
+  download: "Télécharger",
+  newTab: "(nouvel onglet)",
 };
 
 const DEFAULT_EXERCISE_LABELS = {
@@ -96,6 +104,7 @@ export function createLessonRenderer({
   calloutLabel,
   fileHref,
   exerciseLabels = DEFAULT_EXERCISE_LABELS,
+  fileLabels = DEFAULT_FILE_LABELS,
   solutions = "fold",
 }: LessonRenderOptions) {
   return renderJSONContentToReactElement({
@@ -195,13 +204,28 @@ export function createLessonRenderer({
         />
       ),
       fileAttachment: ({ node }) => {
-        const name = stringAttr(node.attrs, "name");
+        const name = stringAttr(node.attrs, "name") || "Document";
         const size = readableSize(node.attrs);
+        const href = fileHref(stringAttr(node.attrs, "path"));
+        // Saved under the name the tutor gave it, rather than an id (D-107).
+        const download = `${href}?telecharger=1&nom=${encodeURIComponent(name)}`;
         return (
-          <p className="lecon-fichier">
-            <a href={fileHref(stringAttr(node.attrs, "path"))}>{name || "Document"}</a>
-            {size === null ? null : <span className="lecon-fichier-taille">{size}</span>}
-          </p>
+          <span className="lecon-fichier">
+            <span aria-hidden="true" className="lecon-fichier-icone">
+              PDF
+            </span>
+            <span className="lecon-fichier-texte">
+              <a href={href} target="_blank" rel="noreferrer">
+                {name}
+                <span className="sr-only"> {fileLabels.newTab}</span>
+              </a>
+              {size === null ? null : <span className="lecon-fichier-taille">{size}</span>}
+            </span>
+            <a href={download} className="lecon-fichier-telecharger">
+              {fileLabels.download}
+              <span className="sr-only"> {name}</span>
+            </a>
+          </span>
         );
       },
     },

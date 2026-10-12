@@ -1,6 +1,7 @@
 import { Download, ExternalLink, FileText } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { WideFrame } from "@/components/wide-frame";
+import { subjectDownloadHref } from "@/lib/homework/subject";
 import { cn } from "@/lib/utils";
 
 /**
@@ -62,7 +63,7 @@ export function SubjectCard({
               <span className="sr-only"> {newTabLabel}</span>
             </a>
             <a
-              href={`${url}${url.includes("?") ? "&" : "?"}download=`}
+              href={subjectDownloadHref(url)}
               className={buttonVariants({ variant: "outline", size: "sm" })}
             >
               <Download aria-hidden="true" className="size-4" />

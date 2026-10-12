@@ -996,6 +996,15 @@ Asked on 2026-10-09: the tutor wants to publish an exam or a series as a PDF wit
   - outline links had lost their border to a later `border-transparent`: each button variant now names its own;
   - the two kinds of work are radio cards with a visible mark, the file picker keeps focus and announces its state, and takes a dropped file.
 
+**D-107 — A PDF wherever the tutor writes, and links that do not expire.**
+Asked on 2026-10-10: the tutor wants to add a PDF to everything — homework, exercises, lessons, series — and gets an error when she clicks a PDF subject.
+
+- **The error.** A PDF subject's address was signed when the page was drawn, for four hours (D-106). Next keeps a visited page alive, so a page left open, or opened again from history, offered an expired address: storage answered with an error. The page now links to routes that sign at the click, for ten minutes, as lesson files always did (D-052): `/devoirs/sujet/<file>` for a subject and `/devoirs/copie/<path>` for a copy handed in as a PDF. The cookie-bound client signs, so the bucket's policies still decide who may open what. Photographed pages keep an address made with the page, since they are drawn in it.
+- **Exercises take PDFs.** The exercise editor attaches PDFs to its statement and its corrigé, as the lesson editor does, into the exercise's folder of `lesson-files`. `can_read_exercise_file` (migration `20261010120000_exercise_files`) opens such a file for the tutor; for a student, when the file is named in the statement of an exercise given to her, or in the corrigé once her copy is corrected or she asked for the solution — the rules that already let her read each part. The file is matched by its name in the part that holds it, so a corrigé's PDF never opens through the statement's rule. `can_read_lesson_file` asks the lesson's rule, then this one.
+- **Lessons and series already took PDFs**, from a toolbar button with only a paperclip; it now reads « PDF ». A homework takes one as its subject (D-106).
+- **The attachment in a page** is a card: its name opens it in a new tab, « Télécharger » saves it under the name the tutor gave it, not under an id; a subject saves under its homework's title. storage-js 2.116 encodes the `download` name twice (URLSearchParams, then `encodeURI` over the whole address), which saved « Série » as « S%C3%A9rie »: the routes add the name themselves, encoded once (`withDownloadName`). On paper the card is the file's name, without its button.
+- **Not done.** A PDF copied from a lesson and pasted into an exercise keeps the lesson's folder, and so the lesson's rule: it opens for whoever may read that lesson, not for the exercise's students.
+
 ## Secret key usage
 
 Every server-side use of `SUPABASE_SECRET_KEY`, and why the publishable key plus RLS isn't enough.

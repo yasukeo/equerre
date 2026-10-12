@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/shell/page-header";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { requireViewer } from "@/lib/auth";
 import { calendarDaysBetween, formatLocal, localDateKey } from "@/lib/dates";
-import { signSubject } from "@/lib/homework/subject";
+import { subjectHref } from "@/lib/homework/subject";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { AssignmentDetailsForm, DeleteAssignment } from "./assignment-forms";
@@ -142,7 +142,7 @@ async function Assignment({ params }: { params: Promise<{ id: string }> }) {
         : { kind: "handedIn", submissionId: submission.id },
     );
   }
-  const subjectUrl = subjectPath ? await signSubject(supabase, subjectPath) : null;
+  const subjectUrl = subjectHref(subjectPath);
   const hasWork = (submissions.data?.length ?? 0) + (reveals.data?.length ?? 0) > 0;
 
   const gradeFormat = new Intl.NumberFormat("fr", { maximumFractionDigits: 2 });

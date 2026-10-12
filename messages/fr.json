@@ -1941,7 +1941,9 @@
     "inChapter": "Dans ce chapitre",
     "pager": "Documents voisins",
     "previousDocument": "Document précédent",
-    "nextDocument": "Document suivant"
+    "nextDocument": "Document suivant",
+    "downloadFile": "Télécharger",
+    "newTab": "(nouvel onglet)"
   },
   "editor": {
     "mathShortcut": "Astuce : tapez $$x^2$$ dans le texte pour une formule, et $$$x^2$$$ seul sur une ligne pour une formule centrée. Au clavier, les flèches sélectionnent une formule, une image ou un document, et Entrée l’ouvre.",
@@ -2004,7 +2006,7 @@
       "titleNew": "Joindre un document PDF",
       "titleEdit": "Modifier le document",
       "file": "Document",
-      "fileHint": "Un PDF de 20 Mo au plus. Seuls les élèves qui peuvent lire la leçon pourront l’ouvrir.",
+      "fileHint": "Un PDF de 20 Mo au plus. Seuls les élèves qui peuvent lire ce contenu pourront l’ouvrir.",
       "name": "Nom affiché",
       "nameHint": "Ce que les élèves verront, par exemple « Fiche d’exercices ».",
       "insert": "Joindre",

@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { pdfFileName, withDownloadName } from "@/lib/download-name";
 import { isLessonFileName } from "@/lib/storage-paths";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
  * is long enough to open a PDF on weak 4G and short enough that a URL copied out of the
  * page is worthless by the time it is passed on.
  */
-export async function GET(_request: Request, context: RouteContext<"/cours/fichiers/[...chemin]">) {
+export async function GET(request: Request, context: RouteContext<"/cours/fichiers/[...chemin]">) {
   const { chemin } = await context.params;
   const name = chemin.join("/");
 
@@ -21,9 +22,14 @@ export async function GET(_request: Request, context: RouteContext<"/cours/fichi
 
   const supabase = await createClient();
 
+  // « Télécharger » saves it under the name the tutor gave it (D-107); « Ouvrir » shows it.
+  const query = new URL(request.url).searchParams;
   const { data } = await supabase.storage.from("lesson-files").createSignedUrl(name, 600);
-
   if (!data) notFound();
 
-  redirect(data.signedUrl);
+  redirect(
+    query.has("telecharger")
+      ? withDownloadName(data.signedUrl, pdfFileName(query.get("nom"), "document"))
+      : data.signedUrl,
+  );
 }

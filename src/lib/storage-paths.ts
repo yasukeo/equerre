@@ -10,7 +10,7 @@
 
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
-/** `<lesson_id>/<file_id>.pdf` in the lesson-files bucket. */
+/** `<lesson_id>/<file_id>.pdf` in the lesson-files bucket, or `<exercise_id>/…` (D-107). */
 export const LESSON_FILE_NAME = new RegExp(`^${UUID}/${UUID}\\.pdf$`);
 
 /** `<lesson_id>/<image_id>.<ext>` in the lesson-assets bucket. */

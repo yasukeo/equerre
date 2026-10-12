@@ -64,6 +64,7 @@ async function CorrectionView({ params }: { params: Promise<{ id: string }> }) {
     renderLesson(document, {
       calloutLabel: (kind) => labels[kind],
       fileHref: (path) => `/cours/fichiers/${path}`,
+      fileLabels: { download: tLesson("downloadFile"), newTab: tLesson("newTab") },
     });
 
   const corrected = data.status === "corrige";
