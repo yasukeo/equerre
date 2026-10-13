@@ -9,7 +9,14 @@ revoke execute on function public.submit_exercise_answer(uuid, uuid, jsonb, text
 -- Supabase's own event trigger, which turns row level security on for every new table
 -- in `public`. Event triggers fire on DDL whatever the grants say, so the safety net
 -- survives untouched; this only takes the function out of the exposed REST API.
-revoke execute on function public.rls_auto_enable() from public, anon, authenticated;
+-- Only hosted projects have it: a local stack (`supabase start`) does not.
+do $$
+begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    revoke execute on function public.rls_auto_enable() from public, anon, authenticated;
+  end if;
+end;
+$$;
 
 -- public.invite_code_is_valid keeps both of its grants on purpose: the sign-up form
 -- calls it as `anon` before the account exists, and the tutor checks a code she has

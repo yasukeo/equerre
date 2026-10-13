@@ -136,7 +136,7 @@ The database allows only one tutor.
 | `pnpm typecheck`            | Route types, then `tsc` (TypeScript 7)                                            |
 | `pnpm format`               | Prettier                                                                          |
 | `pnpm test`                 | Unit tests: dates and time zones, grading, homework rules, payments, typography   |
-| `pnpm test:rls`             | Row-level security tests against the Supabase project, signed in as seed accounts |
+| `pnpm test:rls`             | Row-level security tests on a local stack, signed in as seed accounts (below)     |
 | `pnpm test:e2e`             | Playwright on an Android phone profile and desktop Chrome                         |
 | `pnpm db:push`              | Apply migrations to the linked project                                            |
 | `pnpm db:types`             | Regenerate `src/types/database.ts` (needs `supabase login`)                       |
@@ -144,6 +144,16 @@ The database allows only one tutor.
 | `pnpm storage:sweep`        | List lesson files nothing refers to any more; `--delete` removes them (D-054)     |
 | `pnpm content:import`       | Check the course files in `content/`; `--write` imports them (D-098)              |
 | `pnpm corrections:import`   | Check the exam corrections in `content/corriges/`; `--write` publishes them       |
+
+### Row-level security tests on a local stack
+
+The RLS tests create and remove rows and files, so they never run against the project students use: `vitest.rls.config.mts` refuses any address but a local one, unless `RLS_REMOTE_HOST` names a development project. With Docker running:
+
+```bash
+pnpm exec supabase start -x studio,postgres-meta,imgproxy,edge-runtime,logflare,vector,supavisor,realtime
+```
+
+Then load the seed into the local database (`postgresql://postgres:postgres@127.0.0.1:54322/postgres`, with any `SEED_PASSWORD`) and run `pnpm test:rls` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY` set from `pnpm exec supabase status -o env` and the same `SEED_PASSWORD`. Variables already set win over `.env.local`.
 
 ## Project layout
 
