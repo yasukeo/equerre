@@ -128,22 +128,22 @@ The database allows only one tutor.
 
 ## Scripts
 
-| Command                     | What it does                                                                      |
-| --------------------------- | --------------------------------------------------------------------------------- |
-| `pnpm dev`                  | Development server on port 3000                                                   |
-| `pnpm build` / `pnpm start` | Production build (includes the TypeScript 7 check) and server                     |
-| `pnpm lint`                 | ESLint                                                                            |
-| `pnpm typecheck`            | Route types, then `tsc` (TypeScript 7)                                            |
-| `pnpm format`               | Prettier                                                                          |
-| `pnpm test`                 | Unit tests: dates and time zones, grading, homework rules, payments, typography   |
-| `pnpm test:rls`             | Row-level security tests on a local stack, signed in as seed accounts (below)     |
-| `pnpm test:e2e`             | Playwright on an Android phone profile and desktop Chrome                         |
-| `pnpm db:push`              | Apply migrations to the linked project                                            |
-| `pnpm db:types`             | Regenerate `src/types/database.ts` (needs `supabase login`)                       |
-| `pnpm db:seed`              | Load `supabase/seed.sql`                                                          |
-| `pnpm storage:sweep`        | List lesson files nothing refers to any more; `--delete` removes them (D-054)     |
-| `pnpm content:import`       | Check the course files in `content/`; `--write` imports them (D-098)              |
-| `pnpm corrections:import`   | Check the exam corrections in `content/corriges/`; `--write` publishes them       |
+| Command                     | What it does                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| `pnpm dev`                  | Development server on port 3000                                                 |
+| `pnpm build` / `pnpm start` | Production build (includes the TypeScript 7 check) and server                   |
+| `pnpm lint`                 | ESLint                                                                          |
+| `pnpm typecheck`            | Route types, then `tsc` (TypeScript 7)                                          |
+| `pnpm format`               | Prettier                                                                        |
+| `pnpm test`                 | Unit tests: dates and time zones, grading, homework rules, payments, typography |
+| `pnpm test:rls`             | Row-level security tests on a local stack, signed in as seed accounts (below)   |
+| `pnpm test:e2e`             | Playwright on an Android phone profile and desktop Chrome                       |
+| `pnpm db:push`              | Apply migrations to the linked project                                          |
+| `pnpm db:types`             | Regenerate `src/types/database.ts` (needs `supabase login`)                     |
+| `pnpm db:seed`              | Load `supabase/seed.sql`                                                        |
+| `pnpm storage:sweep`        | List lesson files nothing refers to any more; `--delete` removes them (D-054)   |
+| `pnpm content:import`       | Check the course files in `content/`; `--write` imports them (D-098)            |
+| `pnpm corrections:import`   | Check the exam corrections in `content/corriges/`; `--write` publishes them     |
 
 ### Row-level security tests on a local stack
 
