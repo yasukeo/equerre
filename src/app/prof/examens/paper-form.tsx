@@ -278,7 +278,7 @@ export function PaperForm({ id, editing, programmes, initial, hasSolution = fals
               type="checkbox"
               checked={removeSolution}
               onChange={(event) => setRemoveSolution(event.target.checked)}
-              className="mt-1 size-5 accent-encre"
+              className="mt-1 size-5 shrink-0 accent-encre"
             />
             <span>{t("removeSolution")}</span>
           </label>
@@ -290,7 +290,7 @@ export function PaperForm({ id, editing, programmes, initial, hasSolution = fals
             onChange={(event) =>
               setValues((current) => ({ ...current, published: event.target.checked }))
             }
-            className="mt-1 size-5 accent-encre"
+            className="mt-1 size-5 shrink-0 accent-encre"
           />
           <span className="grid gap-0.5">
             <span>{t("published")}</span>

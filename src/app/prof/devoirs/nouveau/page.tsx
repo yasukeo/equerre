@@ -18,8 +18,12 @@ export default async function NewAssignmentPage({
   const t = await getTranslations("tutor.newAssignment");
 
   return (
-    <div className="grid max-w-3xl gap-6">
-      <PageHeader title={t("title")} lead={t("lead")} />
+    <div className="grid max-w-6xl gap-6">
+      <PageHeader
+        back={{ href: "/prof/devoirs", label: t("back") }}
+        title={t("title")}
+        lead={t("lead")}
+      />
       <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <NewAssignment searchParams={searchParams} />
       </Suspense>

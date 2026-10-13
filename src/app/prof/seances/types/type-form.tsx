@@ -71,7 +71,7 @@ export function TypeForm({ id, initial = EMPTY }: { id?: string; initial?: Value
         onChange={set("name")}
         error={fieldError(state, "name")}
       />
-      <div className="grid gap-3 sm:grid-cols-3 [&>*]:min-w-0">
+      <div className="grid gap-3 sm:grid-cols-2 [&>*]:min-w-0">
         <Field
           id={`${prefix}-duration`}
           type="number"
@@ -96,6 +96,7 @@ export function TypeForm({ id, initial = EMPTY }: { id?: string; initial?: Value
         <SelectField
           id={`${prefix}-mode`}
           label={t("mode")}
+          className="sm:col-span-2"
           value={values.mode}
           onChange={set("mode")}
           error={fieldError(state, "mode")}
@@ -115,7 +116,7 @@ export function TypeForm({ id, initial = EMPTY }: { id?: string; initial?: Value
             onChange={(event) =>
               setValues((current) => ({ ...current, isGroup: event.target.checked }))
             }
-            className="mt-1 size-5 accent-encre"
+            className="mt-1 size-5 shrink-0 accent-encre"
           />
           <span className="grid gap-0.5">
             <span>{t("isGroup")}</span>
@@ -130,7 +131,7 @@ export function TypeForm({ id, initial = EMPTY }: { id?: string; initial?: Value
           onChange={(event) =>
             setValues((current) => ({ ...current, isActive: event.target.checked }))
           }
-          className="mt-1 size-5 accent-encre"
+          className="mt-1 size-5 shrink-0 accent-encre"
         />
         <span className="grid gap-0.5">
           <span>{t("isActive")}</span>

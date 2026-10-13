@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { requireViewer } from "@/lib/auth";
 import { formatLocal } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/shell/page-header";
 import { InviteCodeForm } from "./invite-code-form";
 import { InviteStudentForm } from "./invite-student-form";
 
@@ -17,9 +18,7 @@ export default async function InvitePage() {
 
   return (
     <div className="grid max-w-5xl gap-8">
-      <h1 className="text-[clamp(1.6rem,1.3rem+1.4vw,2.1rem)] leading-tight font-semibold break-words [font-variation-settings:'HEXP'_45]">
-        {t("title")}
-      </h1>
+      <PageHeader back={{ href: "/prof/eleves", label: t("back") }} title={t("title")} />
       <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-2xl bg-sunken" />}>
         <InviteSections />
       </Suspense>

@@ -164,7 +164,7 @@ export function AddExceptionForm({ types, today }: { types: TypeOption[]; today:
               value={option}
               checked={kind === option}
               onChange={() => setKind(option)}
-              className="mt-1 size-5 accent-encre"
+              className="mt-1 size-5 shrink-0 accent-encre"
             />
             <span className="grid gap-0.5">
               <span>{t(`kinds.${option}`)}</span>
@@ -174,7 +174,7 @@ export function AddExceptionForm({ types, today }: { types: TypeOption[]; today:
         ))}
       </fieldset>
 
-      <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
+      <div className="grid gap-3">
         <Field
           id="exception-starts-on"
           type="date"

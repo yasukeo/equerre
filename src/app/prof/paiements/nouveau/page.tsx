@@ -20,7 +20,7 @@ export default async function RecordPaymentPage({
   const t = await getTranslations("recordPayment");
 
   return (
-    <div className="grid max-w-2xl gap-6">
+    <div className="grid max-w-5xl gap-6">
       <PageHeader
         back={{ href: "/prof/paiements", label: t("back") }}
         title={t("title")}

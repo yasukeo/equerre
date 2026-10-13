@@ -13,12 +13,14 @@ import {
   type ReactNode,
 } from "react";
 import { AnswerTypeChip } from "@/components/exercise-status";
+import { FORM_WITH_PREVIEW, FormPreview } from "@/components/shell/form-preview";
 import { Button } from "@/components/ui/button";
 import { Field, SelectField, TextareaField } from "@/components/ui/field";
 import { FormMessage } from "@/components/ui/form-message";
 import { Input, Label } from "@/components/ui/input";
 import { MAX_ASSIGNMENT_EXERCISES, readRecipient } from "@/lib/assignment/form";
 import type { AssignableExercise, RecipientOptions } from "@/lib/assignment/queries";
+import { formatLocal, localDateTimeToUtc } from "@/lib/dates";
 import { fieldError, initialFormState, type FormState } from "@/lib/form-state";
 import { cn } from "@/lib/utils";
 import { createAssignment, createSubjectAssignment } from "../actions";
@@ -43,6 +45,15 @@ type Props = {
   defaultDue: { date: string; time: string };
   initialMode: AssignmentMode;
 };
+
+/** `yyyy-MM-dd` and `HH:mm` as an instant in Casablanca, or null while either is incomplete. */
+function instantOf(date: string, time: string): Date | null {
+  try {
+    return localDateTimeToUtc(date, time);
+  } catch {
+    return null;
+  }
+}
 
 /** « Équation » finds « équations »: lower case, accents dropped. */
 function fold(text: string): string {
@@ -188,6 +199,17 @@ export function NewAssignmentForm({
 
   const exercisesError = fieldError(state, "exerciseIds");
 
+  // The homework as the student will find it in her list (D-108).
+  const chosen = readRecipient(recipient);
+  const recipientName =
+    chosen?.kind === "student"
+      ? recipients.students.find((student) => student.id === chosen.id)?.name
+      : chosen?.kind === "group"
+        ? recipients.groups.find((group) => group.id === chosen.id)?.name
+        : undefined;
+  const dueAt = instantOf(dueDate, dueTime);
+  const parts = mode === "subject" ? 1 : selected.length;
+
   return (
     <form
       onSubmit={(event) => {
@@ -207,187 +229,361 @@ export function NewAssignmentForm({
         }
         startTransition(() => formAction(formData));
       }}
-      className="grid gap-6"
+      className={FORM_WITH_PREVIEW}
       noValidate
     >
-      <fieldset className="grid gap-2">
-        <legend className="mb-1 text-sm font-medium">{t("mode.label")}</legend>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {(
-            [
-              { value: "bank", icon: ListChecks, label: t("mode.bank"), hint: t("mode.bankHint") },
-              {
-                value: "subject",
-                icon: FileText,
-                label: t("mode.subject"),
-                hint: t("mode.subjectHint"),
-              },
-            ] as const
-          ).map((option) => (
-            <label
-              key={option.value}
-              className={cn(
-                "relative flex cursor-pointer items-start gap-3 rounded-2xl border bg-surface p-4 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-encre",
-                mode === option.value ? "border-encre ring-1 ring-encre" : "border-trait",
-              )}
-            >
-              <input
-                type="radio"
-                name="assignment-mode"
-                value={option.value}
-                checked={mode === option.value}
-                onChange={() => {
-                  // Back to the bank: a subject uploaded for nothing is taken back at once.
-                  if (option.value === "bank" && subject.status === "ready") {
-                    discardSubject(subject.path);
-                    setSubject({ status: "empty" });
-                  }
-                  setMode(option.value);
-                }}
-                className="sr-only"
-              />
-              <span
-                aria-hidden="true"
+      <div className="grid min-w-0 gap-6">
+        <fieldset className="grid gap-2">
+          <legend className="mb-1 text-sm font-medium">{t("mode.label")}</legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(
+              [
+                {
+                  value: "bank",
+                  icon: ListChecks,
+                  label: t("mode.bank"),
+                  hint: t("mode.bankHint"),
+                },
+                {
+                  value: "subject",
+                  icon: FileText,
+                  label: t("mode.subject"),
+                  hint: t("mode.subjectHint"),
+                },
+              ] as const
+            ).map((option) => (
+              <label
+                key={option.value}
                 className={cn(
-                  "flex size-10 shrink-0 items-center justify-center rounded-full",
-                  mode === option.value ? "bg-encre text-papier" : "bg-sunken",
+                  "relative flex cursor-pointer items-start gap-3 rounded-2xl border bg-surface p-4 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-encre",
+                  mode === option.value ? "border-encre ring-1 ring-encre" : "border-trait",
                 )}
               >
-                <option.icon className="size-5" />
-              </span>
-              <span className="grid gap-0.5 pe-6">
-                <span className="font-medium">{option.label}</span>
-                <span className="text-sm text-encre-douce">{option.hint}</span>
-              </span>
-              {/* The choice made, as a sign as well as an outline (D-104: never colour alone). */}
-              <span aria-hidden="true" className="absolute end-3 top-3">
-                {mode === option.value ? (
-                  <CircleCheck className="size-5" />
-                ) : (
-                  <Circle className="size-5 text-trait" />
-                )}
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+                <input
+                  type="radio"
+                  name="assignment-mode"
+                  value={option.value}
+                  checked={mode === option.value}
+                  onChange={() => {
+                    // Back to the bank: a subject uploaded for nothing is taken back at once.
+                    if (option.value === "bank" && subject.status === "ready") {
+                      discardSubject(subject.path);
+                      setSubject({ status: "empty" });
+                    }
+                    setMode(option.value);
+                  }}
+                  className="sr-only"
+                />
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "flex size-10 shrink-0 items-center justify-center rounded-full",
+                    mode === option.value ? "bg-encre text-papier" : "bg-sunken",
+                  )}
+                >
+                  <option.icon className="size-5" />
+                </span>
+                <span className="grid gap-0.5 pe-6">
+                  <span className="font-medium">{option.label}</span>
+                  <span className="text-sm text-encre-douce">{option.hint}</span>
+                </span>
+                {/* The choice made, as a sign as well as an outline (D-104: never colour alone). */}
+                <span aria-hidden="true" className="absolute end-3 top-3">
+                  {mode === option.value ? (
+                    <CircleCheck className="size-5" />
+                  ) : (
+                    <Circle className="size-5 text-trait" />
+                  )}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-      <Field
-        id="assignment-title"
-        label={t("fields.title")}
-        hint={t("fields.titleHint")}
-        value={title}
-        onChange={(event) => setTitle(event.target.value)}
-        maxLength={160}
-        error={fieldError(state, "title")}
-        required
-      />
+        <Field
+          id="assignment-title"
+          label={t("fields.title")}
+          hint={t("fields.titleHint")}
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          maxLength={160}
+          error={fieldError(state, "title")}
+          required
+        />
 
-      <SelectField
-        id="assignment-recipient"
-        label={t("fields.recipient")}
-        value={recipient}
-        onChange={(event) => chooseRecipient(event.target.value)}
-        error={fieldError(state, "recipient")}
-        required
-      >
-        <option value="" disabled>
-          {t("fields.recipientPlaceholder")}
-        </option>
-        {recipients.groups.length > 0 ? (
-          <optgroup label={t("fields.groups")}>
-            {recipients.groups.map((group) => (
-              <option key={group.id} value={`group:${group.id}`}>
-                {t("fields.groupOption", { name: group.name, count: group.members })}
+        <SelectField
+          id="assignment-recipient"
+          label={t("fields.recipient")}
+          value={recipient}
+          onChange={(event) => chooseRecipient(event.target.value)}
+          error={fieldError(state, "recipient")}
+          required
+        >
+          <option value="" disabled>
+            {t("fields.recipientPlaceholder")}
+          </option>
+          {recipients.groups.length > 0 ? (
+            <optgroup label={t("fields.groups")}>
+              {recipients.groups.map((group) => (
+                <option key={group.id} value={`group:${group.id}`}>
+                  {t("fields.groupOption", { name: group.name, count: group.members })}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
+          <optgroup label={t("fields.students")}>
+            {recipients.students.map((student) => (
+              <option key={student.id} value={`student:${student.id}`}>
+                {student.levelLabel ? `${student.name} · ${student.levelLabel}` : student.name}
               </option>
             ))}
           </optgroup>
-        ) : null}
-        <optgroup label={t("fields.students")}>
-          {recipients.students.map((student) => (
-            <option key={student.id} value={`student:${student.id}`}>
-              {student.levelLabel ? `${student.name} · ${student.levelLabel}` : student.name}
-            </option>
-          ))}
-        </optgroup>
-      </SelectField>
+        </SelectField>
 
-      <fieldset className="grid gap-1.5">
-        <legend className="text-sm font-medium">{t("fields.due")}</legend>
-        <p id="assignment-due-hint" className="text-sm text-encre-douce">
-          {t("fields.dueHint")}
-        </p>
-        <div className="grid grid-cols-[1fr_auto] gap-2 sm:max-w-sm">
-          <Input
-            id="assignment-due-date"
-            type="date"
-            aria-label={t("fields.dueDate")}
-            aria-describedby={
-              fieldError(state, "due")
-                ? "assignment-due-hint assignment-due-error"
-                : "assignment-due-hint"
-            }
-            aria-invalid={fieldError(state, "due") ? true : undefined}
-            value={dueDate}
-            onChange={(event) => setDueDate(event.target.value)}
-            required
-          />
-          <Input
-            id="assignment-due-time"
-            type="time"
-            aria-label={t("fields.dueTime")}
-            aria-describedby={
-              fieldError(state, "due")
-                ? "assignment-due-hint assignment-due-error"
-                : "assignment-due-hint"
-            }
-            aria-invalid={fieldError(state, "due") ? true : undefined}
-            value={dueTime}
-            onChange={(event) => setDueTime(event.target.value)}
-            required
-          />
-        </div>
-        {fieldError(state, "due") ? (
-          <p id="assignment-due-error" className="text-sm text-stylo-rouge">
-            {fieldError(state, "due")}
+        <fieldset className="grid gap-1.5">
+          <legend className="text-sm font-medium">{t("fields.due")}</legend>
+          <p id="assignment-due-hint" className="text-sm text-encre-douce">
+            {t("fields.dueHint")}
           </p>
-        ) : null}
-      </fieldset>
+          <div className="grid grid-cols-[1fr_auto] gap-2 sm:max-w-sm">
+            <Input
+              id="assignment-due-date"
+              type="date"
+              aria-label={t("fields.dueDate")}
+              aria-describedby={
+                fieldError(state, "due")
+                  ? "assignment-due-hint assignment-due-error"
+                  : "assignment-due-hint"
+              }
+              aria-invalid={fieldError(state, "due") ? true : undefined}
+              value={dueDate}
+              onChange={(event) => setDueDate(event.target.value)}
+              required
+            />
+            <Input
+              id="assignment-due-time"
+              type="time"
+              aria-label={t("fields.dueTime")}
+              aria-describedby={
+                fieldError(state, "due")
+                  ? "assignment-due-hint assignment-due-error"
+                  : "assignment-due-hint"
+              }
+              aria-invalid={fieldError(state, "due") ? true : undefined}
+              value={dueTime}
+              onChange={(event) => setDueTime(event.target.value)}
+              required
+            />
+          </div>
+          {fieldError(state, "due") ? (
+            <p id="assignment-due-error" className="text-sm text-stylo-rouge">
+              {fieldError(state, "due")}
+            </p>
+          ) : null}
+        </fieldset>
 
-      <TextareaField
-        id="assignment-instructions"
-        label={t("fields.instructions")}
-        hint={t("fields.instructionsHint")}
-        value={instructions}
-        onChange={(event) => setInstructions(event.target.value)}
-        maxLength={2000}
-        rows={3}
-        error={fieldError(state, "instructions")}
-      />
+        <TextareaField
+          id="assignment-instructions"
+          label={t("fields.instructions")}
+          hint={t("fields.instructionsHint")}
+          value={instructions}
+          onChange={(event) => setInstructions(event.target.value)}
+          maxLength={2000}
+          rows={3}
+          error={fieldError(state, "instructions")}
+        />
 
-      {mode === "subject" ? (
-        <section aria-labelledby="assignment-subject-title" className="grid gap-3">
-          <h2 id="assignment-subject-title" className="text-base font-semibold">
-            {t("subject.heading")}
-          </h2>
-          <SubjectPicker
-            subject={subject}
-            onChange={setSubject}
-            error={fieldError(state, "subject")}
-            disabled={pending}
-          />
-        </section>
-      ) : (
-        <>
+        {mode === "subject" ? (
+          <section aria-labelledby="assignment-subject-title" className="grid gap-3">
+            <h2 id="assignment-subject-title" className="text-base font-semibold">
+              {t("subject.heading")}
+            </h2>
+            <SubjectPicker
+              subject={subject}
+              onChange={setSubject}
+              error={fieldError(state, "subject")}
+              disabled={pending}
+            />
+          </section>
+        ) : (
+          <>
+            <section aria-labelledby="assignment-bank-title" className="grid gap-3">
+              <div>
+                <h2 id="assignment-bank-title" className="text-base font-semibold">
+                  {t("exercises.bank")}
+                </h2>
+                <p className="text-sm text-encre-douce">{t("exercises.bankHint")}</p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <SelectField
+                  id="assignment-level"
+                  label={t("exercises.level")}
+                  value={level}
+                  onChange={(event) => {
+                    setLevel(event.target.value);
+                    setLevelChosen(true);
+                  }}
+                >
+                  <option value="">{t("exercises.allLevels")}</option>
+                  {levels.map((option) => (
+                    <option key={option.code} value={option.code}>
+                      {option.label}
+                    </option>
+                  ))}
+                </SelectField>
+                <div className="grid content-start gap-1.5">
+                  <Label htmlFor="assignment-search">{t("exercises.search")}</Label>
+                  <Input
+                    id="assignment-search"
+                    type="search"
+                    value={search}
+                    placeholder={t("exercises.searchPlaceholder")}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
+                </div>
+              </div>
+
+              {chapters.length === 0 ? (
+                <p className="text-sm text-encre-douce" aria-live="polite">
+                  {t("exercises.none")}
+                </p>
+              ) : (
+                <div className="grid gap-5">
+                  {chapters.map((chapter) => (
+                    <fieldset key={chapter.key} className="grid gap-2">
+                      <legend className="text-sm font-semibold text-encre-douce">
+                        {chapter.heading}
+                      </legend>
+                      <ul className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
+                        {chapter.exercises.map((exercise) => {
+                          const checked = selected.includes(exercise.id);
+                          return (
+                            <li key={exercise.id} className="bg-surface">
+                              <label className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  disabled={!checked && selected.length >= MAX_ASSIGNMENT_EXERCISES}
+                                  onChange={(event) => toggle(exercise.id, event.target.checked)}
+                                  // Named by the title alone; the kind of answer and the difficulty
+                                  // are read after it rather than glued to it.
+                                  aria-labelledby={`bank-${exercise.id}-title`}
+                                  aria-describedby={
+                                    !checked && selected.length >= MAX_ASSIGNMENT_EXERCISES
+                                      ? `bank-${exercise.id}-meta assignment-exercises-full`
+                                      : `bank-${exercise.id}-meta`
+                                  }
+                                  className="size-4 accent-stylo-bleu"
+                                />
+                                <span
+                                  id={`bank-${exercise.id}-title`}
+                                  className="min-w-0 grow basis-40"
+                                >
+                                  {exercise.title}
+                                </span>
+                                <span
+                                  id={`bank-${exercise.id}-meta`}
+                                  className="flex items-center gap-3"
+                                >
+                                  <AnswerTypeChip
+                                    type={exercise.answerType}
+                                    label={tTypes(exercise.answerType)}
+                                  />
+                                  <span className="text-xs text-encre-douce">
+                                    {t("exercises.difficulty", { level: exercise.difficulty })}
+                                  </span>
+                                </span>
+                              </label>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </fieldset>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
+      </div>
+
+      <FormPreview
+        id="assignment-preview"
+        title={t("preview.title")}
+        caption={
+          recipientName
+            ? t("preview.caption", {
+                name:
+                  chosen?.kind === "group"
+                    ? recipientName
+                    : (recipientName.split(" ")[0] ?? recipientName),
+                kind: chosen?.kind ?? "student",
+              })
+            : t("preview.captionNobody")
+        }
+        className="lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:p-1"
+        footer={
+          <>
+            <FormMessage state={state} />
+            {mode === "subject" && subject.status === "uploading" ? (
+              <p className="text-sm text-encre-douce">{t("subject.waiting")}</p>
+            ) : null}
+            <Button
+              type="submit"
+              size="lg"
+              disabled={pending || (mode === "subject" && subject.status === "uploading")}
+              className="w-full"
+            >
+              {pending ? t("submitting") : t("submit")}
+            </Button>
+          </>
+        }
+      >
+        {/* The card of her homework list: a red edge, the title, the day, what is left. */}
+        <div className="grid gap-3 rounded-2xl border border-s-4 border-quadrillage border-s-rouge bg-surface p-4">
+          <div className="grid min-w-0 gap-0.5">
+            <p
+              className={
+                title.trim() ? "font-semibold break-words" : "font-semibold text-encre-douce italic"
+              }
+            >
+              {title.trim() || t("preview.untitled")}
+            </p>
+            <p className="text-sm text-encre-douce first-letter:uppercase">
+              {dueAt
+                ? t("preview.due", { date: formatLocal(dueAt, "EEEE d MMMM 'à' HH:mm") })
+                : t("preview.noDue")}
+            </p>
+          </div>
+          <div className="grid gap-1.5">
+            <span aria-hidden="true" className="h-2 rounded-full bg-sunken" />
+            <span className="text-sm">
+              {mode === "subject" ? t("preview.copy") : t("preview.left", { count: parts })}
+            </span>
+          </div>
+          {instructions.trim() ? (
+            <p className="border-s-2 border-quadrillage ps-3 text-sm break-words whitespace-pre-line text-encre-douce">
+              {instructions.trim()}
+            </p>
+          ) : null}
+        </div>
+
+        {mode === "subject" ? (
+          <p className="text-sm break-words text-encre-douce">
+            {subject.status === "ready" || subject.status === "uploading"
+              ? t("preview.subjectFile", { name: subject.name })
+              : t("preview.noSubject")}
+          </p>
+        ) : (
           <section aria-labelledby="assignment-chosen-title" className="grid gap-3">
-            <h2
+            <h3
               id="assignment-chosen-title"
               ref={control("heading")}
               tabIndex={-1}
               className="text-base font-semibold"
             >
               {t("exercises.chosen", { count: selected.length })}
-            </h2>
+            </h3>
             {/* Always in the page, so reaching the limit is announced as it happens. */}
             <p
               id="assignment-exercises-full"
@@ -406,37 +602,43 @@ export function NewAssignmentForm({
                   const exercise = byId.get(id);
                   if (!exercise) return null;
                   return (
-                    <li key={id} className="flex flex-wrap items-center gap-2 bg-surface px-3 py-2">
-                      <span className="w-6 text-sm text-encre-douce">{index + 1}.</span>
-                      <span className="min-w-0 grow basis-40 font-medium">{exercise.title}</span>
-                      <AnswerTypeChip
-                        type={exercise.answerType}
-                        label={tTypes(exercise.answerType)}
-                      />
-                      <span className="flex">
-                        <IconButton
-                          buttonRef={control(`${id}:up`)}
-                          label={t("exercises.up", { title: exercise.title })}
-                          disabled={index === 0}
-                          onClick={() => move(index, -1)}
-                        >
-                          <ArrowUp aria-hidden="true" className="size-4" />
-                        </IconButton>
-                        <IconButton
-                          buttonRef={control(`${id}:down`)}
-                          label={t("exercises.down", { title: exercise.title })}
-                          disabled={index === selected.length - 1}
-                          onClick={() => move(index, 1)}
-                        >
-                          <ArrowDown aria-hidden="true" className="size-4" />
-                        </IconButton>
-                        <IconButton
-                          buttonRef={control(`${id}:remove`)}
-                          label={t("exercises.remove", { title: exercise.title })}
-                          onClick={() => removeAt(index)}
-                        >
-                          <X aria-hidden="true" className="size-4" />
-                        </IconButton>
+                    <li
+                      key={id}
+                      className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-1 bg-surface ps-3 pe-1 pt-2"
+                    >
+                      <span className="text-sm leading-6 text-encre-douce">{index + 1}.</span>
+                      <span className="font-medium break-words">{exercise.title}</span>
+                      {/* Its kind of answer, then the buttons that place it, on the next line. */}
+                      <span className="col-start-2 flex flex-wrap items-center justify-between gap-x-2">
+                        <AnswerTypeChip
+                          type={exercise.answerType}
+                          label={tTypes(exercise.answerType)}
+                        />
+                        <span className="flex">
+                          <IconButton
+                            buttonRef={control(`${id}:up`)}
+                            label={t("exercises.up", { title: exercise.title })}
+                            disabled={index === 0}
+                            onClick={() => move(index, -1)}
+                          >
+                            <ArrowUp aria-hidden="true" className="size-4" />
+                          </IconButton>
+                          <IconButton
+                            buttonRef={control(`${id}:down`)}
+                            label={t("exercises.down", { title: exercise.title })}
+                            disabled={index === selected.length - 1}
+                            onClick={() => move(index, 1)}
+                          >
+                            <ArrowDown aria-hidden="true" className="size-4" />
+                          </IconButton>
+                          <IconButton
+                            buttonRef={control(`${id}:remove`)}
+                            label={t("exercises.remove", { title: exercise.title })}
+                            onClick={() => removeAt(index)}
+                          >
+                            <X aria-hidden="true" className="size-4" />
+                          </IconButton>
+                        </span>
                       </span>
                     </li>
                   );
@@ -449,119 +651,8 @@ export function NewAssignmentForm({
               </p>
             ) : null}
           </section>
-
-          <section aria-labelledby="assignment-bank-title" className="grid gap-3">
-            <div>
-              <h2 id="assignment-bank-title" className="text-base font-semibold">
-                {t("exercises.bank")}
-              </h2>
-              <p className="text-sm text-encre-douce">{t("exercises.bankHint")}</p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
-              <SelectField
-                id="assignment-level"
-                label={t("exercises.level")}
-                value={level}
-                onChange={(event) => {
-                  setLevel(event.target.value);
-                  setLevelChosen(true);
-                }}
-              >
-                <option value="">{t("exercises.allLevels")}</option>
-                {levels.map((option) => (
-                  <option key={option.code} value={option.code}>
-                    {option.label}
-                  </option>
-                ))}
-              </SelectField>
-              <div className="grid content-start gap-1.5">
-                <Label htmlFor="assignment-search">{t("exercises.search")}</Label>
-                <Input
-                  id="assignment-search"
-                  type="search"
-                  value={search}
-                  placeholder={t("exercises.searchPlaceholder")}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
-              </div>
-            </div>
-
-            {chapters.length === 0 ? (
-              <p className="text-sm text-encre-douce" aria-live="polite">
-                {t("exercises.none")}
-              </p>
-            ) : (
-              <div className="grid gap-5">
-                {chapters.map((chapter) => (
-                  <fieldset key={chapter.key} className="grid gap-2">
-                    <legend className="text-sm font-semibold text-encre-douce">
-                      {chapter.heading}
-                    </legend>
-                    <ul className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
-                      {chapter.exercises.map((exercise) => {
-                        const checked = selected.includes(exercise.id);
-                        return (
-                          <li key={exercise.id} className="bg-surface">
-                            <label className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                disabled={!checked && selected.length >= MAX_ASSIGNMENT_EXERCISES}
-                                onChange={(event) => toggle(exercise.id, event.target.checked)}
-                                // Named by the title alone; the kind of answer and the difficulty
-                                // are read after it rather than glued to it.
-                                aria-labelledby={`bank-${exercise.id}-title`}
-                                aria-describedby={
-                                  !checked && selected.length >= MAX_ASSIGNMENT_EXERCISES
-                                    ? `bank-${exercise.id}-meta assignment-exercises-full`
-                                    : `bank-${exercise.id}-meta`
-                                }
-                                className="size-4 accent-stylo-bleu"
-                              />
-                              <span
-                                id={`bank-${exercise.id}-title`}
-                                className="min-w-0 grow basis-40"
-                              >
-                                {exercise.title}
-                              </span>
-                              <span
-                                id={`bank-${exercise.id}-meta`}
-                                className="flex items-center gap-3"
-                              >
-                                <AnswerTypeChip
-                                  type={exercise.answerType}
-                                  label={tTypes(exercise.answerType)}
-                                />
-                                <span className="text-xs text-encre-douce">
-                                  {t("exercises.difficulty", { level: exercise.difficulty })}
-                                </span>
-                              </span>
-                            </label>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </fieldset>
-                ))}
-              </div>
-            )}
-          </section>
-        </>
-      )}
-
-      <FormMessage state={state} />
-
-      {mode === "subject" && subject.status === "uploading" ? (
-        <p className="text-sm text-encre-douce">{t("subject.waiting")}</p>
-      ) : null}
-      <Button
-        type="submit"
-        size="lg"
-        disabled={pending || (mode === "subject" && subject.status === "uploading")}
-        className="justify-self-start"
-      >
-        {pending ? t("submitting") : t("submit")}
-      </Button>
+        )}
+      </FormPreview>
     </form>
   );
 }

@@ -16,7 +16,11 @@ export default async function NewExercisePage() {
 
   return (
     <div className="grid max-w-xl gap-6">
-      <PageHeader title={t("title")} lead={t("lead")} />
+      <PageHeader
+        back={{ href: "/prof/exercices", label: t("back") }}
+        title={t("title")}
+        lead={t("lead")}
+      />
       <Suspense fallback={<div aria-hidden="true" className="h-56 rounded-2xl bg-sunken" />}>
         <NewExercise />
       </Suspense>

@@ -153,7 +153,7 @@ export function PlanForm({ id, initial = EMPTY }: { id?: string; initial?: Value
           onChange={(event) =>
             setValues((current) => ({ ...current, isActive: event.target.checked }))
           }
-          className="mt-1 size-5 accent-encre"
+          className="mt-1 size-5 shrink-0 accent-encre"
         />
         <span className="grid gap-0.5">
           <span>{t("isActive")}</span>

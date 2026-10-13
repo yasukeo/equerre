@@ -265,7 +265,8 @@
         "emailExists": "Un compte déjà utilisé existe pour cette adresse. L’élève peut se connecter, ou utiliser « Mot de passe oublié ».",
         "linkFailed": "Le compte existe, mais le lien n’a pas pu être généré. Relancez « Créer le compte » avec la même adresse pour obtenir un nouveau lien.",
         "unknown": "L’opération n’a pas abouti. Réessayez dans un instant."
-      }
+      },
+      "back": "Tous les élèves"
     },
     "lessons": {
       "title": "Leçons",
@@ -325,7 +326,8 @@
         "kind": "Choisissez le type de document."
       },
       "kind": "Type de document",
-      "kindHint": "Un cours, son résumé, une série d’exercices avec leurs corrigés ou un devoir."
+      "kindHint": "Un cours, son résumé, une série d’exercices avec leurs corrigés ou un devoir.",
+      "back": "Toutes les leçons"
     },
     "lessonEditor": {
       "title": "Modifier la leçon",
@@ -354,7 +356,9 @@
         "notFound": "Cette leçon n’existe plus.",
         "unknown": "L’enregistrement a échoué. Réessayez.",
         "foreignFile": "Un PDF de ce document a été copié depuis un exercice ou une autre leçon. Retirez-le, puis joignez le fichier ici avec le bouton « PDF »."
-      }
+      },
+      "settings": "État et réglages de la leçon",
+      "upToDate": "Tout est enregistré."
     },
     "exercises": {
       "title": "Exercices",
@@ -399,7 +403,8 @@
         "title": "Donnez un titre de 1 à 160 caractères.",
         "answerType": "Choisissez comment l’élève répondra.",
         "unknown": "La création a échoué. Réessayez."
-      }
+      },
+      "back": "Tous les exercices"
     },
     "exerciseEditor": {
       "title": "Modifier l’exercice",
@@ -493,7 +498,9 @@
       "fileHint": {
         "statement": "Un PDF de 20 Mo au plus. Seuls les élèves à qui cet exercice est donné pourront l’ouvrir.",
         "solution": "Un PDF de 20 Mo au plus. L’élève l’ouvrira avec le reste du corrigé : une fois sa copie corrigée, ou s’il demande la solution."
-      }
+      },
+      "settings": "État et classement de l’exercice",
+      "upToDate": "Tout est enregistré."
     },
     "assignments": {
       "title": "Devoirs",
@@ -602,6 +609,19 @@
         "waiting": "Attendez la fin de l’envoi du sujet.",
         "sizeKb": "{size} Ko",
         "drop": "ou déposez-le ici"
+      },
+      "back": "Tous les devoirs",
+      "preview": {
+        "title": "Aperçu",
+        "caption": "{kind, select, group {Le devoir tel que les élèves de « {name} » le verront.} other {Le devoir tel que {name} le verra.}}",
+        "captionNobody": "Le devoir tel que l’élève le verra dans sa liste.",
+        "untitled": "Titre à écrire",
+        "due": "à rendre le {date}",
+        "noDue": "Date à choisir",
+        "left": "{count, plural, =0 {Aucun exercice pour l’instant} one {1 exercice à faire} other {# exercices à faire}}",
+        "copy": "Une copie à rendre",
+        "subjectFile": "Sujet : {name}",
+        "noSubject": "Choisissez le fichier du sujet : il s’ouvrira en haut de son devoir."
       }
     },
     "assignment": {
@@ -1134,6 +1154,16 @@
         "dates_invalid": "Les dates de la série ne sont pas valables.",
         "unknown": "La planification n’a pas abouti. Vérifiez votre connexion et réessayez.",
         "overlapRace": "Une autre séance vient d’être confirmée sur l’un de ces créneaux. Rien n’a été planifié : vérifiez vos séances et recommencez."
+      },
+      "preview": {
+        "title": "Aperçu",
+        "caption": "La séance telle que {name} la verra dans son agenda.",
+        "captionGroup": "La séance telle que les élèves du groupe la verront dans leur agenda.",
+        "captionNobody": "La séance telle que l’élève la verra dans son agenda.",
+        "nobodyStudent": "Élève à choisir",
+        "nobodyGroup": "Groupe à choisir",
+        "noDate": "Choisissez une date et une heure : la séance s’affichera ici.",
+        "series": "{count, plural, one {Une seule séance.} other {Chaque semaine jusqu’au {until} : # séances.}}"
       }
     },
     "availability": {
@@ -2267,7 +2297,20 @@
       "unknown": "Le paiement n’a pas pu être enregistré. Réessayez dans un instant."
     },
     "pickPlan": "Choisissez une formule",
-    "inviteStudent": "Inviter un élève"
+    "inviteStudent": "Inviter un élève",
+    "preview": {
+      "title": "Aperçu",
+      "caption": "Le reçu que vous remettrez, une fois le paiement enregistré.",
+      "receipt": "Reçu",
+      "number": "Numéro donné à l’enregistrement",
+      "noStudent": "Élève à choisir",
+      "noPlan": "Formule à choisir",
+      "covers": "Couvre",
+      "coversValue": "du {from} au {to}",
+      "credits": "Crédite",
+      "creditsValue": "{hours} : son solde passe de {before} à {after}",
+      "note": "Note"
+    }
   },
   "account": {
     "heading": "Paiements",

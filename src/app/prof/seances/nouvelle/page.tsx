@@ -18,7 +18,7 @@ export default async function PlanSessionPage({
   const t = await getTranslations("tutor.planSession");
 
   return (
-    <div className="grid max-w-2xl gap-6">
+    <div className="grid max-w-5xl gap-6">
       <PageHeader
         back={{ href: "/prof/seances", label: t("back") }}
         title={t("title")}

@@ -24,7 +24,7 @@ export function NewExerciseForm({ levels }: { levels: ChapterOptions }) {
       {/* Keyed so React's post-action form reset keeps the submitted choice. */}
       <ChapterSelect
         key={`chapter-${submittedChapter}`}
-        id="exercise-chapter"
+        id="new-exercise-chapter"
         name="chapterId"
         label={t("chapter")}
         placeholder={t("chapterPlaceholder")}
@@ -34,7 +34,7 @@ export function NewExerciseForm({ levels }: { levels: ChapterOptions }) {
         required
       />
       <Field
-        id="exercise-title"
+        id="new-exercise-title"
         name="title"
         label={t("exerciseTitle")}
         maxLength={160}
@@ -45,10 +45,10 @@ export function NewExerciseForm({ levels }: { levels: ChapterOptions }) {
       <fieldset
         key={`type-${submittedType}`}
         className="grid gap-2"
-        aria-describedby={typeError ? "exercise-type-error" : "exercise-type-hint"}
+        aria-describedby={typeError ? "new-exercise-type-error" : "new-exercise-type-hint"}
       >
         <legend className="text-sm font-medium">{t("answerType")}</legend>
-        <p id="exercise-type-hint" className="text-sm text-encre-douce">
+        <p id="new-exercise-type-hint" className="text-sm text-encre-douce">
           {t("answerTypeHint")}
         </p>
         {ANSWER_TYPES.map((type) => (
@@ -67,7 +67,7 @@ export function NewExerciseForm({ levels }: { levels: ChapterOptions }) {
           </label>
         ))}
         {typeError ? (
-          <p id="exercise-type-error" className="text-sm text-stylo-rouge">
+          <p id="new-exercise-type-error" className="text-sm text-stylo-rouge">
             {typeError}
           </p>
         ) : null}

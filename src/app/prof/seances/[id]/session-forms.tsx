@@ -159,7 +159,7 @@ export function CancelSessionForm({ id, laterInSeries }: { id: string; laterInSe
                 type="checkbox"
                 checked={following}
                 onChange={(event) => setFollowing(event.target.checked)}
-                className="mt-1 size-5 accent-encre"
+                className="mt-1 size-5 shrink-0 accent-encre"
               />
               <span>{t("cancelFollowing", { count: laterInSeries })}</span>
             </label>

@@ -15,6 +15,7 @@ import {
 } from "react";
 import { ChapterSelect } from "@/components/chapter-select";
 import { DocumentEditor } from "@/components/editor/document-editor";
+import { TitleField } from "@/components/editor/title-field";
 import { AnswerTypeChip, IncompleteChip } from "@/components/exercise-status";
 import { Button } from "@/components/ui/button";
 import { Field, SelectField } from "@/components/ui/field";
@@ -250,65 +251,15 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
   };
 
   return (
-    <>
-      <form
-        onSubmit={(event) => {
-          // Built from state rather than from the form's inputs: the choices and both documents
-          // live in React, and React would reset the form after its action succeeded.
-          event.preventDefault();
-          if (!ready) return;
-          submittedSnapshot.current = snapshot;
-          submittedChapter.current = fields.chapterId;
-          const formData = new FormData();
-          formData.set("id", exercise.id);
-          formData.set("chapterId", fields.chapterId);
-          formData.set("title", fields.title);
-          formData.set("difficulty", fields.difficulty);
-          formData.set("tags", fields.tags);
-          formData.set("answerType", fields.answerType);
-          formData.set("statement", statement);
-          formData.set("solution", solution);
-          formData.set("correctNumeric", fields.correctNumeric);
-          formData.set("tolerance", fields.tolerance);
-          formData.set("toleranceKind", fields.toleranceKind);
-          formData.set("choiceMode", fields.choiceMode);
-          formData.set("choices", JSON.stringify(fields.choices));
-          formData.set("correctChoiceIds", JSON.stringify(fields.correctChoiceIds));
-          startTransition(() => formAction(formData));
-        }}
-        className="grid gap-6"
-        noValidate
-      >
-        <div className="grid gap-2">
-          <p className="text-sm text-encre-douce">
-            {contextOf(levels, savedChapterId) ?? exercise.context}
-          </p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <AnswerTypeChip type={fields.answerType} label={tTypes(fields.answerType)} />
-            {complete ? null : (
-              <IncompleteChip label={t("incomplete")} hint={t("incompleteHint")} />
-            )}
-            {dirty ? (
-              <span className="text-sm text-encre-douce">{t("unsaved")}</span>
-            ) : complete ? (
-              // Only once saved and whole: leaving by this link would drop unsaved changes.
-              <Link
-                href={`/prof/devoirs/nouveau?exercice=${exercise.id}`}
-                className="text-sm text-stylo-bleu underline underline-offset-2"
-              >
-                {t("assign")}
-              </Link>
-            ) : null}
-          </div>
-          {locked ? (
-            <p className="text-sm text-encre-douce">
-              {t("answered", { count: exercise.answered })}
-            </p>
-          ) : null}
-        </div>
-
-        <Field
+    <div className="grid gap-6">
+      <div className="grid gap-3">
+        <p className="text-sm text-encre-douce">
+          {contextOf(levels, savedChapterId) ?? exercise.context}
+        </p>
+        {/* Above both columns, as a lesson's; it joins the form so Entrée saves. */}
+        <TitleField
           id="exercise-title"
+          form="exercise-form"
           label={t("fields.title")}
           value={fields.title}
           onChange={(event) => set("title", event.target.value)}
@@ -316,8 +267,355 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
           error={fieldError(state, "title")}
           required
         />
+      </div>
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_19rem]">
+        <form
+          id="exercise-form"
+          onSubmit={(event) => {
+            // Built from state rather than from the form's inputs: the choices and both documents
+            // live in React, and React would reset the form after its action succeeded.
+            event.preventDefault();
+            if (!ready) return;
+            submittedSnapshot.current = snapshot;
+            submittedChapter.current = fields.chapterId;
+            const formData = new FormData();
+            formData.set("id", exercise.id);
+            formData.set("chapterId", fields.chapterId);
+            formData.set("title", fields.title);
+            formData.set("difficulty", fields.difficulty);
+            formData.set("tags", fields.tags);
+            formData.set("answerType", fields.answerType);
+            formData.set("statement", statement);
+            formData.set("solution", solution);
+            formData.set("correctNumeric", fields.correctNumeric);
+            formData.set("tolerance", fields.tolerance);
+            formData.set("toleranceKind", fields.toleranceKind);
+            formData.set("choiceMode", fields.choiceMode);
+            formData.set("choices", JSON.stringify(fields.choices));
+            formData.set("correctChoiceIds", JSON.stringify(fields.correctChoiceIds));
+            startTransition(() => formAction(formData));
+          }}
+          className="grid min-w-0 gap-6"
+          noValidate
+        >
+          <div className="grid gap-1.5">
+            <span id="exercise-statement-label" className="text-sm font-medium">
+              {t("fields.statement")}
+            </span>
+            <DocumentEditor
+              labelledBy="exercise-statement-label"
+              label={t("fields.statement")}
+              initialContent={exercise.statement}
+              folderId={exercise.id}
+              attachments
+              fileHint={t("fileHint.statement")}
+              calloutLabels={calloutLabels}
+              size="field"
+              onReady={(written) => {
+                setStatement(written);
+                setBaselineDocs((docs) => ({ ...docs, statement: written }));
+              }}
+              onChange={setStatement}
+            />
+            <p className="text-sm text-encre-douce">{tEditor("mathShortcut")}</p>
+            {fieldError(state, "statement") ? (
+              <p className="text-sm text-stylo-rouge">{fieldError(state, "statement")}</p>
+            ) : null}
+          </div>
 
-        <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
+          <fieldset className="grid gap-4 rounded-md border border-quadrillage p-4">
+            <legend className="px-1 text-sm font-medium">{t("fields.answerType")}</legend>
+            {exercise.assigned && fields.answerType !== "upload" ? (
+              <p className="text-sm text-encre-douce">{t("assignedHint")}</p>
+            ) : null}
+            {locked ? (
+              <p id="exercise-type-locked" className="text-sm text-encre-douce">
+                {t("answerTypeLocked")}
+              </p>
+            ) : null}
+            <div className="grid gap-1 sm:grid-cols-3">
+              {ANSWER_TYPES.map((type) => (
+                <label key={type} className="flex min-h-11 items-center gap-2">
+                  <input
+                    type="radio"
+                    name="ui-answer-type"
+                    value={type}
+                    checked={fields.answerType === type}
+                    disabled={locked && type !== fields.answerType}
+                    aria-describedby={locked ? "exercise-type-locked" : undefined}
+                    onChange={() => set("answerType", type)}
+                    className="size-4 accent-stylo-bleu"
+                  />
+                  {tTypes(type)}
+                </label>
+              ))}
+            </div>
+
+            {fields.answerType === "upload" ? (
+              <p className="text-sm text-encre-douce">{t("upload.hint")}</p>
+            ) : null}
+
+            {fields.answerType === "numeric" ? (
+              <div className="grid gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field
+                    id="exercise-correct-numeric"
+                    label={t("numeric.correct")}
+                    hint={t("numeric.correctHint")}
+                    autoComplete="off"
+                    spellCheck={false}
+                    value={fields.correctNumeric}
+                    onChange={(event) => set("correctNumeric", event.target.value)}
+                    error={fieldError(state, "correctNumeric")}
+                  />
+                  <div className="grid grid-cols-[1fr_auto] items-start gap-2">
+                    <Field
+                      id="exercise-tolerance"
+                      label={t("numeric.tolerance")}
+                      hint={t("numeric.toleranceHint")}
+                      inputMode="decimal"
+                      autoComplete="off"
+                      spellCheck={false}
+                      value={fields.tolerance}
+                      onChange={(event) => set("tolerance", event.target.value)}
+                      error={fieldError(state, "tolerance")}
+                    />
+                    <SelectField
+                      id="exercise-tolerance-kind"
+                      label={t("numeric.toleranceKind")}
+                      value={fields.toleranceKind}
+                      onChange={(event) =>
+                        set("toleranceKind", event.target.value as ToleranceKind)
+                      }
+                    >
+                      <option value="absolue">{t("numeric.absolue")}</option>
+                      <option value="relative">{t("numeric.relative")}</option>
+                    </SelectField>
+                  </div>
+                </div>
+                <p className="text-sm text-encre-douce" aria-live="polite">
+                  {fields.correctNumeric.trim() === ""
+                    ? t("numeric.missing")
+                    : range === null
+                      ? null
+                      : range.kind === "exact"
+                        ? t("numeric.exact", { value: formatDecimal(range.value) })
+                        : t("numeric.range", {
+                            low: formatDecimal(range.low),
+                            high: formatDecimal(range.high),
+                          })}
+                </p>
+              </div>
+            ) : null}
+
+            {fields.answerType === "mcq" ? (
+              <div className="grid gap-4">
+                <SelectField
+                  id="exercise-choice-mode"
+                  label={t("mcq.mode")}
+                  hint={t("mcq.modeHint")}
+                  value={fields.choiceMode}
+                  aria-describedby={tooManyRight ? "exercise-one-right-error" : undefined}
+                  onChange={(event) => {
+                    const mode = event.target.value as ChoiceMode;
+                    // Radio buttons show one right answer: the one ticked last is kept, so what
+                    // the tutor sees checked is what gets saved.
+                    setFields((current) => ({
+                      ...current,
+                      choiceMode: mode,
+                      correctChoiceIds:
+                        mode === "unique"
+                          ? current.correctChoiceIds.slice(-1)
+                          : current.correctChoiceIds,
+                    }));
+                  }}
+                >
+                  <option value="unique">{t("mcq.unique")}</option>
+                  <option value="multiple">{t("mcq.multiple")}</option>
+                </SelectField>
+
+                <p className="text-sm text-encre-douce">{t("mcq.hint")}</p>
+
+                <ol className="grid gap-3">
+                  {fields.choices.map((choice, index) => {
+                    const number = index + 1;
+                    const right = fields.correctChoiceIds.includes(choice.id);
+                    const emptyLabel =
+                      Boolean(fieldError(state, "choices")) && choice.label.trim() === "";
+                    return (
+                      <li
+                        key={choice.id}
+                        className="grid gap-2 rounded-md border border-quadrillage p-3"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <label
+                            htmlFor={`exercise-choice-${index}`}
+                            className="text-sm font-medium"
+                          >
+                            {t("mcq.choice", { number })}
+                          </label>
+                          <label className="ms-auto flex min-h-11 items-center gap-2 text-sm">
+                            <input
+                              type={radios ? "radio" : "checkbox"}
+                              name="ui-right-choice"
+                              aria-label={t("mcq.rightFor", { number })}
+                              checked={right}
+                              onChange={(event) => toggleRight(choice.id, event.target.checked)}
+                              className="size-4 accent-stylo-bleu"
+                            />
+                            {t("mcq.right")}
+                          </label>
+                          <span className="flex">
+                            <IconButton
+                              buttonRef={control(`${choice.id}:up`)}
+                              label={t("mcq.up", { number })}
+                              disabled={index === 0}
+                              onClick={() => moveChoice(index, -1)}
+                            >
+                              <ArrowUp aria-hidden="true" className="size-4" />
+                            </IconButton>
+                            <IconButton
+                              buttonRef={control(`${choice.id}:down`)}
+                              label={t("mcq.down", { number })}
+                              disabled={index === fields.choices.length - 1}
+                              onClick={() => moveChoice(index, 1)}
+                            >
+                              <ArrowDown aria-hidden="true" className="size-4" />
+                            </IconButton>
+                            <IconButton
+                              label={t("mcq.remove", { number })}
+                              disabled={fields.choices.length <= MIN_CHOICES}
+                              onClick={() => removeChoice(index)}
+                            >
+                              <Trash2 aria-hidden="true" className="size-4" />
+                            </IconButton>
+                          </span>
+                        </div>
+                        <Input
+                          id={`exercise-choice-${index}`}
+                          ref={control(`${choice.id}:label`)}
+                          aria-invalid={emptyLabel || undefined}
+                          aria-describedby={emptyLabel ? "exercise-choices-error" : undefined}
+                          value={choice.label}
+                          maxLength={300}
+                          autoComplete="off"
+                          onChange={(event) =>
+                            updateChoices(
+                              fields.choices.map((other) =>
+                                other === choice ? { ...other, label: event.target.value } : other,
+                              ),
+                            )
+                          }
+                        />
+                        {choice.label.includes("$") ? (
+                          <p className="lecon-corps text-base" aria-hidden="true">
+                            {renderMathText(choice.label)}
+                          </p>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ol>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="justify-self-start"
+                  disabled={fields.choices.length >= MAX_CHOICES}
+                  onClick={() =>
+                    updateChoices([...fields.choices, { id: newChoiceId(), label: "" }])
+                  }
+                >
+                  {t("mcq.add")}
+                </Button>
+
+                {tooManyRight || fieldError(state, "correctChoiceIds") ? (
+                  <p
+                    id="exercise-one-right-error"
+                    role="alert"
+                    className="text-sm text-stylo-rouge"
+                  >
+                    {t("errors.oneRight")}
+                  </p>
+                ) : null}
+                {fieldError(state, "choices") ? (
+                  <p id="exercise-choices-error" className="text-sm text-stylo-rouge">
+                    {fieldError(state, "choices")}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </fieldset>
+
+          <div className="grid gap-1.5">
+            <span id="exercise-solution-label" className="text-sm font-medium">
+              {t("fields.solution")}
+            </span>
+            <p className="text-sm text-encre-douce">{t("fields.solutionHint")}</p>
+            <DocumentEditor
+              labelledBy="exercise-solution-label"
+              label={t("fields.solution")}
+              initialContent={exercise.solution}
+              folderId={exercise.id}
+              attachments
+              fileHint={t("fileHint.solution")}
+              calloutLabels={calloutLabels}
+              size="field"
+              onReady={(written) => {
+                setSolution(written);
+                setBaselineDocs((docs) => ({ ...docs, solution: written }));
+              }}
+              onChange={setSolution}
+            />
+            {fieldError(state, "solution") ? (
+              <p className="text-sm text-stylo-rouge">{fieldError(state, "solution")}</p>
+            ) : null}
+          </div>
+        </form>
+
+        {/* Its state and its button first, kept in view beside a long exercise; then where it
+            is filed, which changes seldom. The fields here are outside the form: the form is
+            built from state, and the tags join it so Entrée still saves. */}
+        <aside
+          aria-label={t("settings")}
+          className="grid min-w-0 content-start gap-6 xl:sticky xl:top-24"
+        >
+          <div className="grid gap-3 rounded-2xl border border-quadrillage bg-surface p-4">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <AnswerTypeChip type={fields.answerType} label={tTypes(fields.answerType)} />
+              {complete ? null : (
+                <IncompleteChip label={t("incomplete")} hint={t("incompleteHint")} />
+              )}
+            </div>
+            <p className="text-sm text-encre-douce" aria-live="polite">
+              {dirty ? t("unsaved") : ready ? t("upToDate") : null}
+            </p>
+            {locked ? (
+              <p className="text-sm text-encre-douce">
+                {t("answered", { count: exercise.answered })}
+              </p>
+            ) : null}
+            <Button
+              type="submit"
+              form="exercise-form"
+              size="lg"
+              disabled={pending || !ready}
+              className="w-full"
+            >
+              {pending ? t("saving") : t("save")}
+            </Button>
+            <FormMessage state={state} />
+            {!dirty && complete ? (
+              // Only once saved and whole: leaving by this link would drop unsaved changes.
+              <Link
+                href={`/prof/devoirs/nouveau?exercice=${exercise.id}`}
+                className="inline-flex min-h-11 items-center text-sm text-stylo-bleu underline underline-offset-2"
+              >
+                {t("assign")}
+              </Link>
+            ) : null}
+          </div>
+
           <ChapterSelect
             id="exercise-chapter"
             label={t("fields.chapter")}
@@ -339,289 +637,20 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
               </option>
             ))}
           </SelectField>
-        </div>
-
-        <Field
-          id="exercise-tags"
-          label={t("fields.tags")}
-          hint={t("fields.tagsHint")}
-          value={fields.tags}
-          onChange={(event) => set("tags", event.target.value)}
-          error={fieldError(state, "tags")}
-        />
-
-        <div className="grid gap-1.5">
-          <span id="exercise-statement-label" className="text-sm font-medium">
-            {t("fields.statement")}
-          </span>
-          <DocumentEditor
-            labelledBy="exercise-statement-label"
-            label={t("fields.statement")}
-            initialContent={exercise.statement}
-            folderId={exercise.id}
-            attachments
-            fileHint={t("fileHint.statement")}
-            calloutLabels={calloutLabels}
-            size="field"
-            onReady={(written) => {
-              setStatement(written);
-              setBaselineDocs((docs) => ({ ...docs, statement: written }));
-            }}
-            onChange={setStatement}
+          <Field
+            id="exercise-tags"
+            form="exercise-form"
+            label={t("fields.tags")}
+            hint={t("fields.tagsHint")}
+            value={fields.tags}
+            onChange={(event) => set("tags", event.target.value)}
+            error={fieldError(state, "tags")}
           />
-          <p className="text-sm text-encre-douce">{tEditor("mathShortcut")}</p>
-          {fieldError(state, "statement") ? (
-            <p className="text-sm text-stylo-rouge">{fieldError(state, "statement")}</p>
-          ) : null}
-        </div>
 
-        <fieldset className="grid gap-4 rounded-md border border-quadrillage p-4">
-          <legend className="px-1 text-sm font-medium">{t("fields.answerType")}</legend>
-          {exercise.assigned && fields.answerType !== "upload" ? (
-            <p className="text-sm text-encre-douce">{t("assignedHint")}</p>
-          ) : null}
-          {locked ? (
-            <p id="exercise-type-locked" className="text-sm text-encre-douce">
-              {t("answerTypeLocked")}
-            </p>
-          ) : null}
-          <div className="grid gap-1 sm:grid-cols-3">
-            {ANSWER_TYPES.map((type) => (
-              <label key={type} className="flex min-h-11 items-center gap-2">
-                <input
-                  type="radio"
-                  name="ui-answer-type"
-                  value={type}
-                  checked={fields.answerType === type}
-                  disabled={locked && type !== fields.answerType}
-                  aria-describedby={locked ? "exercise-type-locked" : undefined}
-                  onChange={() => set("answerType", type)}
-                  className="size-4 accent-stylo-bleu"
-                />
-                {tTypes(type)}
-              </label>
-            ))}
-          </div>
-
-          {fields.answerType === "upload" ? (
-            <p className="text-sm text-encre-douce">{t("upload.hint")}</p>
-          ) : null}
-
-          {fields.answerType === "numeric" ? (
-            <div className="grid gap-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field
-                  id="exercise-correct-numeric"
-                  label={t("numeric.correct")}
-                  hint={t("numeric.correctHint")}
-                  autoComplete="off"
-                  spellCheck={false}
-                  value={fields.correctNumeric}
-                  onChange={(event) => set("correctNumeric", event.target.value)}
-                  error={fieldError(state, "correctNumeric")}
-                />
-                <div className="grid grid-cols-[1fr_auto] items-start gap-2">
-                  <Field
-                    id="exercise-tolerance"
-                    label={t("numeric.tolerance")}
-                    hint={t("numeric.toleranceHint")}
-                    inputMode="decimal"
-                    autoComplete="off"
-                    spellCheck={false}
-                    value={fields.tolerance}
-                    onChange={(event) => set("tolerance", event.target.value)}
-                    error={fieldError(state, "tolerance")}
-                  />
-                  <SelectField
-                    id="exercise-tolerance-kind"
-                    label={t("numeric.toleranceKind")}
-                    value={fields.toleranceKind}
-                    onChange={(event) => set("toleranceKind", event.target.value as ToleranceKind)}
-                  >
-                    <option value="absolue">{t("numeric.absolue")}</option>
-                    <option value="relative">{t("numeric.relative")}</option>
-                  </SelectField>
-                </div>
-              </div>
-              <p className="text-sm text-encre-douce" aria-live="polite">
-                {fields.correctNumeric.trim() === ""
-                  ? t("numeric.missing")
-                  : range === null
-                    ? null
-                    : range.kind === "exact"
-                      ? t("numeric.exact", { value: formatDecimal(range.value) })
-                      : t("numeric.range", {
-                          low: formatDecimal(range.low),
-                          high: formatDecimal(range.high),
-                        })}
-              </p>
-            </div>
-          ) : null}
-
-          {fields.answerType === "mcq" ? (
-            <div className="grid gap-4">
-              <SelectField
-                id="exercise-choice-mode"
-                label={t("mcq.mode")}
-                hint={t("mcq.modeHint")}
-                value={fields.choiceMode}
-                aria-describedby={tooManyRight ? "exercise-one-right-error" : undefined}
-                onChange={(event) => {
-                  const mode = event.target.value as ChoiceMode;
-                  // Radio buttons show one right answer: the one ticked last is kept, so what
-                  // the tutor sees checked is what gets saved.
-                  setFields((current) => ({
-                    ...current,
-                    choiceMode: mode,
-                    correctChoiceIds:
-                      mode === "unique"
-                        ? current.correctChoiceIds.slice(-1)
-                        : current.correctChoiceIds,
-                  }));
-                }}
-              >
-                <option value="unique">{t("mcq.unique")}</option>
-                <option value="multiple">{t("mcq.multiple")}</option>
-              </SelectField>
-
-              <p className="text-sm text-encre-douce">{t("mcq.hint")}</p>
-
-              <ol className="grid gap-3">
-                {fields.choices.map((choice, index) => {
-                  const number = index + 1;
-                  const right = fields.correctChoiceIds.includes(choice.id);
-                  const emptyLabel =
-                    Boolean(fieldError(state, "choices")) && choice.label.trim() === "";
-                  return (
-                    <li
-                      key={choice.id}
-                      className="grid gap-2 rounded-md border border-quadrillage p-3"
-                    >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <label htmlFor={`exercise-choice-${index}`} className="text-sm font-medium">
-                          {t("mcq.choice", { number })}
-                        </label>
-                        <label className="ms-auto flex min-h-11 items-center gap-2 text-sm">
-                          <input
-                            type={radios ? "radio" : "checkbox"}
-                            name="ui-right-choice"
-                            aria-label={t("mcq.rightFor", { number })}
-                            checked={right}
-                            onChange={(event) => toggleRight(choice.id, event.target.checked)}
-                            className="size-4 accent-stylo-bleu"
-                          />
-                          {t("mcq.right")}
-                        </label>
-                        <span className="flex">
-                          <IconButton
-                            buttonRef={control(`${choice.id}:up`)}
-                            label={t("mcq.up", { number })}
-                            disabled={index === 0}
-                            onClick={() => moveChoice(index, -1)}
-                          >
-                            <ArrowUp aria-hidden="true" className="size-4" />
-                          </IconButton>
-                          <IconButton
-                            buttonRef={control(`${choice.id}:down`)}
-                            label={t("mcq.down", { number })}
-                            disabled={index === fields.choices.length - 1}
-                            onClick={() => moveChoice(index, 1)}
-                          >
-                            <ArrowDown aria-hidden="true" className="size-4" />
-                          </IconButton>
-                          <IconButton
-                            label={t("mcq.remove", { number })}
-                            disabled={fields.choices.length <= MIN_CHOICES}
-                            onClick={() => removeChoice(index)}
-                          >
-                            <Trash2 aria-hidden="true" className="size-4" />
-                          </IconButton>
-                        </span>
-                      </div>
-                      <Input
-                        id={`exercise-choice-${index}`}
-                        ref={control(`${choice.id}:label`)}
-                        aria-invalid={emptyLabel || undefined}
-                        aria-describedby={emptyLabel ? "exercise-choices-error" : undefined}
-                        value={choice.label}
-                        maxLength={300}
-                        autoComplete="off"
-                        onChange={(event) =>
-                          updateChoices(
-                            fields.choices.map((other) =>
-                              other === choice ? { ...other, label: event.target.value } : other,
-                            ),
-                          )
-                        }
-                      />
-                      {choice.label.includes("$") ? (
-                        <p className="lecon-corps text-base" aria-hidden="true">
-                          {renderMathText(choice.label)}
-                        </p>
-                      ) : null}
-                    </li>
-                  );
-                })}
-              </ol>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="justify-self-start"
-                disabled={fields.choices.length >= MAX_CHOICES}
-                onClick={() => updateChoices([...fields.choices, { id: newChoiceId(), label: "" }])}
-              >
-                {t("mcq.add")}
-              </Button>
-
-              {tooManyRight || fieldError(state, "correctChoiceIds") ? (
-                <p id="exercise-one-right-error" role="alert" className="text-sm text-stylo-rouge">
-                  {t("errors.oneRight")}
-                </p>
-              ) : null}
-              {fieldError(state, "choices") ? (
-                <p id="exercise-choices-error" className="text-sm text-stylo-rouge">
-                  {fieldError(state, "choices")}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-        </fieldset>
-
-        <div className="grid gap-1.5">
-          <span id="exercise-solution-label" className="text-sm font-medium">
-            {t("fields.solution")}
-          </span>
-          <p className="text-sm text-encre-douce">{t("fields.solutionHint")}</p>
-          <DocumentEditor
-            labelledBy="exercise-solution-label"
-            label={t("fields.solution")}
-            initialContent={exercise.solution}
-            folderId={exercise.id}
-            attachments
-            fileHint={t("fileHint.solution")}
-            calloutLabels={calloutLabels}
-            size="field"
-            onReady={(written) => {
-              setSolution(written);
-              setBaselineDocs((docs) => ({ ...docs, solution: written }));
-            }}
-            onChange={setSolution}
-          />
-          {fieldError(state, "solution") ? (
-            <p className="text-sm text-stylo-rouge">{fieldError(state, "solution")}</p>
-          ) : null}
-        </div>
-
-        <FormMessage state={state} />
-
-        <Button type="submit" size="lg" disabled={pending || !ready} className="justify-self-start">
-          {pending ? t("saving") : t("save")}
-        </Button>
-      </form>
-
-      <DeleteExercise id={exercise.id} assigned={exercise.assigned} />
-    </>
+          <DeleteExercise id={exercise.id} assigned={exercise.assigned} />
+        </aside>
+      </div>
+    </div>
   );
 }
 

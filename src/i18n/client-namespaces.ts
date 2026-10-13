@@ -31,6 +31,7 @@ export const CLIENT_NAMESPACES = {
     "postsAdmin",
     "recordPayment",
     "session.mode",
+    "session.status",
     "siteAdmin",
     "studentStatus",
     "tutor.assignment",

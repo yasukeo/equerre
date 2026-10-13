@@ -28,15 +28,7 @@ export function PageHeader({
 }) {
   return (
     <header className={cn("grid gap-3", className)}>
-      {back ? (
-        <Link
-          href={back.href}
-          className="-ms-1 inline-flex min-h-11 items-center gap-1.5 justify-self-start rounded-full ps-1 pe-3 text-sm text-encre-douce hover:text-encre"
-        >
-          <ArrowLeft aria-hidden="true" className="size-4 rtl:rotate-180" />
-          {back.label}
-        </Link>
-      ) : null}
+      {back ? <BackLink {...back} /> : null}
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="grid min-w-0 gap-1">
           {eyebrow ? (
@@ -51,5 +43,18 @@ export function PageHeader({
       </div>
       {children}
     </header>
+  );
+}
+
+/** The way back, written as a place, for a page whose title is not a heading (an editor's). */
+export function BackLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="-ms-1 inline-flex min-h-11 items-center gap-1.5 justify-self-start rounded-full ps-1 pe-3 text-sm text-encre-douce hover:text-encre"
+    >
+      <ArrowLeft aria-hidden="true" className="size-4 rtl:rotate-180" />
+      {label}
+    </Link>
   );
 }

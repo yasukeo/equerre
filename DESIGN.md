@@ -165,6 +165,11 @@ The day is drawn as a **graduated ruler**: time runs down a scale with tick mark
 - **Money** opens on the month's figures and the overdue balances, then the payments by month, and six months of income as bars in ink, this month's in blue pen, the amount written above each. No green: success is written in ink (see Colour tokens).
 - **Pupil's card**: the student's profile and a parent's page open on an ink card with the initials, the name, the level and the school.
 
+### Forms (D-108)
+
+- **A form that makes something shows it** beside its fields, as the person it is for will see it, with the button under it: a session as the student's diary leaf, a payment as a receipt stub torn along its perforation, homework as the card of her list with its exercises in order. Kept in view from 1024 px; after the fields on a phone.
+- **An editor writes its title on the page's own line**, large, on a rule rather than in a box, and keeps its state and its buttons in a column beside the document from 1280 px; the settings that seldom change come under them.
+
 **Public site** (phase 4) — the squared grid appears here, as the page's structure: the headline sits on the grid and the columns snap to it. It stays out of the workspace, where it would only be noise.
 
 ## Signature — _la note au stylo rouge_

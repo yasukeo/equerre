@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { z } from "zod";
+import { BackLink } from "@/components/shell/page-header";
 import { requireViewer } from "@/lib/auth";
 import { listChapterOptions } from "@/lib/chapters";
 import { readChoices } from "@/lib/exercise/exercise";
@@ -23,15 +23,10 @@ export default async function EditExercisePage({ params }: PageProps<"/prof/exer
   const t = await getTranslations("tutor.exerciseEditor");
 
   return (
-    <div className="grid max-w-4xl gap-6">
+    <div className="grid max-w-6xl gap-4">
       {/* The title is a field of the form below: the page's heading says what the page is. */}
       <h1 className="sr-only">{t("title")}</h1>
-      <Link
-        href="/prof/exercices"
-        className="inline-flex min-h-11 items-center justify-self-start text-sm underline decoration-trait underline-offset-4 hover:decoration-encre"
-      >
-        {t("back")}
-      </Link>
+      <BackLink href="/prof/exercices" label={t("back")} />
       <Suspense fallback={<div aria-hidden="true" className="h-96 rounded-md bg-sunken" />}>
         <EditExercise params={params} />
       </Suspense>

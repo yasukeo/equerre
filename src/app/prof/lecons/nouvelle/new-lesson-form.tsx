@@ -25,7 +25,7 @@ export function NewLessonForm({ levels }: Props) {
       {/* Keyed so React's post-action form reset keeps the submitted choice. */}
       <SelectField
         key={`chapter-${submittedChapter}`}
-        id="lesson-chapter"
+        id="new-lesson-chapter"
         name="chapterId"
         label={t("chapter")}
         defaultValue={submittedChapter}
@@ -47,7 +47,7 @@ export function NewLessonForm({ levels }: Props) {
       </SelectField>
       <SelectField
         key={`kind-${submittedKind}`}
-        id="lesson-kind"
+        id="new-lesson-kind"
         name="kind"
         label={t("kind")}
         hint={t("kindHint")}
@@ -61,7 +61,7 @@ export function NewLessonForm({ levels }: Props) {
         ))}
       </SelectField>
       <Field
-        id="lesson-title"
+        id="new-lesson-title"
         name="title"
         label={t("lessonTitle")}
         hint={t("lessonTitleHint")}
