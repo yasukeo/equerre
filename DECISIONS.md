@@ -94,7 +94,7 @@ Because the raw file holds a `{{SEED_PASSWORD}}` placeholder, `[db.seed]` is dis
 **D-029 — What the Supabase advisors reported after phase 0, and what was done.**
 
 - _`public.invite_code_is_valid` is a security-definer function callable by anon._ Intentional: it's how the sign-up form checks a code without exposing `invite_codes`. It returns a boolean only, and 32⁸ codes make guessing impractical. The auth trigger re-checks the code atomically.
-- _`public.rls_auto_enable()` is callable by anon._ Not created by this project; it came with the Supabase project and is left untouched.
+- _`public.rls_auto_enable()` is callable by anon._ Not created by this project; it came with the Supabase project and is left untouched. (Migration `20260916124117_function_grants` later took it out of the API, where it exists: a local stack has none, D-107.)
 - _Leaked password protection is disabled._ An Auth setting, not a migration — turn it on in the dashboard (Authentication › Providers › Email) before real students sign up.
 - _22 unused indexes (info)._ Expected on a new database; they back the queries in the brief (§5) and the foreign keys policies join on.
 
@@ -1019,8 +1019,15 @@ Asked on 2026-10-13: the tutor's forms were still in their first layout inside t
   - Planning a session: the diary leaf of the student's agenda (`SessionTicket`), with the student or group, the day, the hours from the type's length, the place, and « Chaque semaine jusqu'au … : n séances » for a series.
   - Recording a payment: the receipt as the stub of a receipt book, perforated under the name: the amount, the plan, what it covers or credits — « 5 h : son solde passe de 2 h à 7 h » —, the method, the day, the note. Its number is given when it is recorded.
   - New homework: the card of the student's homework list (red edge, title, « à rendre le … », what is left to do, the instructions), then the chosen exercises in order, moved and removed there. The bank keeps the main column.
-- **Editors** write the title where the page's title would be, on a ruled line that grows to two lines on a phone and takes no line break. The document has the main column; a column beside it, kept in view from 1280 px, holds its state (« Brouillon », « Modifications non enregistrées », « Tout est enregistré. »), Enregistrer and Publier, the PDFs, then the settings that change seldom (summary, kind, readers; chapter, difficulty, tags) and, for an exercise, its deletion. The exercise's tags and title join its form from there, so Entrée still saves.
+- **Editors** write the title where the page's title would be, on a ruled line that grows to two lines on a phone and takes no line break. The document has the main column; a column beside it, kept in view from 1280 px, holds its state (« Brouillon », « Modifications non enregistrées », « Tout est enregistré. »), Enregistrer and Publier, the PDFs, then the settings that change seldom (summary, kind, readers; chapter, difficulty, tags) and, for an exercise, its deletion. The exercise's tags and title join its form from there; Entrée in a title saves, with the form's first button, as it did in a one-line field.
 - **Smaller repairs:** every creation page has its way back; a session type's place has a row of its own (three columns cut it to « Che: »); an exception's two days are one above the other (a date field overflowed its card); checkboxes and radios beside a long hint keep their size; the creation forms' fields have ids of their own, since Next keeps a visited page mounted and « Nouvel exercice » then lent its « Titre » to the editor's.
+- **Reviewed** by three reviewers (security, logic, interface). Fixed after review:
+  - the editors' column scrolls on its own when taller than the screen, so its last settings and the focus stay in view, and it is a section rather than an aside inside the page;
+  - new homework is laid out fields, preview, bank: on a phone the chosen exercises come before the bank, and on a laptop « Donner le devoir » stays at the bottom of the column while its list scrolls; the card shows what her list shows (« 3 exercices à faire sur 3 »), without the instructions;
+  - a visit opens a fresh form: Next keeps a visited page mounted whatever its query, so « Enregistrer un paiement » from a second student's page still held the payment just recorded for the first, and « Donner en devoir » the last selection;
+  - the session leaf is titled by the type and names the group in its people row, as hers does; the receipt writes the amount as it prints it (« 1 500 MAD ») and credits hours only within what the payment accepts; a year typed with five digits no longer breaks the form;
+  - a title field grows by hand where the browser cannot size it to its text, a paste of several lines lands as one line where the caret was, and « Leçon enregistrée. » no longer sits beside « Tout est enregistré. » or under a new change;
+  - the RLS tests read `.env.local` only when no address is given, so a local run never carries the production keys, and an IPv6 local address is recognised.
 
 ## Secret key usage
 

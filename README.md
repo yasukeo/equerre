@@ -153,7 +153,7 @@ The RLS tests create and remove rows and files, so they never run against the pr
 pnpm exec supabase start -x studio,postgres-meta,imgproxy,edge-runtime,logflare,vector,supavisor,realtime
 ```
 
-Then load the seed into the local database (`postgresql://postgres:postgres@127.0.0.1:54322/postgres`, with any `SEED_PASSWORD`) and run `pnpm test:rls` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY` set from `pnpm exec supabase status -o env` and the same `SEED_PASSWORD`. Variables already set win over `.env.local`.
+Then load the seed into the local database (`postgresql://postgres:postgres@127.0.0.1:54322/postgres`, with any `SEED_PASSWORD`) and run `pnpm test:rls` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY` set from `pnpm exec supabase status -o env` and the same `SEED_PASSWORD`. Once `NEXT_PUBLIC_SUPABASE_URL` is set, `.env.local` is not read at all, so give every variable.
 
 ## Project layout
 

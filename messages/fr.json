@@ -555,7 +555,7 @@
       },
       "exercises": {
         "chosen": "{count, plural, =0 {Exercices du devoir} =1 {1 exercice dans le devoir} other {# exercices dans le devoir}}",
-        "chosenEmpty": "Cochez des exercices dans la banque ci-dessous.",
+        "chosenEmpty": "Cochez des exercices dans la banque.",
         "up": "Monter « {title} »",
         "down": "Descendre « {title} »",
         "remove": "Retirer « {title} »",
@@ -618,7 +618,7 @@
         "untitled": "Titre à écrire",
         "due": "à rendre le {date}",
         "noDue": "Date à choisir",
-        "left": "{count, plural, =0 {Aucun exercice pour l’instant} one {1 exercice à faire} other {# exercices à faire}}",
+        "left": "{count, plural, =0 {Aucun exercice pour l’instant} one {1 exercice à faire sur 1} other {# exercices à faire sur #}}",
         "copy": "Une copie à rendre",
         "subjectFile": "Sujet : {name}",
         "noSubject": "Choisissez le fichier du sujet : il s’ouvrira en haut de son devoir."
@@ -1158,12 +1158,12 @@
       "preview": {
         "title": "Aperçu",
         "caption": "La séance telle que {name} la verra dans son agenda.",
-        "captionGroup": "La séance telle que les élèves du groupe la verront dans leur agenda.",
+        "captionGroup": "La séance telle que les élèves de « {name} » la verront dans leur agenda.",
         "captionNobody": "La séance telle que l’élève la verra dans son agenda.",
-        "nobodyStudent": "Élève à choisir",
         "nobodyGroup": "Groupe à choisir",
         "noDate": "Choisissez une date et une heure : la séance s’affichera ici.",
-        "series": "{count, plural, one {Une seule séance.} other {Chaque semaine jusqu’au {until} : # séances.}}"
+        "series": "{count, plural, one {Une seule séance.} other {Chaque semaine jusqu’au {until} : # séances.}}",
+        "captionNobodyGroup": "La séance telle que les élèves du groupe la verront dans leur agenda."
       }
     },
     "availability": {

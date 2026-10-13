@@ -72,6 +72,8 @@ async function Plan({
 
   return (
     <PlanForm
+      // A fresh form on every visit: Next keeps the page mounted, query or not (D-108).
+      key={crypto.randomUUID()}
       today={localDateKey(new Date())}
       students={students.data.map((student) => ({
         id: student.id,

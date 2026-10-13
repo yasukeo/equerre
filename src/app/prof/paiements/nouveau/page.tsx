@@ -87,6 +87,8 @@ async function Form({
 
   return (
     <PaymentForm
+      // A fresh form on every visit: Next keeps the page mounted, query or not (D-108).
+      key={crypto.randomUUID()}
       students={students}
       plans={plans}
       methods={PAYMENT_METHODS}

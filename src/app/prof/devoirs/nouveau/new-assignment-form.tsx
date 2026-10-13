@@ -229,10 +229,10 @@ export function NewAssignmentForm({
         }
         startTransition(() => formAction(formData));
       }}
-      className={FORM_WITH_PREVIEW}
+      className={`${FORM_WITH_PREVIEW} lg:grid-rows-[auto_1fr]`}
       noValidate
     >
-      <div className="grid min-w-0 gap-6">
+      <div className="grid min-w-0 gap-6 lg:col-start-1 lg:row-start-1">
         <fieldset className="grid gap-2">
           <legend className="mb-1 text-sm font-medium">{t("mode.label")}</legend>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -405,106 +405,7 @@ export function NewAssignmentForm({
               disabled={pending}
             />
           </section>
-        ) : (
-          <>
-            <section aria-labelledby="assignment-bank-title" className="grid gap-3">
-              <div>
-                <h2 id="assignment-bank-title" className="text-base font-semibold">
-                  {t("exercises.bank")}
-                </h2>
-                <p className="text-sm text-encre-douce">{t("exercises.bankHint")}</p>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                <SelectField
-                  id="assignment-level"
-                  label={t("exercises.level")}
-                  value={level}
-                  onChange={(event) => {
-                    setLevel(event.target.value);
-                    setLevelChosen(true);
-                  }}
-                >
-                  <option value="">{t("exercises.allLevels")}</option>
-                  {levels.map((option) => (
-                    <option key={option.code} value={option.code}>
-                      {option.label}
-                    </option>
-                  ))}
-                </SelectField>
-                <div className="grid content-start gap-1.5">
-                  <Label htmlFor="assignment-search">{t("exercises.search")}</Label>
-                  <Input
-                    id="assignment-search"
-                    type="search"
-                    value={search}
-                    placeholder={t("exercises.searchPlaceholder")}
-                    onChange={(event) => setSearch(event.target.value)}
-                  />
-                </div>
-              </div>
-
-              {chapters.length === 0 ? (
-                <p className="text-sm text-encre-douce" aria-live="polite">
-                  {t("exercises.none")}
-                </p>
-              ) : (
-                <div className="grid gap-5">
-                  {chapters.map((chapter) => (
-                    <fieldset key={chapter.key} className="grid gap-2">
-                      <legend className="text-sm font-semibold text-encre-douce">
-                        {chapter.heading}
-                      </legend>
-                      <ul className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
-                        {chapter.exercises.map((exercise) => {
-                          const checked = selected.includes(exercise.id);
-                          return (
-                            <li key={exercise.id} className="bg-surface">
-                              <label className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
-                                <input
-                                  type="checkbox"
-                                  checked={checked}
-                                  disabled={!checked && selected.length >= MAX_ASSIGNMENT_EXERCISES}
-                                  onChange={(event) => toggle(exercise.id, event.target.checked)}
-                                  // Named by the title alone; the kind of answer and the difficulty
-                                  // are read after it rather than glued to it.
-                                  aria-labelledby={`bank-${exercise.id}-title`}
-                                  aria-describedby={
-                                    !checked && selected.length >= MAX_ASSIGNMENT_EXERCISES
-                                      ? `bank-${exercise.id}-meta assignment-exercises-full`
-                                      : `bank-${exercise.id}-meta`
-                                  }
-                                  className="size-4 accent-stylo-bleu"
-                                />
-                                <span
-                                  id={`bank-${exercise.id}-title`}
-                                  className="min-w-0 grow basis-40"
-                                >
-                                  {exercise.title}
-                                </span>
-                                <span
-                                  id={`bank-${exercise.id}-meta`}
-                                  className="flex items-center gap-3"
-                                >
-                                  <AnswerTypeChip
-                                    type={exercise.answerType}
-                                    label={tTypes(exercise.answerType)}
-                                  />
-                                  <span className="text-xs text-encre-douce">
-                                    {t("exercises.difficulty", { level: exercise.difficulty })}
-                                  </span>
-                                </span>
-                              </label>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </fieldset>
-                  ))}
-                </div>
-              )}
-            </section>
-          </>
-        )}
+        ) : null}
       </div>
 
       <FormPreview
@@ -521,7 +422,8 @@ export function NewAssignmentForm({
               })
             : t("preview.captionNobody")
         }
-        className="lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:p-1"
+        className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:p-2"
+        footerClassName="lg:sticky lg:bottom-0 lg:bg-papier lg:pt-3"
         footer={
           <>
             <FormMessage state={state} />
@@ -561,11 +463,6 @@ export function NewAssignmentForm({
               {mode === "subject" ? t("preview.copy") : t("preview.left", { count: parts })}
             </span>
           </div>
-          {instructions.trim() ? (
-            <p className="border-s-2 border-quadrillage ps-3 text-sm break-words whitespace-pre-line text-encre-douce">
-              {instructions.trim()}
-            </p>
-          ) : null}
         </div>
 
         {mode === "subject" ? (
@@ -604,7 +501,7 @@ export function NewAssignmentForm({
                   return (
                     <li
                       key={id}
-                      className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-1 bg-surface ps-3 pe-1 pt-2"
+                      className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-1 bg-surface ps-3 pe-1 pt-2 pb-1"
                     >
                       <span className="text-sm leading-6 text-encre-douce">{index + 1}.</span>
                       <span className="font-medium break-words">{exercise.title}</span>
@@ -653,6 +550,108 @@ export function NewAssignmentForm({
           </section>
         )}
       </FormPreview>
+
+      {/* The bank under the fields; beside them on a wide screen, the preview spans both. */}
+      {mode === "subject" ? null : (
+        <div className="grid min-w-0 gap-6 lg:col-start-1 lg:row-start-2">
+          <section aria-labelledby="assignment-bank-title" className="grid gap-3">
+            <div>
+              <h2 id="assignment-bank-title" className="text-base font-semibold">
+                {t("exercises.bank")}
+              </h2>
+              <p className="text-sm text-encre-douce">{t("exercises.bankHint")}</p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <SelectField
+                id="assignment-level"
+                label={t("exercises.level")}
+                value={level}
+                onChange={(event) => {
+                  setLevel(event.target.value);
+                  setLevelChosen(true);
+                }}
+              >
+                <option value="">{t("exercises.allLevels")}</option>
+                {levels.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.label}
+                  </option>
+                ))}
+              </SelectField>
+              <div className="grid content-start gap-1.5">
+                <Label htmlFor="assignment-search">{t("exercises.search")}</Label>
+                <Input
+                  id="assignment-search"
+                  type="search"
+                  value={search}
+                  placeholder={t("exercises.searchPlaceholder")}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </div>
+            </div>
+
+            {chapters.length === 0 ? (
+              <p className="text-sm text-encre-douce" aria-live="polite">
+                {t("exercises.none")}
+              </p>
+            ) : (
+              <div className="grid gap-5">
+                {chapters.map((chapter) => (
+                  <fieldset key={chapter.key} className="grid gap-2">
+                    <legend className="text-sm font-semibold text-encre-douce">
+                      {chapter.heading}
+                    </legend>
+                    <ul className="grid gap-px overflow-hidden rounded-md border border-quadrillage bg-quadrillage">
+                      {chapter.exercises.map((exercise) => {
+                        const checked = selected.includes(exercise.id);
+                        return (
+                          <li key={exercise.id} className="bg-surface">
+                            <label className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                disabled={!checked && selected.length >= MAX_ASSIGNMENT_EXERCISES}
+                                onChange={(event) => toggle(exercise.id, event.target.checked)}
+                                // Named by the title alone; the kind of answer and the difficulty
+                                // are read after it rather than glued to it.
+                                aria-labelledby={`bank-${exercise.id}-title`}
+                                aria-describedby={
+                                  !checked && selected.length >= MAX_ASSIGNMENT_EXERCISES
+                                    ? `bank-${exercise.id}-meta assignment-exercises-full`
+                                    : `bank-${exercise.id}-meta`
+                                }
+                                className="size-4 accent-stylo-bleu"
+                              />
+                              <span
+                                id={`bank-${exercise.id}-title`}
+                                className="min-w-0 grow basis-40"
+                              >
+                                {exercise.title}
+                              </span>
+                              <span
+                                id={`bank-${exercise.id}-meta`}
+                                className="flex items-center gap-3"
+                              >
+                                <AnswerTypeChip
+                                  type={exercise.answerType}
+                                  label={tTypes(exercise.answerType)}
+                                />
+                                <span className="text-xs text-encre-douce">
+                                  {t("exercises.difficulty", { level: exercise.difficulty })}
+                                </span>
+                              </span>
+                            </label>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </fieldset>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
     </form>
   );
 }

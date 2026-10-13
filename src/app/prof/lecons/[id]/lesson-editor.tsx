@@ -163,15 +163,19 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
 
         {/* Its state and its buttons first, kept in view beside a long document; then its
             settings, which change seldom. */}
-        <aside
+        <section
           aria-label={t("settings")}
-          className="grid min-w-0 content-start gap-6 xl:sticky xl:top-24"
+          className="grid min-w-0 content-start gap-6 xl:sticky xl:top-24 xl:-m-2 xl:max-h-[calc(100dvh-7rem)] xl:overflow-y-auto xl:p-2"
         >
           <div className="grid gap-3 rounded-2xl border border-quadrillage bg-surface p-4">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <PublicationChip status={status} label={tLessons(`status.${status}`)} />
               <span className="text-sm text-encre-douce" aria-live="polite">
-                {dirty ? t("unsaved") : savedSnapshot === null ? null : t("upToDate")}
+                {dirty
+                  ? t("unsaved")
+                  : savedSnapshot === null || state.status === "success"
+                    ? null
+                    : t("upToDate")}
               </span>
             </div>
             <Button
@@ -207,7 +211,8 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
                 {t("unpublish")}
               </Button>
             )}
-            <FormMessage state={state} />
+            {/* « Leçon enregistrée. » stays only until the next change. */}
+            {dirty && state.status === "success" ? null : <FormMessage state={state} />}
             {dirty ? null : (
               <div className="grid gap-2 border-t border-quadrillage pt-3">
                 {status === "published" && visibility === "public" ? (
@@ -262,7 +267,7 @@ export function LessonEditor({ calloutLabels, lesson }: Props) {
               </option>
             ))}
           </SelectField>
-        </aside>
+        </section>
       </div>
     </form>
   );

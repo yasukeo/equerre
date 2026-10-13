@@ -52,6 +52,8 @@ async function NewAssignment({
 
   return (
     <NewAssignmentForm
+      // A fresh form on every visit: Next keeps the page mounted, query or not (D-108).
+      key={crypto.randomUUID()}
       recipients={recipients}
       exercises={exercises}
       preselected={preselected}

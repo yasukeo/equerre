@@ -10,7 +10,7 @@ import { FormMessage } from "@/components/ui/form-message";
 import { formatDecimal, parseDecimal } from "@/lib/decimal";
 import { fieldError } from "@/lib/form-state";
 import { MAX_PAYMENT_LABEL_LENGTH, MAX_PAYMENT_NOTE_LENGTH } from "@/lib/payments/limits";
-import { coverageEnd, formatDay, formatHours, nextDay } from "@/lib/payments/format";
+import { coverageEnd, formatDay, formatHours, formatMad, nextDay } from "@/lib/payments/format";
 import type { Coverage, PaymentMethod, Plan } from "@/lib/payments/queries";
 import { sendFields, useFormAction } from "@/lib/use-form-action";
 import { recordPayment } from "../actions";
@@ -47,12 +47,26 @@ function defaultStart(student: StudentChoice | undefined, plan: Plan, today: str
   return next.toISOString().slice(0, 10);
 }
 
+/** A `yyyy-MM-dd` day in words, or null while the field holds something else (« 20266-… »). */
+function dayOf(key: string): string | null {
+  return /^\d{4}-\d{2}-\d{2}$/.test(key) ? formatDay(key) : null;
+}
+
+/** « 1 500 MAD », as the receipt prints it; « — MAD » until the amount reads as a number. */
+function amountOf(typed: string): string {
+  const amount = parseDecimal(typed);
+  return amount === null ? "— MAD" : formatMad(Number(amount));
+}
+
 /** The hours a pack or a payment of her own credits, as typed: null when it credits none. */
 function creditedHours(plan: Plan | undefined, other: boolean, typed: string): number | null {
   if (plan?.kind === "hour_pack") return plan.hours;
   if (!other) return null;
+  // What record_payment accepts: more than none, 500 at most, to the hundredth.
   const hours = parseDecimal(typed);
-  return hours === null ? null : Number(hours);
+  if (hours === null || !/^\d+(\.\d{1,2})?$/.test(hours)) return null;
+  const value = Number(hours);
+  return value > 0 && value <= 500 ? value : null;
 }
 
 /**
@@ -203,7 +217,7 @@ export function PaymentForm({
             type="date"
             label={t("coversFrom")}
             hint={
-              values.coversFrom
+              dayOf(values.coversFrom)
                 ? t("coversUntil", {
                     from: formatDay(values.coversFrom),
                     to: formatDay(coverageEnd(values.coversFrom, plan.periodMonths ?? 1)),
@@ -284,7 +298,7 @@ export function PaymentForm({
           number={t("preview.number")}
           title={t("preview.receipt")}
           student={student?.label ?? t("preview.noStudent")}
-          amount={values.amount.trim() ? `${values.amount.trim()} MAD` : "— MAD"}
+          amount={amountOf(values.amount)}
           plan={
             plan
               ? `${plan.name} · ${tKind(plan.kind)}`
@@ -293,7 +307,7 @@ export function PaymentForm({
                 : t("preview.noPlan")
           }
           rows={[
-            ...(plan?.kind === "subscription" && values.coversFrom
+            ...(plan?.kind === "subscription" && dayOf(values.coversFrom)
               ? [
                   {
                     label: t("preview.covers"),
@@ -321,7 +335,7 @@ export function PaymentForm({
             { label: t("method"), value: tMethod(values.method as PaymentMethod) },
             {
               label: t("paidOn"),
-              value: values.paidOn ? formatDay(values.paidOn) : "—",
+              value: dayOf(values.paidOn) ?? "—",
             },
             ...(values.note.trim()
               ? [{ label: t("preview.note"), value: values.note.trim() }]
@@ -354,7 +368,7 @@ function ReceiptStub({
   rows: { label: string; value: ReactNode }[];
 }) {
   return (
-    <div className="grid overflow-hidden rounded-2xl border border-encre bg-surface">
+    <div className="grid rounded-2xl border border-encre bg-surface">
       <div className="grid gap-1 p-5">
         <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-xs font-semibold tracking-wide text-encre-douce uppercase">
           <span>{title}</span>
@@ -363,7 +377,7 @@ function ReceiptStub({
         <p className="text-lg leading-tight font-semibold break-words">{student}</p>
       </div>
       {/* The perforation: a dashed fold with a notch at each end. */}
-      <div aria-hidden="true" className="relative h-0 border-t-2 border-dashed border-quadrillage">
+      <div aria-hidden="true" className="relative h-0 border-t-2 border-dashed border-trait">
         <span className="absolute -start-2.5 -top-2.5 size-5 rounded-full border border-encre bg-papier" />
         <span className="absolute -end-2.5 -top-2.5 size-5 rounded-full border border-encre bg-papier" />
       </div>

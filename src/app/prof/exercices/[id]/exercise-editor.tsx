@@ -576,9 +576,9 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
         {/* Its state and its button first, kept in view beside a long exercise; then where it
             is filed, which changes seldom. The fields here are outside the form: the form is
             built from state, and the tags join it so Entrée still saves. */}
-        <aside
+        <section
           aria-label={t("settings")}
-          className="grid min-w-0 content-start gap-6 xl:sticky xl:top-24"
+          className="grid min-w-0 content-start gap-6 xl:sticky xl:top-24 xl:-m-2 xl:max-h-[calc(100dvh-7rem)] xl:overflow-y-auto xl:p-2"
         >
           <div className="grid gap-3 rounded-2xl border border-quadrillage bg-surface p-4">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -588,7 +588,7 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
               )}
             </div>
             <p className="text-sm text-encre-douce" aria-live="polite">
-              {dirty ? t("unsaved") : ready ? t("upToDate") : null}
+              {dirty ? t("unsaved") : ready && state.status !== "success" ? t("upToDate") : null}
             </p>
             {locked ? (
               <p className="text-sm text-encre-douce">
@@ -604,7 +604,8 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
             >
               {pending ? t("saving") : t("save")}
             </Button>
-            <FormMessage state={state} />
+            {/* « Exercice enregistré. » stays only until the next change. */}
+            {dirty && state.status === "success" ? null : <FormMessage state={state} />}
             {!dirty && complete ? (
               // Only once saved and whole: leaving by this link would drop unsaved changes.
               <Link
@@ -648,7 +649,7 @@ export function ExerciseEditor({ calloutLabels, levels, exercise }: Props) {
           />
 
           <DeleteExercise id={exercise.id} assigned={exercise.assigned} />
-        </aside>
+        </section>
       </div>
     </div>
   );

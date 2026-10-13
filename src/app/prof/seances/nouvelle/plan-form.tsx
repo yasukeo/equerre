@@ -283,7 +283,9 @@ export function PlanForm({
         title={t("preview.title")}
         caption={
           group
-            ? t("preview.captionGroup")
+            ? who
+              ? t("preview.captionGroup", { name: who })
+              : t("preview.captionNobodyGroup")
             : who
               ? t("preview.caption", { name: who.split(" ")[0] ?? who })
               : t("preview.captionNobody")
@@ -303,7 +305,8 @@ export function PlanForm({
             endsAt={endsAt.toISOString()}
             status="planifiee"
             statusLabel={tStatus("planifiee")}
-            title={who ?? (group ? t("preview.nobodyGroup") : t("preview.nobodyStudent"))}
+            title={type?.name}
+            group={group ? (who ?? t("preview.nobodyGroup")) : undefined}
             mode={mode as SessionMode}
             place={values.location.trim() || tMode(mode as SessionMode)}
             past={false}

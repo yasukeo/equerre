@@ -17,6 +17,7 @@ export function FormPreview({
   children,
   footer,
   className,
+  footerClassName,
 }: {
   id: string;
   /** « Aperçu ». */
@@ -27,6 +28,8 @@ export function FormPreview({
   /** The message of the last attempt and the button. */
   footer?: ReactNode;
   className?: string;
+  /** For a preview that scrolls: its button kept at the bottom of the column. */
+  footerClassName?: string;
 }) {
   return (
     <section
@@ -43,7 +46,7 @@ export function FormPreview({
         {caption ? <p className="text-sm text-encre-douce">{caption}</p> : null}
       </div>
       {children}
-      {footer ? <div className="grid gap-3">{footer}</div> : null}
+      {footer ? <div className={cn("grid gap-3", footerClassName)}>{footer}</div> : null}
     </section>
   );
 }
