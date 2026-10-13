@@ -1010,7 +1010,7 @@ Asked on 2026-10-10: the tutor wants to add a PDF to everything — homework, ex
   - a signed-out visitor following a subject or copy link is sent to sign in (`/devoirs` is private) rather than shown a 404;
   - the card: a `div`, the name and size one 44 px link with a visible new-tab mark and « (PDF, nouvel onglet) » for screen readers, the app's outline button with its icon, an ink edge rather than homework's red, kept whole on a printed page; the download button no longer prints, which a later rule had undone;
   - the toolbar button reads « Modifier le PDF » when a PDF is selected, so its name keeps the visible « PDF »; each editor says who will open a PDF: the lesson's readers, the students given the exercise, or, for the corrigé, the student once her copy is corrected or the solution asked for.
-- **Not done.** No RLS test covers `can_read_exercise_file` yet; the rehearsal on 2026-10-10 checked statement, corrigé, a student not given the exercise, the tutor and a signed-out visitor.
+- **Not run yet.** `tests/rls/exercise-files.test.ts` covers `can_read_exercise_file`: the tutor, the statement, the corrigé before and after the solution is asked for, a file neither part names, a student not given the exercise, a signed-out visitor, the folder's listing. Like every RLS test it must run against a project other than production, and none is set up; the rehearsal on 2026-10-10 checked the same cases on the migration itself.
 
 ## Secret key usage
 
